@@ -32,6 +32,24 @@ jobs:
         with:
           name: web
           path: build/web
+      - if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy-pages:
+    if: github.event_name != 'pull_request'
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
 
   ios-unsigned:
     # Verifies the iOS build compiles on a macOS runner (no signing yet).
