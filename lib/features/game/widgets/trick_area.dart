@@ -29,10 +29,9 @@ class TrickArea extends StatelessWidget {
     final winnerSeat = table.displayTrick?.winner;
     return LayoutBuilder(
       builder: (context, box) {
-        final cw = math.min(
-          76.0,
-          math.min(box.maxWidth / 3.3, box.maxHeight / 2.75),
-        );
+        final cw = math
+            .min(76.0, math.min(box.maxWidth / 3.3, box.maxHeight / 2.75))
+            .floorToDouble();
         final ch = cw * PlayingCardView.aspect;
         final center = Offset(box.maxWidth / 2, box.maxHeight / 2);
         final spreadX = cw * 1.15;
@@ -40,19 +39,19 @@ class TrickArea extends StatelessWidget {
         return Stack(
           clipBehavior: Clip.none,
           children: [
-            for (final (i, p) in trick.plays.indexed)
+            for (final p in trick.plays)
               _FlyingCard(
                 key: ValueKey('${trick.leader}-${p.card.code}'),
                 from: _dir(p.seat) * (box.maxWidth * 0.6),
-                target:
-                    center +
-                    Offset(
-                      _dir(p.seat).dx * spreadX,
-                      _dir(p.seat).dy * spreadY,
-                    ) -
-                    Offset(cw / 2, ch / 2),
-                angle: (p.seat.isEven ? 0.02 : -0.03) * (i.isEven ? 1 : -1),
+                // Straight, symmetric cross snapped to whole pixels.
+                target: Offset(
+                  (center.dx + _dir(p.seat).dx * spreadX - cw / 2)
+                      .roundToDouble(),
+                  (center.dy + _dir(p.seat).dy * spreadY - ch / 2)
+                      .roundToDouble(),
+                ),
                 child: PlayingCardView(
+                  key: Key('trick-${p.seat}'),
                   card: p.card,
                   width: cw,
                   highlighted: winnerSeat == p.seat,
@@ -73,12 +72,10 @@ class _FlyingCard extends StatelessWidget {
     super.key,
     required this.from,
     required this.target,
-    required this.angle,
     required this.child,
   });
   final Offset from;
   final Offset target;
-  final double angle;
   final Widget child;
 
   @override
@@ -92,10 +89,7 @@ class _FlyingCard extends StatelessWidget {
         return Positioned(
           left: o.dx,
           top: o.dy,
-          child: Opacity(
-            opacity: t.clamp(0, 1),
-            child: Transform.rotate(angle: angle * t, child: child),
-          ),
+          child: Opacity(opacity: t.clamp(0, 1), child: child),
         );
       },
       child: child,

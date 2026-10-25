@@ -5,7 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'helpers.dart';
 
-GameState playing(List<List<Card>> hands, ContractType t, {List<String> plays = const []}) {
+GameState playing(
+  List<List<Card>> hands,
+  ContractType t, {
+  List<String> plays = const [],
+}) {
   var s = BelotEngine.newMatch(deck: deckFor(hands));
   s = BelotEngine.applyBid(s, 0, Bid.contract(t));
   for (var i = 0; i < 3; i++) {
@@ -26,7 +30,11 @@ void main() {
       while (s.phase != GamePhase.matchOver && s.history.length < 6) {
         switch (s.phase) {
           case GamePhase.bidding:
-            s = BelotEngine.applyBid(s, s.currentSeat, agent.chooseBid(s, s.currentSeat));
+            s = BelotEngine.applyBid(
+              s,
+              s.currentSeat,
+              agent.chooseBid(s, s.currentSeat),
+            );
           case GamePhase.playing:
             final seat = s.currentSeat;
             final hint = suggestCard(s, seat);

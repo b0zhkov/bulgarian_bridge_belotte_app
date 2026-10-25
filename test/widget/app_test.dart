@@ -7,6 +7,7 @@ import 'package:bulgarian_bridge_belotte_app/main.dart';
 import 'package:flutter/material.dart' hide Card;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:bulgarian_bridge_belotte_app/features/game/widgets/trick_area.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<ProviderContainer> pumpApp(
@@ -19,9 +20,13 @@ Future<ProviderContainer> pumpApp(
   addTearDown(t.view.reset);
   SharedPreferences.setMockInitialValues(prefs);
   final sp = await SharedPreferences.getInstance();
-  final container = ProviderContainer(overrides: [sharedPrefsProvider.overrideWithValue(sp)]);
+  final container = ProviderContainer(
+    overrides: [sharedPrefsProvider.overrideWithValue(sp)],
+  );
   addTearDown(container.dispose);
-  await t.pumpWidget(UncontrolledProviderScope(container: container, child: const BelotApp()));
+  await t.pumpWidget(
+    UncontrolledProviderScope(container: container, child: const BelotApp()),
+  );
   await t.pump();
   return container;
 }
@@ -41,7 +46,9 @@ void main() {
   });
 
   group('name prompt', () {
-    testWidgets('shown on first launch, validates and persists the name', (t) async {
+    testWidgets('shown on first launch, validates and persists the name', (
+      t,
+    ) async {
       final container = await pumpApp(t, prefs: const {});
       expect(find.byKey(const Key('name-title')), findsOneWidget);
       expect(find.text('Как да те наричаме?'), findsOneWidget);
@@ -60,7 +67,10 @@ void main() {
       await t.pump();
       expect(find.textContaining('Само букви'), findsOneWidget);
 
-      await t.enterText(find.byKey(const Key('name-field')), 'Много дълго име за игра');
+      await t.enterText(
+        find.byKey(const Key('name-field')),
+        'Много дълго име за игра',
+      );
       final field = t.widget<TextField>(find.byKey(const Key('name-field')));
       expect(field.controller!.text.length, kNameMaxLength);
 
@@ -68,12 +78,17 @@ void main() {
       await t.tap(find.byKey(const Key('name-save')));
       await t.pumpAndSettle();
       expect(container.read(playerNameProvider), 'Георги');
-      expect(container.read(sharedPrefsProvider).getString('player_name'), 'Георги');
+      expect(
+        container.read(sharedPrefsProvider).getString('player_name'),
+        'Георги',
+      );
       expect(find.byKey(const Key('greeting')), findsOneWidget);
       expect(find.text('Здравей, Георги'), findsOneWidget);
     });
 
-    testWidgets('not shown when a name is stored; can be changed in settings', (t) async {
+    testWidgets('not shown when a name is stored; can be changed in settings', (
+      t,
+    ) async {
       final container = await pumpApp(t);
       expect(find.byKey(const Key('name-title')), findsNothing);
       await t.tap(find.byKey(const Key('open-settings')));
@@ -105,17 +120,52 @@ void main() {
 
   group('stats', () {
     testWidgets('home card and stats screen show persisted stats', (t) async {
-      final stored = const PlayerStats(matchesPlayed: 4, matchesWon: 3, dealsPlayed: 37, pointsWritten: 370, contractsDeclared: 10, contractsMade: 7, valats: 1);
-      await pumpApp(t, prefs: {'player_name': 'Георги', 'player_stats_v1': _json(stored)});
+      final stored = const PlayerStats(
+        matchesPlayed: 4,
+        matchesWon: 3,
+        dealsPlayed: 37,
+        pointsWritten: 370,
+        contractsDeclared: 10,
+        contractsMade: 7,
+        valats: 1,
+      );
+      await pumpApp(
+        t,
+        prefs: {'player_name': 'Георги', 'player_stats_v1': _json(stored)},
+      );
       expect(find.text('Статистика'), findsOneWidget);
       expect(find.text('75%'), findsOneWidget);
       await t.tap(find.byKey(const Key('open-stats')));
       await t.pumpAndSettle();
       expect(find.byKey(const Key('stats-screen')), findsOneWidget);
-      expect(find.descendant(of: find.byKey(const Key('stat-matches')), matching: find.text('4')), findsOneWidget);
-      expect(find.descendant(of: find.byKey(const Key('stat-wins')), matching: find.text('3')), findsOneWidget);
-      expect(find.descendant(of: find.byKey(const Key('stat-winrate')), matching: find.text('75%')), findsOneWidget);
-      expect(find.descendant(of: find.byKey(const Key('stat-deals')), matching: find.text('37')), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('stat-matches')),
+          matching: find.text('4'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('stat-wins')),
+          matching: find.text('3'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('stat-winrate')),
+          matching: find.text('75%'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('stat-deals')),
+          matching: find.text('37'),
+        ),
+        findsOneWidget,
+      );
       expect(find.text('10.0'), findsOneWidget); // avg points per deal
       expect(find.text('7/10'), findsOneWidget);
     });
@@ -126,7 +176,9 @@ void main() {
         contract: const Contract(ContractType.spades, 0),
         tricks: [
           for (var i = 0; i < 8; i++)
-            Trick(0, [for (var k = 0; k < 4; k++) Play(k, fullDeck[i * 4 + k])], i < 6 ? 0 : 1),
+            Trick(0, [
+              for (var k = 0; k < 4; k++) Play(k, fullDeck[i * 4 + k]),
+            ], i < 6 ? 0 : 1),
         ],
         declarations: const [],
         belots: const [],
@@ -143,7 +195,9 @@ void main() {
     });
   });
 
-  testWidgets('theme toggle switches to light and back (dark default)', (t) async {
+  testWidgets('theme toggle switches to light and back (dark default)', (
+    t,
+  ) async {
     final container = await pumpApp(t);
     expect(container.read(themeModeProvider), ThemeMode.dark);
     await t.tap(find.byKey(const Key('open-settings')));
@@ -156,7 +210,9 @@ void main() {
     expect(container.read(themeModeProvider), ThemeMode.dark);
   });
 
-  testWidgets('table shows partner opposite and opponents on the sides', (t) async {
+  testWidgets('table shows partner opposite and opponents on the sides', (
+    t,
+  ) async {
     await pumpApp(t);
     await t.tap(find.byKey(const Key('play-offline')));
     for (var i = 0; i < 20; i++) {
@@ -168,13 +224,14 @@ void main() {
     expect(top.dy, lessThan(left.dy));
     expect(left.dx, lessThan(top.dx));
     expect(right.dx, greaterThan(top.dx));
-    expect(find.descendant(of: find.byKey(const Key('seat-2')), matching: find.text('Партньор')), findsOneWidget);
-    expect(find.descendant(of: find.byKey(const Key('seat-1')), matching: find.text('Противник')), findsOneWidget);
-    expect(find.descendant(of: find.byKey(const Key('seat-3')), matching: find.text('Противник')), findsOneWidget);
+    expect(find.text('Партньор'), findsNothing);
+    expect(find.text('Противник'), findsNothing);
     await leave(t);
   });
 
-  testWidgets('a full deal can be played through the UI and stats update', (t) async {
+  testWidgets('a full deal can be played through the UI and stats update', (
+    t,
+  ) async {
     final container = await pumpApp(t);
     await t.tap(find.byKey(const Key('play-offline')));
     await t.pump(const Duration(milliseconds: 50));
@@ -186,11 +243,16 @@ void main() {
       if (find.byKey(const Key('result-continue')).evaluate().isNotEmpty) break;
       if (!table.isHumanTurn) continue;
       if (table.game.phase == GamePhase.bidding) {
-        final key = !bidMade && table.game.contract == null ? 'bid-clubs' : 'bid-pass';
+        final key = !bidMade && table.game.contract == null
+            ? 'bid-clubs'
+            : 'bid-pass';
         bidMade = true;
         await t.tap(find.byKey(Key(key)));
       } else if (table.game.phase == GamePhase.playing) {
-        final card = container.read(gameControllerProvider.notifier).humanLegalCards().first;
+        final card = container
+            .read(gameControllerProvider.notifier)
+            .humanLegalCards()
+            .first;
         final f = find.byKey(Key('hand-${card.code}'));
         await t.tapAt(t.getTopLeft(f) + const Offset(8, 40));
         cardsPlayed++;
@@ -201,12 +263,21 @@ void main() {
     expect(container.read(statsProvider).dealsPlayed, 1);
     await t.tap(find.byKey(const Key('result-continue')));
     await t.pump(const Duration(milliseconds: 50));
-    expect(container.read(gameControllerProvider).game.dealNumber, greaterThanOrEqualTo(2));
+    expect(
+      container.read(gameControllerProvider).game.dealNumber,
+      greaterThanOrEqualTo(2),
+    );
     await leave(t);
   });
 
-  Future<ProviderContainer> toHumanPlayTurn(WidgetTester t, {Map<String, Object>? prefs}) async {
-    final container = await pumpApp(t, prefs: prefs ?? const {'player_name': 'Георги'});
+  Future<ProviderContainer> toHumanPlayTurn(
+    WidgetTester t, {
+    Map<String, Object>? prefs,
+  }) async {
+    final container = await pumpApp(
+      t,
+      prefs: prefs ?? const {'player_name': 'Георги'},
+    );
     await t.tap(find.byKey(const Key('play-offline')));
     await t.pump(const Duration(milliseconds: 50));
     var bidMade = false;
@@ -216,7 +287,9 @@ void main() {
       if (!table.isHumanTurn) continue;
       if (table.game.phase == GamePhase.playing) break;
       if (table.game.phase == GamePhase.bidding) {
-        final key = !bidMade && table.game.contract == null ? 'bid-clubs' : 'bid-pass';
+        final key = !bidMade && table.game.contract == null
+            ? 'bid-clubs'
+            : 'bid-pass';
         bidMade = true;
         await t.tap(find.byKey(Key(key)));
       }
@@ -225,14 +298,19 @@ void main() {
     return container;
   }
 
-  testWidgets('hint appears after 25 s on the human turn and is legal', (t) async {
+  testWidgets('hint appears after 25 s on the human turn and is legal', (
+    t,
+  ) async {
     final container = await toHumanPlayTurn(t);
     await t.pump(const Duration(seconds: 24));
     expect(container.read(gameControllerProvider).hint, isNull);
     await t.pump(const Duration(seconds: 2));
     final table = container.read(gameControllerProvider);
     expect(table.hint, isNotNull);
-    expect(container.read(gameControllerProvider.notifier).humanLegalCards(), contains(table.hint));
+    expect(
+      container.read(gameControllerProvider.notifier).humanLegalCards(),
+      contains(table.hint),
+    );
     expect(find.textContaining('Подсказка'), findsOneWidget);
     // playing clears the hint
     final f = find.byKey(Key('hand-${table.hint!.code}'));
@@ -243,38 +321,153 @@ void main() {
   });
 
   testWidgets('no hint when hints are disabled', (t) async {
-    final container = await toHumanPlayTurn(t, prefs: const {'player_name': 'Георги', 'hints_enabled': false});
+    final container = await toHumanPlayTurn(
+      t,
+      prefs: const {'player_name': 'Георги', 'hints_enabled': false},
+    );
     await t.pump(const Duration(seconds: 30));
     expect(container.read(gameControllerProvider).hint, isNull);
     await leave(t);
   });
 
   group('responsive layout (no overflow)', () {
-    for (final size in const [Size(360, 780), Size(430, 932), Size(1280, 800)]) {
-      testWidgets('home, settings, stats, table at ${size.width.toInt()}x${size.height.toInt()}', (t) async {
-        await pumpApp(t, size: size, prefs: const {});
-        expect(t.takeException(), isNull); // name prompt
-        await t.enterText(find.byKey(const Key('name-field')), 'Александра');
-        await t.tap(find.byKey(const Key('name-save')));
-        await t.pumpAndSettle();
-        expect(t.takeException(), isNull);
-        await t.tap(find.byKey(const Key('open-stats')));
-        await t.pumpAndSettle();
-        expect(t.takeException(), isNull);
-        await t.tap(find.byIcon(Icons.arrow_back_rounded));
-        await t.pumpAndSettle();
-        await t.tap(find.byKey(const Key('open-settings')));
-        await t.pumpAndSettle();
-        expect(t.takeException(), isNull);
-        await t.tap(find.byIcon(Icons.arrow_back_rounded));
-        await t.pumpAndSettle();
-        await t.tap(find.byKey(const Key('play-offline')));
-        for (var i = 0; i < 200; i++) {
-          await t.pump(const Duration(milliseconds: 40));
-        }
-        expect(t.takeException(), isNull);
-        await leave(t);
-      });
+    for (final size in const [
+      Size(360, 780),
+      Size(430, 932),
+      Size(1280, 800),
+    ]) {
+      testWidgets(
+        'home, settings, stats, table at ${size.width.toInt()}x${size.height.toInt()}',
+        (t) async {
+          await pumpApp(t, size: size, prefs: const {});
+          expect(t.takeException(), isNull); // name prompt
+          await t.enterText(find.byKey(const Key('name-field')), 'Александра');
+          await t.tap(find.byKey(const Key('name-save')));
+          await t.pumpAndSettle();
+          expect(t.takeException(), isNull);
+          await t.tap(find.byKey(const Key('open-stats')));
+          await t.pumpAndSettle();
+          expect(t.takeException(), isNull);
+          await t.tap(find.byIcon(Icons.arrow_back_rounded));
+          await t.pumpAndSettle();
+          await t.tap(find.byKey(const Key('open-settings')));
+          await t.pumpAndSettle();
+          expect(t.takeException(), isNull);
+          await t.tap(find.byIcon(Icons.arrow_back_rounded));
+          await t.pumpAndSettle();
+          await t.tap(find.byKey(const Key('play-offline')));
+          for (var i = 0; i < 200; i++) {
+            await t.pump(const Duration(milliseconds: 40));
+          }
+          expect(t.takeException(), isNull);
+          await leave(t);
+        },
+      );
+    }
+  });
+
+  group('cards are straight and aligned', () {
+    setUp(() {
+      // Hold the finished trick long enough to inspect it.
+      GameController.trickPause = const Duration(milliseconds: 1100);
+      GameController.botDelay = const Duration(milliseconds: 50);
+    });
+    for (final size in const [
+      Size(360, 780),
+      Size(430, 932),
+      Size(1280, 800),
+    ]) {
+      testWidgets(
+        'trick cross and hand at ${size.width.toInt()}x${size.height.toInt()}',
+        (t) async {
+          final container = await pumpApp(t, size: size);
+          await t.tap(find.byKey(const Key('play-offline')));
+          await t.pump(const Duration(milliseconds: 50));
+          var bidMade = false;
+          var checkedFull = false;
+          var checkedHand = false;
+          for (var i = 0; i < 3000 && !(checkedFull && checkedHand); i++) {
+            await t.pump(const Duration(milliseconds: 30));
+            final table = container.read(gameControllerProvider);
+            if (table.game.phase == GamePhase.bidding && table.isHumanTurn) {
+              await t.tap(
+                find.byKey(
+                  Key(
+                    !bidMade && table.game.contract == null
+                        ? 'bid-clubs'
+                        : 'bid-pass',
+                  ),
+                ),
+              );
+              bidMade = true;
+              continue;
+            }
+            if (table.game.phase != GamePhase.playing) continue;
+            if (table.isHumanTurn && !checkedHand) {
+              await t.pump(const Duration(milliseconds: 400));
+              final tops = <double>{
+                for (final c in table.game.hands[0])
+                  t.getTopLeft(find.byKey(Key('hand-${c.code}'))).dy,
+              };
+              expect(tops.length, 1, reason: 'hand cards share one baseline');
+              checkedHand = true;
+            }
+            if (table.holding &&
+                table.visibleTrick.plays.length == 4 &&
+                !checkedFull) {
+              // Let the last card finish flying in (320 ms) while the trick is held.
+              await t.pump(const Duration(milliseconds: 350));
+              final r = [
+                for (var s = 0; s < 4; s++)
+                  t.getRect(find.byKey(Key('trick-$s'))),
+              ];
+              expect(
+                find.descendant(
+                  of: find.byType(TrickArea),
+                  matching: find.byType(Transform),
+                ),
+                findsNothing,
+              );
+              expect(r[0].center.dx, r[2].center.dx);
+              expect(r[1].center.dy, r[3].center.dy);
+              expect(
+                (r[1].center.dx + r[3].center.dx) / 2,
+                closeTo(r[0].center.dx, 0.51),
+              );
+              expect(
+                (r[0].center.dy + r[2].center.dy) / 2,
+                closeTo(r[1].center.dy, 0.51),
+              );
+              for (final x in r) {
+                expect(x.left, x.left.roundToDouble());
+                expect(x.top, x.top.roundToDouble());
+                expect(x.size, r[0].size);
+              }
+              checkedFull = true;
+            }
+            if (table.isHumanTurn) {
+              final card = container
+                  .read(gameControllerProvider.notifier)
+                  .humanLegalCards()
+                  .first;
+              await t.tapAt(
+                t.getTopLeft(find.byKey(Key('hand-${card.code}'))) +
+                    const Offset(8, 40),
+              );
+            }
+          }
+          expect(
+            (
+              checkedFull,
+              checkedHand,
+              container.read(gameControllerProvider).game.phase,
+            ),
+            (true, true, GamePhase.playing),
+          );
+          expect(t.takeException(), isNull);
+          await leave(t);
+        },
+      );
     }
   });
 }

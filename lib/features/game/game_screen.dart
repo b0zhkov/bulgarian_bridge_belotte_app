@@ -403,11 +403,11 @@ class _StatusLine extends StatelessWidget {
     }
     return SizedBox(
       height: 24,
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 200),
+      // Plain text: an AnimatedSwitcher keyed by text threw duplicate-key
+      // errors when the same status reappeared within its fade.
+      child: Center(
         child: Text(
           text,
-          key: ValueKey(text),
           style: TextStyle(
             color: hintShown && table.isHumanTurn
                 ? c.chipText

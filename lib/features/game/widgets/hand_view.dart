@@ -34,15 +34,18 @@ class HandView extends StatelessWidget {
         final n = math.max(cards.length, 1);
         final cw = math
             .min(maxCardWidth, w / (1 + (n - 1) * 0.55))
-            .clamp(40.0, maxCardWidth);
-        final step = n == 1 ? 0.0 : math.min(cw * 0.86, (w - cw) / (n - 1));
+            .clamp(40.0, maxCardWidth)
+            .floorToDouble();
+        final step = n == 1
+            ? 0.0
+            : math.min(cw * 0.86, (w - cw) / (n - 1)).floorToDouble();
         final totalW = cw + step * (n - 1);
-        final left0 = (w - totalW) / 2;
+        final left0 = ((w - totalW) / 2).roundToDouble();
         final ch = cw * PlayingCardView.aspect;
-        const lift = 14.0;
-        const hintLift = 10.0;
+        // All cards sit on one straight baseline; only the hinted card lifts.
+        const hintLift = 14.0;
         return SizedBox(
-          height: ch + lift + hintLift,
+          height: ch + hintLift,
           child: Stack(
             clipBehavior: Clip.none,
             children: [
@@ -52,10 +55,7 @@ class HandView extends StatelessWidget {
                   duration: const Duration(milliseconds: 260),
                   curve: Curves.easeOutCubic,
                   left: left0 + step * i,
-                  top:
-                      hintLift +
-                      (interactive && legal.contains(card) ? 0 : lift) -
-                      (interactive && card == hint ? hintLift : 0),
+                  top: interactive && card == hint ? 0 : hintLift,
                   child: GestureDetector(
                     key: Key('hand-${card.code}'),
                     behavior: HitTestBehavior.opaque,

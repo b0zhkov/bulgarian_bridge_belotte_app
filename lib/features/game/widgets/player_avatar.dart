@@ -116,8 +116,6 @@ class PlayerAvatar extends StatelessWidget {
         !table.holding &&
         g.currentSeat == seat &&
         (g.phase == GamePhase.bidding || g.phase == GamePhase.playing);
-    final isPartner = teamOf(seat) == teamOf(kHumanSeat);
-    final color = teamColor(context, seat);
 
     String? chip;
     ContractType? chipContract;
@@ -167,18 +165,6 @@ class PlayerAvatar extends StatelessWidget {
               style: TextStyle(
                 color: c.textPrimary,
                 fontSize: AppText.label,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              isPartner ? l.partner : l.opponent,
-              key: Key('role-$seat'),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: color,
-                fontSize: AppText.caption - 1,
                 fontWeight: FontWeight.w600,
               ),
             ),
