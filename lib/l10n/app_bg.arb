@@ -2,9 +2,9 @@
   "@@locale": "bg",
   "appTitle": "Белот",
   "homeOfflineTitle": "Офлайн игра",
-  "homeOfflineSubtitle": "Играй срещу трима компютърни играчи",
+  "homeOfflineSubtitle": "Игра с ботове",
   "homeOnlineTitle": "Игра с приятели",
-  "homeOnlineSubtitle": "Стая с код за четирима играчи",
+  "homeOnlineSubtitle": "Стая с код",
   "settings": "Настройки",
   "theme": "Тема",
   "themeDark": "Тъмна",
@@ -195,5 +195,32 @@
   },
   "back": "Назад",
   "players": "Играчи",
-  "retry": "Опитай пак"
+  "retry": "Опитай пак",
+  "seatLeftBot": "{name} напусна, бот пое мястото",
+  "@seatLeftBot": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "seatBack": "{name} се върна",
+  "@seatBack": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "seatJoined": "{name} влезе на мястото на бота",
+  "@seatJoined": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "leaveOnlineGameTitle": "Да напуснеш ли играта?",
+  "leaveOnlineGameBody": "Бот ще поеме мястото ти. Можеш да се върнеш със същия код до края на раздаването.",
+  "botName0": "Иван"
 }

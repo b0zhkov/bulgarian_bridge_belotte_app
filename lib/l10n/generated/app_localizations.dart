@@ -113,7 +113,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeOfflineSubtitle.
   ///
   /// In bg, this message translates to:
-  /// **'Играй срещу трима компютърни играчи'**
+  /// **'Игра с ботове'**
   String get homeOfflineSubtitle;
 
   /// No description provided for @homeOnlineTitle.
@@ -125,7 +125,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeOnlineSubtitle.
   ///
   /// In bg, this message translates to:
-  /// **'Стая с код за четирима играчи'**
+  /// **'Стая с код'**
   String get homeOnlineSubtitle;
 
   /// No description provided for @settings.
@@ -943,6 +943,42 @@ abstract class AppLocalizations {
   /// In bg, this message translates to:
   /// **'Опитай пак'**
   String get retry;
+
+  /// No description provided for @seatLeftBot.
+  ///
+  /// In bg, this message translates to:
+  /// **'{name} напусна, бот пое мястото'**
+  String seatLeftBot(String name);
+
+  /// No description provided for @seatBack.
+  ///
+  /// In bg, this message translates to:
+  /// **'{name} се върна'**
+  String seatBack(String name);
+
+  /// No description provided for @seatJoined.
+  ///
+  /// In bg, this message translates to:
+  /// **'{name} влезе на мястото на бота'**
+  String seatJoined(String name);
+
+  /// No description provided for @leaveOnlineGameTitle.
+  ///
+  /// In bg, this message translates to:
+  /// **'Да напуснеш ли играта?'**
+  String get leaveOnlineGameTitle;
+
+  /// No description provided for @leaveOnlineGameBody.
+  ///
+  /// In bg, this message translates to:
+  /// **'Бот ще поеме мястото ти. Можеш да се върнеш със същия код до края на раздаването.'**
+  String get leaveOnlineGameBody;
+
+  /// No description provided for @botName0.
+  ///
+  /// In bg, this message translates to:
+  /// **'Иван'**
+  String get botName0;
 }
 
 class _AppLocalizationsDelegate

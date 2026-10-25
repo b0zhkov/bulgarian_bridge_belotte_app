@@ -2,9 +2,9 @@
   "@@locale": "en",
   "appTitle": "Belot",
   "homeOfflineTitle": "Offline game",
-  "homeOfflineSubtitle": "Play against three computer players",
+  "homeOfflineSubtitle": "Play with bots",
   "homeOnlineTitle": "Play with friends",
-  "homeOnlineSubtitle": "Room code for four players",
+  "homeOnlineSubtitle": "Room with a code",
   "settings": "Settings",
   "theme": "Theme",
   "themeDark": "Dark",
@@ -140,5 +140,11 @@
   "seatsWithBots": "{n, plural, =1{1 bot seat} other{{n} bot seats}}",
   "back": "Back",
   "players": "Players",
-  "retry": "Try again"
+  "retry": "Try again",
+  "seatLeftBot": "{name} left, a bot took the seat",
+  "seatBack": "{name} is back",
+  "seatJoined": "{name} took the bot's seat",
+  "leaveOnlineGameTitle": "Leave the game?",
+  "leaveOnlineGameBody": "A bot will take your seat. You can come back with the same code until the deal ends.",
+  "botName0": "Ivan"
 }

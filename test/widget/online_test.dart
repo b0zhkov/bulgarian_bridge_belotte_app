@@ -1,5 +1,7 @@
 import 'package:bulgarian_bridge_belotte_app/core/rules/rules.dart';
+import 'package:bulgarian_bridge_belotte_app/features/game/game_screen.dart';
 import 'package:bulgarian_bridge_belotte_app/features/online/online_controller.dart';
+import 'package:bulgarian_bridge_belotte_app/features/profile/name_screen.dart';
 import 'package:bulgarian_bridge_belotte_app/features/profile/profile_controller.dart';
 import 'package:bulgarian_bridge_belotte_app/features/settings/settings_controller.dart';
 import 'package:bulgarian_bridge_belotte_app/main.dart';
@@ -140,7 +142,9 @@ void main() {
     await t.ensureVisible(find.byKey(const Key('add-bots')));
     await t.tap(find.byKey(const Key('add-bots')));
     await settle(t);
-    expect(find.text('Бот'), findsNWidgets(2));
+    // Lobby bots already use their table names (seats 2 and 3), robot only.
+    expect(find.text('Мария'), findsOneWidget);
+    expect(find.text('Петър'), findsOneWidget);
     await t.ensureVisible(find.byKey(const Key('start-game')));
     await t.tap(find.byKey(const Key('start-game')));
     await settle(t, 20);
@@ -149,6 +153,38 @@ void main() {
     expect(find.text(code), findsOneWidget);
     expect(find.text('Иванка'), findsOneWidget);
     expect(b.mySeat, 1);
+    expect(find.text('🤖'), findsNWidgets(2));
+
+    // Иванка drops: her seat becomes a plainly named bot with the robot
+    // avatar, and a toast tells the table.
+    server.disconnect('b');
+    await settle(t);
+    String notice() =>
+        t.widget<Text>(find.byKey(const Key('seat-notice'))).data!;
+    expect(notice(), 'Иванка напусна, бот пое мястото');
+    expect(find.text('Ники'), findsOneWidget);
+    expect(find.text('🤖'), findsNWidgets(3));
+    // The name/avatar crossfade out leaves no trace of the human.
+    await t.pump(const Duration(milliseconds: 600));
+    expect(
+      find.descendant(
+        of: find.byType(TableView),
+        matching: find.text('Иванка'),
+      ),
+      findsNothing,
+    );
+
+    // She comes back within the deal and gets her seat and name back.
+    server.reconnect('b');
+    await settle(t);
+    expect(notice(), 'Иванка се върна');
+    await t.pump(const Duration(milliseconds: 600));
+    expect(find.text('Ники'), findsNothing);
+    expect(find.text('🤖'), findsNWidgets(2));
+    // The toast goes away by itself.
+    await t.pump(const Duration(seconds: 4));
+    await t.pump(const Duration(milliseconds: 400));
+    expect(find.byKey(const Key('seat-notice')), findsNothing);
     await finish(t, container);
   });
 
@@ -211,6 +247,34 @@ void main() {
       isTrue,
     );
     await finish(t, container);
+  });
+
+  testWidgets('opening #/online without a name asks for the name first', (
+    t,
+  ) async {
+    t.view.physicalSize = const Size(390, 844);
+    t.view.devicePixelRatio = 1;
+    addTearDown(t.view.reset);
+    SharedPreferences.setMockInitialValues({});
+    final sp = await SharedPreferences.getInstance();
+    final container = ProviderContainer(
+      overrides: [sharedPrefsProvider.overrideWithValue(sp)],
+    );
+    addTearDown(container.dispose);
+    await t.pumpWidget(
+      UncontrolledProviderScope(container: container, child: const BelotApp()),
+    );
+    await t.pump();
+    final nav = t.state<NavigatorState>(find.byType(Navigator));
+    nav.pushNamed('/online');
+    await t.pumpAndSettle();
+    expect(find.byKey(const Key('create-room')), findsNothing);
+    expect(find.byType(NameScreen), findsWidgets);
+    await t.enterText(find.byType(TextField).last, 'Гошо');
+    await t.testTextInput.receiveAction(TextInputAction.done);
+    await t.pumpAndSettle();
+    expect(container.read(playerNameProvider), 'Гошо');
+    expect(find.byKey(const Key('create-room')), findsOneWidget);
   });
 
   testWidgets('settings has separate hint and auto-play toggles', (t) async {

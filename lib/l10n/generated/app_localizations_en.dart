@@ -16,13 +16,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeOfflineTitle => 'Offline game';
 
   @override
-  String get homeOfflineSubtitle => 'Play against three computer players';
+  String get homeOfflineSubtitle => 'Play with bots';
 
   @override
   String get homeOnlineTitle => 'Play with friends';
 
   @override
-  String get homeOnlineSubtitle => 'Room code for four players';
+  String get homeOnlineSubtitle => 'Room with a code';
 
   @override
   String get settings => 'Settings';
@@ -457,4 +457,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get retry => 'Try again';
+
+  @override
+  String seatLeftBot(String name) {
+    return '$name left, a bot took the seat';
+  }
+
+  @override
+  String seatBack(String name) {
+    return '$name is back';
+  }
+
+  @override
+  String seatJoined(String name) {
+    return '$name took the bot\'s seat';
+  }
+
+  @override
+  String get leaveOnlineGameTitle => 'Leave the game?';
+
+  @override
+  String get leaveOnlineGameBody =>
+      'A bot will take your seat. You can come back with the same code until the deal ends.';
+
+  @override
+  String get botName0 => 'Ivan';
 }

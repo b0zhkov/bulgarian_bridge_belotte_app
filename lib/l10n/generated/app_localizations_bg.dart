@@ -16,13 +16,13 @@ class AppLocalizationsBg extends AppLocalizations {
   String get homeOfflineTitle => 'Офлайн игра';
 
   @override
-  String get homeOfflineSubtitle => 'Играй срещу трима компютърни играчи';
+  String get homeOfflineSubtitle => 'Игра с ботове';
 
   @override
   String get homeOnlineTitle => 'Игра с приятели';
 
   @override
-  String get homeOnlineSubtitle => 'Стая с код за четирима играчи';
+  String get homeOnlineSubtitle => 'Стая с код';
 
   @override
   String get settings => 'Настройки';
@@ -456,4 +456,29 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get retry => 'Опитай пак';
+
+  @override
+  String seatLeftBot(String name) {
+    return '$name напусна, бот пое мястото';
+  }
+
+  @override
+  String seatBack(String name) {
+    return '$name се върна';
+  }
+
+  @override
+  String seatJoined(String name) {
+    return '$name влезе на мястото на бота';
+  }
+
+  @override
+  String get leaveOnlineGameTitle => 'Да напуснеш ли играта?';
+
+  @override
+  String get leaveOnlineGameBody =>
+      'Бот ще поеме мястото ти. Можеш да се върнеш със същия код до края на раздаването.';
+
+  @override
+  String get botName0 => 'Иван';
 }

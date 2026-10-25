@@ -41,16 +41,19 @@ class BelotApp extends ConsumerWidget {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       routes: {
         '/': (_) => const _RootGate(),
-        '/game': (_) => const GameScreen(),
+        '/game': (_) => const _NameGate(child: GameScreen()),
         '/settings': (_) => const SettingsScreen(),
-        '/room': (_) => const RoomScreen(),
+        '/room': (_) => const _NameGate(child: RoomScreen()),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/online') {
           return MaterialPageRoute<void>(
             settings: settings,
-            builder: (_) =>
-                OnlineEntryScreen(initialCode: settings.arguments as String?),
+            builder: (_) => _NameGate(
+              child: OnlineEntryScreen(
+                initialCode: settings.arguments as String?,
+              ),
+            ),
           );
         }
         return null;
@@ -70,6 +73,22 @@ class _RootGate extends ConsumerWidget {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
       child: name == null ? const NameScreen() : const HomeScreen(),
+    );
+  }
+}
+
+/// Routes that need a player name (e.g. `#/online` opened directly) ask
+/// for it first.
+class _NameGate extends ConsumerWidget {
+  const _NameGate({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final name = ref.watch(playerNameProvider);
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: name == null ? const NameScreen() : child,
     );
   }
 }

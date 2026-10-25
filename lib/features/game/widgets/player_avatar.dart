@@ -80,9 +80,13 @@ class TeamEmoji extends StatelessWidget {
                   ]
                 : null,
           ),
-          child: Text(
-            emoji,
-            style: TextStyle(fontSize: size * 0.82, height: 1.1),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 450),
+            child: Text(
+              emoji,
+              key: ValueKey(emoji),
+              style: TextStyle(fontSize: size * 0.82, height: 1.1),
+            ),
           ),
         ),
         if (dealer)
@@ -158,14 +162,19 @@ class PlayerAvatar extends StatelessWidget {
               active: active,
             ),
             const SizedBox(height: Gap.xs + 2),
-            Text(
-              info.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: c.textPrimary,
-                fontSize: AppText.label,
-                fontWeight: FontWeight.w600,
+            // Crossfade when a bot takes over a seat or a player returns.
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 450),
+              child: Text(
+                info.name,
+                key: ValueKey(info.name),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: c.textPrimary,
+                  fontSize: AppText.label,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
             const SizedBox(height: Gap.xs),

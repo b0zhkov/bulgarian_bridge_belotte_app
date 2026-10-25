@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart' hide Card;
 
+import '../../core/agents/bot_names.dart';
 import '../../core/rules/rules.dart';
 import '../../core/widgets/suit_icon.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -10,12 +11,21 @@ class SeatInfo {
   final String name;
 }
 
+/// THE single place that decides what a bot is called and how it looks
+/// (offline opponents, lobby bots, bots holding an online seat), by
+/// absolute [seat]: plain names, unique per seat, always the robot avatar.
+SeatInfo botSeatInfo(AppLocalizations l, int seat) =>
+    SeatInfo(kBotAvatar, switch (seat % 4) {
+      0 => l.botName0,
+      1 => l.botName1,
+      2 => l.botName2,
+      _ => l.botName3,
+    });
+
 SeatInfo seatInfo(AppLocalizations l, int seat, [String? myName]) =>
     switch (seat) {
-      0 => SeatInfo('🙂', myName ?? l.you),
-      1 => SeatInfo('🐼', l.botName1),
-      2 => SeatInfo('🦊', l.botName2),
-      _ => SeatInfo('🧙', l.botName3),
+      0 => SeatInfo(kSelfAvatar, myName ?? l.you),
+      _ => botSeatInfo(l, seat),
     };
 
 String contractName(AppLocalizations l, ContractType t) => switch (t) {

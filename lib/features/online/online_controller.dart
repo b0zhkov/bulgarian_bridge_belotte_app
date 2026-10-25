@@ -8,6 +8,7 @@ import '../../core/rules/rules.dart';
 import '../../online/db.dart';
 import '../../online/firebase_db.dart';
 import '../../online/room_client.dart';
+import '../../online/room_models.dart';
 import '../game/game_controller.dart';
 import '../profile/profile_controller.dart';
 
@@ -18,6 +19,21 @@ final dbConnectorProvider = Provider<Future<Db> Function()>(
 
 enum OnlineError { notFound, closed, connection }
 
+enum SeatNoticeKind { leftBot, back, joined }
+
+/// A short toast about a seat changing hands during a game.
+class SeatNotice {
+  const SeatNotice(this.id, this.kind, this.name, this.seat);
+  final int id;
+  final SeatNoticeKind kind;
+
+  /// The human's name (who left, came back or joined).
+  final String name;
+
+  /// Absolute seat (used to name the bot).
+  final int seat;
+}
+
 class OnlineState {
   const OnlineState({
     this.client,
@@ -25,7 +41,11 @@ class OnlineState {
     this.error,
     this.table,
     this.revision = 0,
+    this.notice,
   });
+
+  /// Latest seat change toast (cleared after [OnlineController.noticeTime]).
+  final SeatNotice? notice;
 
   final RoomClient? client;
   final bool busy;
@@ -41,6 +61,7 @@ class OnlineState {
 /// state (trick pause, bubbles, hint and auto-play timers) lives here.
 class OnlineController extends Notifier<OnlineState> implements TableActions {
   static Duration trickPause = const Duration(milliseconds: 1300);
+  static Duration noticeTime = const Duration(milliseconds: 3500);
 
   final TurnTimers _turn = TurnTimers();
   RoomClient? _active;
@@ -52,12 +73,17 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
   int _lastTricks = -1;
   int _lastDeal = -1;
   int _announcementAt = -1;
+  List<Seat>? _prevSeats;
+  SeatNotice? _notice;
+  Timer? _noticeTimer;
+  int _noticeId = 0;
 
   @override
   OnlineState build() {
     ref.onDispose(() {
       _turn.cancel();
       _holdTimer?.cancel();
+      _noticeTimer?.cancel();
       _active?.detach();
     });
     return const OnlineState();
@@ -112,6 +138,9 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
     _lastTricks = -1;
     _lastDeal = -1;
     _announcementAt = -1;
+    _prevSeats = null;
+    _notice = null;
+    _noticeTimer?.cancel();
   }
 
   Future<void> leave() async {
@@ -132,11 +161,44 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
   void _changed() {
     final c = state.client;
     if (c == null) return;
+    _detectSeatChanges(c);
     state = OnlineState(
       client: c,
       table: _buildTable(c),
       revision: state.revision + 1,
+      notice: _notice,
     );
+  }
+
+  /// Toasts when a bot takes over a player's seat or a player takes a
+  /// bot's seat (returning or joining) while a match is on.
+  void _detectSeatChanges(RoomClient c) {
+    final now = c.meta?.status == RoomStatus.playing ? c.seats : null;
+    final prev = _prevSeats;
+    _prevSeats = now;
+    if (prev == null || now == null || prev.length != now.length) return;
+    SeatNotice? n;
+    for (var i = 0; i < now.length; i++) {
+      final a = prev[i], b = now[i];
+      if (!a.bot && b.bot && a.uid != c.uid) {
+        n = SeatNotice(++_noticeId, SeatNoticeKind.leftBot, a.name ?? '?', i);
+      } else if (a.bot && !b.bot && b.uid != c.uid) {
+        final back = a.heldFor != null && a.heldFor == b.uid;
+        n = SeatNotice(
+          ++_noticeId,
+          back ? SeatNoticeKind.back : SeatNoticeKind.joined,
+          b.name ?? '?',
+          i,
+        );
+      }
+    }
+    if (n == null) return;
+    _notice = n;
+    _noticeTimer?.cancel();
+    _noticeTimer = Timer(noticeTime, () {
+      _notice = null;
+      _changed();
+    });
   }
 
   TableState? _buildTable(RoomClient c) {

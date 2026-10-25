@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/agents/bot_names.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/pill_button.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -12,21 +13,20 @@ import '../game/labels.dart';
 import 'online_controller.dart';
 import 'room_code.dart';
 
-const _humanEmojis = ['🦁', '🐯', '🐨', '🐸'];
-
 /// Names/emojis for the four view seats (0 = this player).
 List<SeatInfo> seatInfosFor(AppLocalizations l, RoomClient c, String myName) {
   final mySeat = c.mySeat ?? 0;
   final seats = c.seats!;
-  final botNames = [l.botPlayer, l.botName1, l.botName2, l.botName3];
   return [
     for (var v = 0; v < 4; v++)
       () {
         final abs = (v + mySeat) % 4;
         final s = seats[abs];
-        if (v == 0) return SeatInfo('🙂', myName);
-        if (!s.bot) return SeatInfo(_humanEmojis[abs], s.name ?? '?');
-        return SeatInfo('🤖', s.name ?? botNames[abs]);
+        if (v == 0) return SeatInfo(kSelfAvatar, myName);
+        if (!s.bot) {
+          return SeatInfo(humanAvatar(kHumanAvatars[abs]), s.name ?? '?');
+        }
+        return botSeatInfo(l, abs);
       }(),
   ];
 }
@@ -109,12 +109,19 @@ class RoomScreen extends ConsumerWidget {
         c.game != null) {
       final table = s.table;
       if (c.mySeat != null && table != null) {
-        return TableView(
-          table: table.copyWith(seatInfos: seatInfosFor(l, c, c.name)),
-          actions: ctrl,
-          onLeave: () => _leave(context, ref, confirm: false),
-          footer: RoomCodeChip(code: c.code),
-          newMatchLabel: l.backToLobby,
+        return Stack(
+          children: [
+            TableView(
+              table: table.copyWith(seatInfos: seatInfosFor(l, c, c.name)),
+              actions: ctrl,
+              onLeave: () => _leave(context, ref, confirm: false),
+              footer: RoomCodeChip(code: c.code),
+              newMatchLabel: l.backToLobby,
+              leaveTitle: l.leaveOnlineGameTitle,
+              leaveBody: l.leaveOnlineGameBody,
+            ),
+            SeatNoticeToast(notice: s.notice),
+          ],
         );
       }
       return _WaitingView(client: c, onLeave: () => _leave(context, ref));
@@ -257,7 +264,12 @@ class _TeamBox extends StatelessWidget {
           host: client.meta?.host == m.uid,
         ),
       for (var i = 0; i < bots; i++)
-        slot(const Text('🤖'), l.botPlayer, muted: true),
+        slot(
+          const Text(kBotAvatar),
+          // The seat this bot will get when the match starts.
+          botSeatInfo(l, team + 2 * (humans.length + i)).name,
+          muted: true,
+        ),
     ];
     while (rows.length < 2) {
       rows.add(
@@ -470,7 +482,12 @@ class _WaitingView extends ConsumerWidget {
       final n = [t, t + 2].where((i) => seats[i].bot).length;
       final names = [
         for (final i in [t, t + 2])
-          seats[i].bot ? '🤖' : (seats[i].name ?? '?'),
+          seats[i].bot
+              ? () {
+                  final b = botSeatInfo(l, i);
+                  return '${b.emoji} ${b.name}';
+                }()
+              : (seats[i].name ?? '?'),
       ].join(' · ');
       final selected = myTeam == t;
       return Material(
@@ -596,6 +613,73 @@ class _WaitingView extends ConsumerWidget {
                 ],
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Text for a seat-change toast.
+String seatNoticeText(AppLocalizations l, SeatNotice n) => switch (n.kind) {
+  SeatNoticeKind.leftBot => l.seatLeftBot(n.name),
+  SeatNoticeKind.back => l.seatBack(n.name),
+  SeatNoticeKind.joined => l.seatJoined(n.name),
+};
+
+/// Small pill near the top of the table that fades in and out when a seat
+/// changes hands. Ignores touches so it never blocks the game.
+class SeatNoticeToast extends StatelessWidget {
+  const SeatNoticeToast({super.key, required this.notice});
+  final SeatNotice? notice;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final c = context.colors;
+    final n = notice;
+    return Positioned(
+      left: Gap.page,
+      right: Gap.page,
+      top: MediaQuery.paddingOf(context).top + 64,
+      child: IgnorePointer(
+        child: Center(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (child, a) => FadeTransition(
+              opacity: a,
+              child: SlideTransition(
+                position: Tween(
+                  begin: const Offset(0, -0.3),
+                  end: Offset.zero,
+                ).animate(a),
+                child: child,
+              ),
+            ),
+            child: n == null
+                ? const SizedBox.shrink()
+                : Material(
+                    key: ValueKey(n.id),
+                    color: c.surfaceHigh.withValues(alpha: 0.96),
+                    elevation: 4,
+                    shape: const StadiumBorder(),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: Gap.l,
+                        vertical: Gap.s + 2,
+                      ),
+                      child: Text(
+                        seatNoticeText(l, n),
+                        key: const Key('seat-notice'),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: c.textPrimary,
+                          fontSize: AppText.label,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
           ),
         ),
       ),

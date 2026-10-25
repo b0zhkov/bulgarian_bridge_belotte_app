@@ -37,7 +37,13 @@ class TableView extends ConsumerWidget {
     required this.onLeave,
     this.footer,
     this.newMatchLabel,
+    this.leaveTitle,
+    this.leaveBody,
   });
+
+  /// Leave-confirmation copy (defaults to the offline wording).
+  final String? leaveTitle;
+  final String? leaveBody;
 
   final TableState table;
   final TableActions actions;
@@ -55,14 +61,14 @@ class TableView extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(
-          l.leaveMatchTitle,
+          leaveTitle ?? l.leaveMatchTitle,
           style: const TextStyle(
             fontSize: AppText.title,
             fontWeight: FontWeight.w600,
           ),
         ),
         content: Text(
-          l.leaveMatchBody,
+          leaveBody ?? l.leaveMatchBody,
           style: const TextStyle(fontSize: AppText.body),
         ),
         actions: [
