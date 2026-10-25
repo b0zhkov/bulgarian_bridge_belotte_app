@@ -7,9 +7,17 @@ const sp = ContractType.spades;
 const at = ContractType.allTrump;
 const nt = ContractType.noTrump;
 
-Settlement st(List<int> raw, ContractType t, int declarer,
-        {Multiplier m = Multiplier.none, int carried = 0}) =>
-    settle(raw: raw, contract: Contract(t, declarer, m), carriedHanging: carried);
+Settlement st(
+  List<int> raw,
+  ContractType t,
+  int declarer, {
+  Multiplier m = Multiplier.none,
+  int carried = 0,
+}) => settle(
+  raw: raw,
+  contract: Contract(t, declarer, m),
+  carriedHanging: carried,
+);
 
 void main() {
   group('rounding (belot.bg)', () {
@@ -151,7 +159,10 @@ void main() {
     test('No Trump normal deal totals 26', () {
       final s = scoreDeal(
         contract: const Contract(nt, 0),
-        tricks: tricksFor('AC AD AH AS 10C 10D 10H 10S KC KD KH KS', lastTeam: 0),
+        tricks: tricksFor(
+          'AC AD AH AS 10C 10D 10H 10S KC KD KH KS',
+          lastTeam: 0,
+        ),
         declarations: const [],
         belots: const [],
       );
@@ -161,8 +172,13 @@ void main() {
     test('No Trump ignores declarations and belot', () {
       final s = scoreDeal(
         contract: const Contract(nt, 0),
-        tricks: tricksFor('AC AD AH AS 10C 10D 10H 10S KC KD KH KS', lastTeam: 0),
-        declarations: [Declaration(DeclarationType.square, cs('JC JD JH JS'), 1)],
+        tricks: tricksFor(
+          'AC AD AH AS 10C 10D 10H 10S KC KD KH KS',
+          lastTeam: 0,
+        ),
+        declarations: [
+          Declaration(DeclarationType.square, cs('JC JD JH JS'), 1),
+        ],
         belots: const [1],
       );
       expect(s.rawPoints, [220, 40]);
@@ -197,7 +213,9 @@ void main() {
       final s = scoreDeal(
         contract: const Contract(sp, 0),
         tricks: tricksFor('7S 8S 9S 10S JS QS KS AS AC AD AH 10C', lastTeam: 0),
-        declarations: [Declaration(DeclarationType.square, cs('JC JD JH JS'), 1)],
+        declarations: [
+          Declaration(DeclarationType.square, cs('JC JD JH JS'), 1),
+        ],
         belots: const [],
       );
       expect(s.rawPoints, [115, 247]);

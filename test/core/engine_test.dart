@@ -37,8 +37,14 @@ void main() {
       expect(s.currentSeat, 0, reason: 'player right of dealer leads');
     });
     test('deterministic for the same seed, different for other seeds', () {
-      expect(BelotEngine.newMatch(seed: 5).hands, BelotEngine.newMatch(seed: 5).hands);
-      expect(BelotEngine.newMatch(seed: 5).hands, isNot(BelotEngine.newMatch(seed: 6).hands));
+      expect(
+        BelotEngine.newMatch(seed: 5).hands,
+        BelotEngine.newMatch(seed: 5).hands,
+      );
+      expect(
+        BelotEngine.newMatch(seed: 5).hands,
+        isNot(BelotEngine.newMatch(seed: 6).hands),
+      );
     });
     test('deckFor helper deals exact hands', () {
       final hands = [
@@ -75,18 +81,28 @@ void main() {
       expect(v.contains(ct(ContractType.diamonds)), isFalse);
       expect(v.contains(ct(ContractType.spades)), isTrue);
       expect(v.contains(ct(ContractType.allTrump)), isTrue);
-      expect(() => BelotEngine.applyBid(s, 1, ct(ContractType.clubs)), throwsA(isA<IllegalActionException>()));
+      expect(
+        () => BelotEngine.applyBid(s, 1, ct(ContractType.clubs)),
+        throwsA(isA<IllegalActionException>()),
+      );
     });
     test('wrong seat cannot bid', () {
       final s = BelotEngine.newMatch(seed: 1);
-      expect(() => BelotEngine.applyBid(s, 2, p), throwsA(isA<IllegalActionException>()));
+      expect(
+        () => BelotEngine.applyBid(s, 2, p),
+        throwsA(isA<IllegalActionException>()),
+      );
     });
     test('double only by opponents of the last bidder', () {
       var s = BelotEngine.newMatch(seed: 1);
       s = bidAll(s, [ct(ContractType.hearts)]);
       expect(BelotEngine.validBids(s, 1).contains(Bid.double), isTrue);
       s = bidAll(s, [p]);
-      expect(BelotEngine.validBids(s, 2).contains(Bid.double), isFalse, reason: 'partner cannot double');
+      expect(
+        BelotEngine.validBids(s, 2).contains(Bid.double),
+        isFalse,
+        reason: 'partner cannot double',
+      );
     });
     test('redouble only by declaring team after a double', () {
       var s = BelotEngine.newMatch(seed: 1);
@@ -104,7 +120,11 @@ void main() {
     });
     test('a higher contract after a double resets the multiplier', () {
       var s = BelotEngine.newMatch(seed: 1);
-      s = bidAll(s, [ct(ContractType.hearts), Bid.double, ct(ContractType.allTrump)]);
+      s = bidAll(s, [
+        ct(ContractType.hearts),
+        Bid.double,
+        ct(ContractType.allTrump),
+      ]);
       expect(s.contract, const Contract(ContractType.allTrump, 2));
     });
     test('bidding ends after three passes following a contract', () {
@@ -147,7 +167,10 @@ void main() {
     test('illegal card is rejected', () {
       var s = start(ContractType.spades);
       s = BelotEngine.applyPlay(s, 0, c('7C'));
-      expect(() => BelotEngine.applyPlay(s, 1, c('AH')), throwsA(isA<IllegalActionException>()));
+      expect(
+        () => BelotEngine.applyPlay(s, 1, c('AH')),
+        throwsA(isA<IllegalActionException>()),
+      );
     });
     test('trick winner leads next', () {
       var s = start(ContractType.spades);
@@ -165,12 +188,16 @@ void main() {
       s = BelotEngine.applyPlay(s, 1, c('9C'));
       s = BelotEngine.applyPlay(s, 2, c('JC'));
       // J-Q-K-A clubs (quarte) + 7-8-9 hearts (tierce)
-      expect(s.lastAnnouncement!.declarations.map((d) => d.type).toSet(),
-          {DeclarationType.quarte, DeclarationType.tierce});
+      expect(s.lastAnnouncement!.declarations.map((d) => d.type).toSet(), {
+        DeclarationType.quarte,
+        DeclarationType.tierce,
+      });
       s = BelotEngine.applyPlay(s, 3, c('AD'));
       // 8 diamonds: quint + tierce
-      expect(s.lastAnnouncement!.declarations.map((d) => d.type).toSet(),
-          {DeclarationType.quint, DeclarationType.tierce});
+      expect(s.lastAnnouncement!.declarations.map((d) => d.type).toSet(), {
+        DeclarationType.quint,
+        DeclarationType.tierce,
+      });
       expect(s.declarations.length, 5); // + seat 0's 9-10-J spades tierce
     });
     test('belot is recorded when the first of K/Q is played', () {
@@ -184,7 +211,11 @@ void main() {
       var s = start(ContractType.spades);
       final agent = RandomAgent(1);
       while (s.phase == GamePhase.playing) {
-        s = BelotEngine.applyPlay(s, s.currentSeat, agent.choosePlay(s, s.currentSeat));
+        s = BelotEngine.applyPlay(
+          s,
+          s.currentSeat,
+          agent.choosePlay(s, s.currentSeat),
+        );
       }
       expect(s.phase, GamePhase.dealScored);
       expect(s.history.length, 1);
@@ -204,21 +235,36 @@ void main() {
         while (s.phase != GamePhase.matchOver && deals < 500) {
           switch (s.phase) {
             case GamePhase.bidding:
-              s = BelotEngine.applyBid(s, s.currentSeat, agent.chooseBid(s, s.currentSeat));
+              s = BelotEngine.applyBid(
+                s,
+                s.currentSeat,
+                agent.chooseBid(s, s.currentSeat),
+              );
             case GamePhase.playing:
               final moves = BelotEngine.getLegalMoves(s, s.currentSeat);
               expect(moves, isNotEmpty);
               expect(moves.every(s.hands[s.currentSeat].contains), isTrue);
-              s = BelotEngine.applyPlay(s, s.currentSeat, agent.choosePlay(s, s.currentSeat));
+              s = BelotEngine.applyPlay(
+                s,
+                s.currentSeat,
+                agent.choosePlay(s, s.currentSeat),
+              );
             case GamePhase.allPassed:
               s = BelotEngine.nextDeal(s);
             case GamePhase.dealScored:
               final d = s.lastDeal!;
               final type = d.contract.type;
-              final expectedCards = type == ContractType.noTrump ? 120 : (type == ContractType.allTrump ? 248 : 152);
+              final expectedCards = type == ContractType.noTrump
+                  ? 120
+                  : (type == ContractType.allTrump ? 248 : 152);
               expect(d.cardPoints[0] + d.cardPoints[1], expectedCards);
-              final total = roundPoints(d.rawPoints[0] + d.rawPoints[1], type) * d.contract.multiplier.factor;
-              expect(d.scored[0] + d.scored[1] - d.hangingAwarded + d.newlyHanging, total);
+              final total =
+                  roundPoints(d.rawPoints[0] + d.rawPoints[1], type) *
+                  d.contract.multiplier.factor;
+              expect(
+                d.scored[0] + d.scored[1] - d.hangingAwarded + d.newlyHanging,
+                total,
+              );
               deals++;
               s = BelotEngine.nextDeal(s);
             case GamePhase.matchOver:
@@ -227,7 +273,10 @@ void main() {
         }
         expect(s.phase, GamePhase.matchOver, reason: 'seed $seed');
         expect(s.scores[s.winnerTeam!], greaterThanOrEqualTo(151));
-        expect(s.scores[s.winnerTeam!], greaterThan(s.scores[1 - s.winnerTeam!]));
+        expect(
+          s.scores[s.winnerTeam!],
+          greaterThan(s.scores[1 - s.winnerTeam!]),
+        );
         expect(s.lastDeal!.isValat, isFalse);
       }
     });

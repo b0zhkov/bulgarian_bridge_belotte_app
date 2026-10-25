@@ -27,7 +27,11 @@ class BelotEngine {
 
   /// Starts a new match. [firstDealer] defaults to seat 3 so that seat 0
   /// (the local player) bids and leads first.
-  static GameState newMatch({int seed = 0, int firstDealer = 3, List<Card>? deck}) {
+  static GameState newMatch({
+    int seed = 0,
+    int firstDealer = 3,
+    List<Card>? deck,
+  }) {
     final empty = GameState(
       seed: seed,
       dealNumber: 0,
@@ -53,7 +57,11 @@ class BelotEngine {
   }
 
   /// Deals 3 + 2 cards counter-clockwise starting right of [dealer].
-  static GameState dealInitial(GameState s, {required int dealer, List<Card>? deck}) {
+  static GameState dealInitial(
+    GameState s, {
+    required int dealer,
+    List<Card>? deck,
+  }) {
     final dealNumber = s.dealNumber + 1;
     final d = deck ?? shuffledDeck(s.seed, dealNumber);
     if (d.length != 32 || d.toSet().length != 32) {
@@ -118,14 +126,19 @@ class BelotEngine {
       Bid.pass,
       for (final t in ContractType.values)
         if (c == null || t > c.type) Bid.contract(t),
-      if (c != null && c.multiplier == Multiplier.none && teamOf(seat) != c.declarerTeam)
+      if (c != null &&
+          c.multiplier == Multiplier.none &&
+          teamOf(seat) != c.declarerTeam)
         Bid.double,
-      if (c != null && c.multiplier == Multiplier.doubled && teamOf(seat) == c.declarerTeam)
+      if (c != null &&
+          c.multiplier == Multiplier.doubled &&
+          teamOf(seat) == c.declarerTeam)
         Bid.redouble,
     ];
   }
 
-  static bool validateBid(GameState s, int seat, Bid bid) => validBids(s, seat).contains(bid);
+  static bool validateBid(GameState s, int seat, Bid bid) =>
+      validBids(s, seat).contains(bid);
 
   static GameState applyBid(GameState s, int seat, Bid bid) {
     if (!validateBid(s, seat, bid)) {
@@ -189,12 +202,19 @@ class BelotEngine {
         for (var i = 0; i < 4; i++) i == seat ? true : s.firstCardPlayed[i],
       ]);
     }
-    final belot = isBelotPlay(card: card, hand: s.hands[seat], trick: s.currentTrick, type: type);
+    final belot = isBelotPlay(
+      card: card,
+      hand: s.hands[seat],
+      trick: s.currentTrick,
+      type: type,
+    );
     if (belot) belots = List.unmodifiable([...belots, seat]);
 
     final hands = List<List<Card>>.unmodifiable([
       for (var i = 0; i < 4; i++)
-        i == seat ? List<Card>.unmodifiable(s.hands[i].where((c) => c != card)) : s.hands[i],
+        i == seat
+            ? List<Card>.unmodifiable(s.hands[i].where((c) => c != card))
+            : s.hands[i],
     ]);
     var trick = s.currentTrick.add(Play(seat, card));
     final announcement = (announced.isNotEmpty || belot)
@@ -216,7 +236,11 @@ class BelotEngine {
     final winner = currentWinner(trick, type);
     trick = trick.withWinner(winner);
     final tricks = List<Trick>.unmodifiable([...s.tricks, trick]);
-    next = next.copyWith(tricks: tricks, currentTrick: Trick(winner), currentSeat: winner);
+    next = next.copyWith(
+      tricks: tricks,
+      currentTrick: Trick(winner),
+      currentSeat: winner,
+    );
     if (tricks.length == kHandSize) return _finishDeal(next);
     return next;
   }
@@ -229,8 +253,13 @@ class BelotEngine {
       belots: s.belots,
       carriedHanging: s.hanging,
     );
-    final scores = [s.scores[0] + score.scored[0], s.scores[1] + score.scored[1]];
-    final hanging = score.outcome == DealOutcome.hanging ? s.hanging + score.newlyHanging : 0;
+    final scores = [
+      s.scores[0] + score.scored[0],
+      s.scores[1] + score.scored[1],
+    ];
+    final hanging = score.outcome == DealOutcome.hanging
+        ? s.hanging + score.newlyHanging
+        : 0;
     final winner = matchWinner(scores, valatDeal: score.isValat);
     return s.copyWith(
       phase: winner == null ? GamePhase.dealScored : GamePhase.matchOver,

@@ -3,22 +3,40 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'helpers.dart';
 
-List<Declaration> find(String hand, [ContractType t = ContractType.hearts, int seat = 0]) =>
-    findDeclarations(cs(hand), t, seat);
+List<Declaration> find(
+  String hand, [
+  ContractType t = ContractType.hearts,
+  int seat = 0,
+]) => findDeclarations(cs(hand), t, seat);
 
 int pts(List<Declaration> ds) => ds.fold(0, (a, d) => a + d.points);
 
 void main() {
   group('finding declarations', () {
     test('tierce / quarte / quint', () {
-      expect(find('7C 8C 9C AD KH 10S QS 8D').single.type, DeclarationType.tierce);
-      expect(find('10C JC QC KC AD 8H 10S 7D').single.type, DeclarationType.quarte);
-      expect(find('10C JC QC KC AC 8H 10S 7D').single.type, DeclarationType.quint);
+      expect(
+        find('7C 8C 9C AD KH 10S QS 8D').single.type,
+        DeclarationType.tierce,
+      );
+      expect(
+        find('10C JC QC KC AD 8H 10S 7D').single.type,
+        DeclarationType.quarte,
+      );
+      expect(
+        find('10C JC QC KC AC 8H 10S 7D').single.type,
+        DeclarationType.quint,
+      );
       expect(pts(find('10C JC QC KC AC 8H 10S 7D')), 100);
     });
-    test('sequence uses natural order 7-8-9-10-J-Q-K-A (9-10-J is a tierce)', () {
-      expect(find('9D 10D JD 7C AH KS 8S QH').single.type, DeclarationType.tierce);
-    });
+    test(
+      'sequence uses natural order 7-8-9-10-J-Q-K-A (9-10-J is a tierce)',
+      () {
+        expect(
+          find('9D 10D JD 7C AH KS 8S QH').single.type,
+          DeclarationType.tierce,
+        );
+      },
+    );
     test('non-consecutive or mixed suits are not sequences', () {
       expect(find('7C 8D 9C JC QH KS AS 8H'), isEmpty);
     });
@@ -29,7 +47,10 @@ void main() {
     });
     test('eight-card run is a quint plus a tierce', () {
       final d = find('7S 8S 9S 10S JS QS KS AS');
-      expect(d.map((e) => e.type).toSet(), {DeclarationType.quint, DeclarationType.tierce});
+      expect(d.map((e) => e.type).toSet(), {
+        DeclarationType.quint,
+        DeclarationType.tierce,
+      });
       expect(pts(d), 120);
     });
     test('two sequences in different suits', () {
@@ -39,11 +60,18 @@ void main() {
       expect(pts(find('JC JD JH JS 7C 8D 10H QS')), 200);
       expect(pts(find('9C 9D 9H 9S 7C 8D QH AS')), 150);
       for (final r in ['A', '10', 'K', 'Q']) {
-        expect(pts(find('${r}C ${r}D ${r}H ${r}S 7C 8D 7H 8S')), 100, reason: r);
+        expect(
+          pts(find('${r}C ${r}D ${r}H ${r}S 7C 8D 7H 8S')),
+          100,
+          reason: r,
+        );
       }
     });
     test('four 7s or 8s are not a square', () {
-      expect(find('7C 7D 7H 7S 8C 8D 8H 8S').where((d) => !d.isSequence), isEmpty);
+      expect(
+        find('7C 7D 7H 7S 8C 8D 8H 8S').where((d) => !d.isSequence),
+        isEmpty,
+      );
     });
     test('No Trump allows no declarations', () {
       expect(find('JC JD JH JS 7C 8C 9C 10C', ContractType.noTrump), isEmpty);
@@ -71,16 +99,27 @@ void main() {
 
   Declaration seq(String cards, int seat) {
     final list = cs(cards);
-    final t = {3: DeclarationType.tierce, 4: DeclarationType.quarte, 5: DeclarationType.quint}[list.length]!;
+    final t = {
+      3: DeclarationType.tierce,
+      4: DeclarationType.quarte,
+      5: DeclarationType.quint,
+    }[list.length]!;
     return Declaration(t, list, seat);
   }
 
-  Declaration sq(String rank, int seat) =>
-      Declaration(DeclarationType.square, cs('${rank}C ${rank}D ${rank}H ${rank}S'), seat);
+  Declaration sq(String rank, int seat) => Declaration(
+    DeclarationType.square,
+    cs('${rank}C ${rank}D ${rank}H ${rank}S'),
+    seat,
+  );
 
   group('comparing declarations between teams', () {
     test('longer sequence wins, only that team scores sequences', () {
-      final r = resolveDeclarations([seq('7C 8C 9C 10C', 0), seq('JH QH KH', 1), seq('7D 8D 9D', 2)]);
+      final r = resolveDeclarations([
+        seq('7C 8C 9C 10C', 0),
+        seq('JH QH KH', 1),
+        seq('7D 8D 9D', 2),
+      ]);
       expect(r.every((d) => teamOf(d.seat) == 0), isTrue);
       expect(pts(r), 70); // team 0 also scores the second tierce
     });
@@ -89,11 +128,18 @@ void main() {
       expect(r.single.seat, 1);
     });
     test('quarte beats a higher tierce', () {
-      final r = resolveDeclarations([seq('7C 8C 9C 10C', 1), seq('QH KH AH', 0)]);
+      final r = resolveDeclarations([
+        seq('7C 8C 9C 10C', 1),
+        seq('QH KH AH', 0),
+      ]);
       expect(r.single.seat, 1);
     });
     test('equal best sequences cancel all sequences of both teams', () {
-      final r = resolveDeclarations([seq('QC KC AC', 0), seq('7D 8D 9D', 2), seq('QH KH AH', 1)]);
+      final r = resolveDeclarations([
+        seq('QC KC AC', 0),
+        seq('7D 8D 9D', 2),
+        seq('QH KH AH', 1),
+      ]);
       expect(r, isEmpty);
     });
     test('team with stronger square scores all its squares', () {
@@ -120,26 +166,90 @@ void main() {
 
   group('belot', () {
     test('trump K with Q in hand, on lead', () {
-      expect(isBelotPlay(card: c('KS'), hand: cs('KS QS 7H'), trick: Trick(0), type: ContractType.spades), isTrue);
+      expect(
+        isBelotPlay(
+          card: c('KS'),
+          hand: cs('KS QS 7H'),
+          trick: Trick(0),
+          type: ContractType.spades,
+        ),
+        isTrue,
+      );
     });
     test('requires the other card in hand', () {
-      expect(isBelotPlay(card: c('KS'), hand: cs('KS 7H'), trick: Trick(0), type: ContractType.spades), isFalse);
+      expect(
+        isBelotPlay(
+          card: c('KS'),
+          hand: cs('KS 7H'),
+          trick: Trick(0),
+          type: ContractType.spades,
+        ),
+        isFalse,
+      );
     });
     test('non-trump K+Q is not belot in a suit contract', () {
-      expect(isBelotPlay(card: c('KH'), hand: cs('KH QH'), trick: Trick(0), type: ContractType.spades), isFalse);
+      expect(
+        isBelotPlay(
+          card: c('KH'),
+          hand: cs('KH QH'),
+          trick: Trick(0),
+          type: ContractType.spades,
+        ),
+        isFalse,
+      );
     });
     test('suit contract: counts when trumping', () {
-      expect(isBelotPlay(card: c('QS'), hand: cs('KS QS'), trick: trickOf(1, 'AH'), type: ContractType.spades), isTrue);
+      expect(
+        isBelotPlay(
+          card: c('QS'),
+          hand: cs('KS QS'),
+          trick: trickOf(1, 'AH'),
+          type: ContractType.spades,
+        ),
+        isTrue,
+      );
     });
     test('All Trump: any suit, when leading or following', () {
-      expect(isBelotPlay(card: c('QH'), hand: cs('KH QH'), trick: Trick(0), type: ContractType.allTrump), isTrue);
-      expect(isBelotPlay(card: c('QH'), hand: cs('KH QH'), trick: trickOf(1, '7H'), type: ContractType.allTrump), isTrue);
+      expect(
+        isBelotPlay(
+          card: c('QH'),
+          hand: cs('KH QH'),
+          trick: Trick(0),
+          type: ContractType.allTrump,
+        ),
+        isTrue,
+      );
+      expect(
+        isBelotPlay(
+          card: c('QH'),
+          hand: cs('KH QH'),
+          trick: trickOf(1, '7H'),
+          type: ContractType.allTrump,
+        ),
+        isTrue,
+      );
     });
     test('All Trump: discarding on another suit is not belot', () {
-      expect(isBelotPlay(card: c('QH'), hand: cs('KH QH'), trick: trickOf(1, '7C'), type: ContractType.allTrump), isFalse);
+      expect(
+        isBelotPlay(
+          card: c('QH'),
+          hand: cs('KH QH'),
+          trick: trickOf(1, '7C'),
+          type: ContractType.allTrump,
+        ),
+        isFalse,
+      );
     });
     test('No Trump: never belot', () {
-      expect(isBelotPlay(card: c('QH'), hand: cs('KH QH'), trick: Trick(0), type: ContractType.noTrump), isFalse);
+      expect(
+        isBelotPlay(
+          card: c('QH'),
+          hand: cs('KH QH'),
+          trick: Trick(0),
+          type: ContractType.noTrump,
+        ),
+        isFalse,
+      );
     });
   });
 }

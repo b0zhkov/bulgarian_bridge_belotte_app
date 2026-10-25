@@ -97,7 +97,9 @@ DealScore scoreDeal({
     }
   }
   final lastTeam = teamOf(tricks.last.winner!);
-  final valatTeam = trickCount[0] == kHandSize ? 0 : (trickCount[1] == kHandSize ? 1 : null);
+  final valatTeam = trickCount[0] == kHandSize
+      ? 0
+      : (trickCount[1] == kHandSize ? 1 : null);
 
   final scoringDecls = type == ContractType.noTrump
       ? <Declaration>[]
@@ -115,13 +117,21 @@ DealScore scoreDeal({
 
   final raw = [0, 0];
   for (var t = 0; t < 2; t++) {
-    var p = cards[t] + (t == lastTeam ? kLastTrickBonus : 0) + declPts[t] + belotPts[t];
+    var p =
+        cards[t] +
+        (t == lastTeam ? kLastTrickBonus : 0) +
+        declPts[t] +
+        belotPts[t];
     if (type == ContractType.noTrump) p *= 2; // valat bonus not doubled
     if (t == valatTeam) p += kValatBonus;
     raw[t] = p;
   }
 
-  final st = settle(raw: raw, contract: contract, carriedHanging: carriedHanging);
+  final st = settle(
+    raw: raw,
+    contract: contract,
+    carriedHanging: carriedHanging,
+  );
 
   return DealScore(
     contract: contract,
@@ -141,7 +151,13 @@ DealScore scoreDeal({
 }
 
 class Settlement {
-  const Settlement(this.outcome, this.scored, this.newlyHanging, this.hangingAwarded, this.hangingAwardedTo);
+  const Settlement(
+    this.outcome,
+    this.scored,
+    this.newlyHanging,
+    this.hangingAwarded,
+    this.hangingAwardedTo,
+  );
   final DealOutcome outcome;
   final List<int> scored;
   final int newlyHanging;
@@ -151,7 +167,11 @@ class Settlement {
 
 /// Turns final raw points into match points (outside / inside / hanging,
 /// double / redouble, carried hanging points), per belot.bg.
-Settlement settle({required List<int> raw, required Contract contract, int carriedHanging = 0}) {
+Settlement settle({
+  required List<int> raw,
+  required Contract contract,
+  int carriedHanging = 0,
+}) {
   final type = contract.type;
   final dt = contract.declarerTeam;
   final ot = 1 - dt;
@@ -197,5 +217,11 @@ Settlement settle({required List<int> raw, required Contract contract, int carri
     scored[awardedTo] += carriedHanging;
   }
 
-  return Settlement(outcome, List.unmodifiable(scored), hanging, awarded, awardedTo);
+  return Settlement(
+    outcome,
+    List.unmodifiable(scored),
+    hanging,
+    awarded,
+    awardedTo,
+  );
 }

@@ -21,9 +21,9 @@ List<Trick> tricksFor(String team0Cards, {required int lastTeam}) {
   final t1 = fullDeck.where((x) => !t0.contains(x)).toList();
   assert(t0.length % 4 == 0);
   List<Trick> chunk(List<Card> cards, int winner) => [
-        for (var i = 0; i < cards.length; i += 4)
-          Trick(0, [for (var k = 0; k < 4; k++) Play(k, cards[i + k])], winner),
-      ];
+    for (var i = 0; i < cards.length; i += 4)
+      Trick(0, [for (var k = 0; k < 4; k++) Play(k, cards[i + k])], winner),
+  ];
   final a = chunk(t0, 0), b = chunk(t1, 1);
   return lastTeam == 0 ? [...b, ...a] : [...a, ...b];
 }

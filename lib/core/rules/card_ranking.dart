@@ -2,12 +2,26 @@ import '../models/models.dart';
 
 /// Trump order ascending: 7, 8, Q, K, 10, A, 9, J  (J > 9 > A > 10 > K > Q > 8 > 7).
 const List<Rank> trumpOrderAsc = [
-  Rank.seven, Rank.eight, Rank.queen, Rank.king, Rank.ten, Rank.ace, Rank.nine, Rank.jack,
+  Rank.seven,
+  Rank.eight,
+  Rank.queen,
+  Rank.king,
+  Rank.ten,
+  Rank.ace,
+  Rank.nine,
+  Rank.jack,
 ];
 
 /// Plain order ascending: 7, 8, 9, J, Q, K, 10, A  (A > 10 > K > Q > J > 9 > 8 > 7).
 const List<Rank> plainOrderAsc = [
-  Rank.seven, Rank.eight, Rank.nine, Rank.jack, Rank.queen, Rank.king, Rank.ten, Rank.ace,
+  Rank.seven,
+  Rank.eight,
+  Rank.nine,
+  Rank.jack,
+  Rank.queen,
+  Rank.king,
+  Rank.ten,
+  Rank.ace,
 ];
 
 /// Strength of [card] within its own suit for the given contract (0..7).

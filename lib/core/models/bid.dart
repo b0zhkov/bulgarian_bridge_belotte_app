@@ -21,7 +21,8 @@ class Bid {
   int get hashCode => Object.hash(kind, type);
 
   @override
-  String toString() => kind == BidKind.contract ? 'Bid(${type!.name})' : 'Bid(${kind.name})';
+  String toString() =>
+      kind == BidKind.contract ? 'Bid(${type!.name})' : 'Bid(${kind.name})';
 }
 
 class SeatBid {

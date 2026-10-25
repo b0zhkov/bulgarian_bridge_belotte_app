@@ -13,6 +13,9 @@ enum Suit {
   final String symbol;
   final String code;
 
+  /// Symbol with a text-presentation selector so it never renders as emoji.
+  String get glyph => '$symbol\uFE0E';
+
   bool get isRed => this == Suit.diamonds || this == Suit.hearts;
 
   static Suit fromCode(String c) =>
@@ -50,8 +53,10 @@ class Card implements Comparable<Card> {
   /// Parses short notation such as `JS`, `10H`, `TH`, `7C`, `AD`.
   factory Card.parse(String s) {
     final t = s.trim();
-    return Card(Suit.fromCode(t.substring(t.length - 1)),
-        Rank.fromLabel(t.substring(0, t.length - 1)));
+    return Card(
+      Suit.fromCode(t.substring(t.length - 1)),
+      Rank.fromLabel(t.substring(0, t.length - 1)),
+    );
   }
 
   /// Parses a space separated list of cards.

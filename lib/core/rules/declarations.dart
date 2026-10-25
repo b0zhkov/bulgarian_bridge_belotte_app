@@ -57,7 +57,12 @@ int squarePoints(Rank r) {
 /// Square strength for comparison between teams: "the square with the
 /// highest point value (in trump colour)" i.e. J > 9 > A > 10 > K > Q.
 const List<Rank> _squareOrderAsc = [
-  Rank.queen, Rank.king, Rank.ten, Rank.ace, Rank.nine, Rank.jack,
+  Rank.queen,
+  Rank.king,
+  Rank.ten,
+  Rank.ace,
+  Rank.nine,
+  Rank.jack,
 ];
 int squareStrength(Rank r) => _squareOrderAsc.indexOf(r);
 
@@ -67,7 +72,10 @@ int squareStrength(Rank r) => _squareOrderAsc.indexOf(r);
 List<Declaration> _sequencesFrom(List<Card> cards, int seat) {
   final out = <Declaration>[];
   for (final suit in Suit.values) {
-    final ranks = cards.where((c) => c.suit == suit).map((c) => c.rank.index).toSet();
+    final ranks = cards
+        .where((c) => c.suit == suit)
+        .map((c) => c.rank.index)
+        .toSet();
     var i = 0;
     while (i < 8) {
       if (!ranks.contains(i)) {
@@ -85,11 +93,14 @@ List<Declaration> _sequencesFrom(List<Card> cards, int seat) {
         final type = take == 5
             ? DeclarationType.quint
             : take == 4
-                ? DeclarationType.quarte
-                : DeclarationType.tierce;
-        out.add(Declaration(type, [
-          for (var k = hi - take + 1; k <= hi; k++) Card(suit, Rank.values[k]),
-        ], seat));
+            ? DeclarationType.quarte
+            : DeclarationType.tierce;
+        out.add(
+          Declaration(type, [
+            for (var k = hi - take + 1; k <= hi; k++)
+              Card(suit, Rank.values[k]),
+          ], seat),
+        );
         hi -= take;
         len -= take;
       }
@@ -104,24 +115,35 @@ int _total(List<Declaration> ds) => ds.fold(0, (a, d) => a + d.points);
 /// Finds the best set of declarations in [hand] for [type]. Declarations are
 /// automatic: when a card fits both a square and a sequence, the option with
 /// the most points is chosen (ties prefer the square). No Trump allows none.
-List<Declaration> findDeclarations(List<Card> hand, ContractType type, int seat) {
+List<Declaration> findDeclarations(
+  List<Card> hand,
+  ContractType type,
+  int seat,
+) {
   if (type == ContractType.noTrump) return const [];
   final squares = <Declaration>[
     for (final r in Rank.values)
-      if (squarePoints(r) > 0 && Suit.values.every((s) => hand.contains(Card(s, r))))
-        Declaration(DeclarationType.square, [for (final s in Suit.values) Card(s, r)], seat),
+      if (squarePoints(r) > 0 &&
+          Suit.values.every((s) => hand.contains(Card(s, r))))
+        Declaration(DeclarationType.square, [
+          for (final s in Suit.values) Card(s, r),
+        ], seat),
   ];
   List<Declaration> best = _sequencesFrom(hand, seat);
   var bestScore = _total(best);
   var bestSquares = 0;
   final n = squares.length;
   for (var mask = 1; mask < (1 << n); mask++) {
-    final chosen = [for (var k = 0; k < n; k++) if (mask & (1 << k) != 0) squares[k]];
+    final chosen = [
+      for (var k = 0; k < n; k++)
+        if (mask & (1 << k) != 0) squares[k],
+    ];
     final used = chosen.expand((d) => d.cards).toSet();
     final rest = hand.where((c) => !used.contains(c)).toList();
     final combo = [...chosen, ..._sequencesFrom(rest, seat)];
     final score = _total(combo);
-    if (score > bestScore || (score == bestScore && chosen.length > bestSquares)) {
+    if (score > bestScore ||
+        (score == bestScore && chosen.length > bestSquares)) {
       best = combo;
       bestScore = score;
       bestSquares = chosen.length;
@@ -171,7 +193,10 @@ List<Declaration> resolveDeclarations(List<Declaration> all) {
   // Squares
   final squares = all.where((d) => !d.isSequence).toList();
   if (squares.isNotEmpty) {
-    squares.sort((a, b) => squareStrength(b.highRank).compareTo(squareStrength(a.highRank)));
+    squares.sort(
+      (a, b) =>
+          squareStrength(b.highRank).compareTo(squareStrength(a.highRank)),
+    );
     final team = teamOf(squares.first.seat);
     result.addAll(squares.where((d) => teamOf(d.seat) == team));
   }
@@ -190,9 +215,13 @@ bool isBelotPlay({
 }) {
   if (type == ContractType.noTrump) return false;
   if (card.rank != Rank.king && card.rank != Rank.queen) return false;
-  final trumpRanked = type == ContractType.allTrump || type.trumpSuit == card.suit;
+  final trumpRanked =
+      type == ContractType.allTrump || type.trumpSuit == card.suit;
   if (!trumpRanked) return false;
-  final partner = Card(card.suit, card.rank == Rank.king ? Rank.queen : Rank.king);
+  final partner = Card(
+    card.suit,
+    card.rank == Rank.king ? Rank.queen : Rank.king,
+  );
   if (!hand.contains(partner)) return false;
   if (trick.isEmpty) return true;
   if (trick.ledSuit == card.suit) return true;

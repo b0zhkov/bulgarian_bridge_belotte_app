@@ -1,0 +1,100 @@
+{
+  "@@locale": "bg",
+  "appTitle": "Белот",
+  "homeOfflineTitle": "Офлайн игра",
+  "homeOfflineSubtitle": "Играй срещу трима компютърни играчи",
+  "homeOnlineTitle": "Игра с приятели",
+  "homeOnlineSubtitle": "Стая с код · скоро",
+  "homeRulesTitle": "Правила",
+  "homeRulesSubtitle": "Според belot.bg",
+  "settings": "Настройки",
+  "theme": "Тема",
+  "themeDark": "Тъмна",
+  "themeLight": "Светла",
+  "language": "Език",
+  "languageBulgarian": "Български",
+  "you": "Ти",
+  "us": "Ние",
+  "them": "Вие",
+  "botName1": "Ники",
+  "botName2": "Мария",
+  "botName3": "Петър",
+  "pass": "Пас",
+  "clubs": "Спатия",
+  "diamonds": "Каро",
+  "hearts": "Купа",
+  "spades": "Пика",
+  "noTrump": "Без коз",
+  "allTrump": "Всичко коз",
+  "double": "Контра",
+  "redouble": "Реконтра",
+  "yourTurn": "Твой ред",
+  "yourBid": "Твой ред за обява",
+  "waitingFor": "{name} мисли…",
+  "@waitingFor": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "bidding": "Наддаване",
+  "contract": "Игра",
+  "dealer": "Р",
+  "hanging": "Висящи: {points}",
+  "@hanging": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "allPassed": "Всички пасуваха — ново раздаване",
+  "tierce": "Терца",
+  "quarte": "Кварта",
+  "quint": "Квинта",
+  "square": "Каре",
+  "belot": "Белот",
+  "outside": "Изкарана",
+  "inside": "Вкарана",
+  "hangingOutcome": "Висяща",
+  "valat": "Капо",
+  "dealResult": "Резултат от раздаването",
+  "cardPoints": "Карти",
+  "premiums": "Анонси",
+  "lastTen": "Последни 10",
+  "total": "Общо",
+  "written": "Записани",
+  "nextDeal": "Следваща раздавка",
+  "newMatch": "Нова игра",
+  "matchWon": "Победа!",
+  "matchLost": "Загуба",
+  "finalScore": "Краен резултат {us} : {them}",
+  "@finalScore": {
+    "placeholders": {
+      "us": {
+        "type": "int"
+      },
+      "them": {
+        "type": "int"
+      }
+    }
+  },
+  "history": "История",
+  "noDealsYet": "Все още няма изиграни раздавки",
+  "deal": "Раздавка {n}",
+  "@deal": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "lastTrick": "Последна взятка",
+  "leaveMatchTitle": "Изход от играта?",
+  "leaveMatchBody": "Текущата игра ще бъде загубена.",
+  "leave": "Изход",
+  "cancel": "Отказ",
+  "comingSoon": "Скоро",
+  "rulesBody": "Играе се с 32 карти от 7 до асо, двама срещу двама, обратно на часовниковата стрелка. Раздават се 3+2 карти, следва наддаване (спатия, каро, купа, пика, без коз, всичко коз, контра, реконтра) и още 3 карти. Анонсите се обявяват автоматично с първата карта. Играта е до 151 точки. С капо не се излиза."
+}

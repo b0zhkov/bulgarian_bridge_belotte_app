@@ -22,7 +22,11 @@ enum GamePhase {
 /// Announcement event for the UI (declarations shown with a first card,
 /// belot shown when the first of K/Q is played).
 class Announcement {
-  const Announcement({required this.seat, this.declarations = const [], this.belot = false});
+  const Announcement({
+    required this.seat,
+    this.declarations = const [],
+    this.belot = false,
+  });
   final int seat;
   final List<Declaration> declarations;
   final bool belot;
@@ -123,7 +127,9 @@ class GameState {
       scores: scores ?? this.scores,
       hanging: hanging ?? this.hanging,
       history: history ?? this.history,
-      lastAnnouncement: clearAnnouncement ? null : (lastAnnouncement ?? this.lastAnnouncement),
+      lastAnnouncement: clearAnnouncement
+          ? null
+          : (lastAnnouncement ?? this.lastAnnouncement),
       winnerTeam: winnerTeam ?? this.winnerTeam,
     );
   }
@@ -131,7 +137,11 @@ class GameState {
   /// Number of consecutive passes at the end of the bid list.
   int get trailingPasses {
     var n = 0;
-    for (var i = bids.length - 1; i >= 0 && bids[i].bid.kind == BidKind.pass; i--) {
+    for (
+      var i = bids.length - 1;
+      i >= 0 && bids[i].bid.kind == BidKind.pass;
+      i--
+    ) {
       n++;
     }
     return n;
