@@ -11,7 +11,8 @@ import 'game_controller.dart';
 import 'labels.dart';
 import 'widgets/deal_result_panel.dart';
 import 'widgets/hand_view.dart';
-import 'widgets/history_sheet.dart';
+import 'widgets/last_trick.dart';
+import 'widgets/score_sheet.dart';
 import 'widgets/player_avatar.dart';
 import 'widgets/table_effects.dart';
 import 'widgets/trick_area.dart';
@@ -105,171 +106,197 @@ class TableView extends ConsumerWidget {
         !table.holding &&
         (g.phase == GamePhase.dealScored || g.phase == GamePhase.matchOver);
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _confirmLeave(context);
-      },
-      child: Scaffold(
-        body: SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 560),
-              child: LayoutBuilder(
-                builder: (context, box) {
-                  final narrow = box.maxWidth < 380;
-                  final sideW = narrow ? 76.0 : 92.0;
-                  return TableEffects(
-                    table: table,
-                    builder: (context, deal) => Stack(
-                      children: [
-                        Column(
-                          children: [
-                            _TopBar(
-                              onBack: () => _confirmLeave(context),
-                              onScore: () => showHistorySheet(context, g),
-                              game: g,
-                            ),
-                            // Partner sits opposite (top), opponents left and right.
-                            KeyedSubtree(
-                              key: deal.anchors[2],
-                              child: PlayerAvatar(
-                                key: const Key('seat-2'),
-                                seat: 2,
-                                table: table,
-                                width: 120,
+    String nameOf(int seat) => table.infoFor(l, seat, myName).name;
+
+    return LiveGame(
+      game: g,
+      builder: (context, live) => PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) _confirmLeave(context);
+        },
+        child: Scaffold(
+          body: SafeArea(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child: LayoutBuilder(
+                  builder: (context, box) {
+                    final narrow = box.maxWidth < 380;
+                    final sideW = narrow ? 76.0 : 92.0;
+                    return TableEffects(
+                      table: table,
+                      builder: (context, deal) => Stack(
+                        children: [
+                          Column(
+                            children: [
+                              _TopBar(
+                                onBack: () => _confirmLeave(context),
+                                onScore: () => showScoreSheet(context, live),
+                                game: g,
                               ),
-                            ),
-                            Expanded(
-                              child: Row(
+                              // Partner sits opposite (top), opponents left and right.
+                              KeyedSubtree(
+                                key: deal.anchors[2],
+                                child: PlayerAvatar(
+                                  key: const Key('seat-2'),
+                                  seat: 2,
+                                  table: table,
+                                  width: 120,
+                                ),
+                              ),
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: sideW,
+                                      child: Center(
+                                        child: KeyedSubtree(
+                                          key: deal.anchors[3],
+                                          child: PlayerAvatar(
+                                            key: const Key('seat-3'),
+                                            seat: 3,
+                                            table: table,
+                                            width: sideW,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Stack(
+                                        children: [
+                                          Positioned.fill(
+                                            child: TrickArea(table: table),
+                                          ),
+                                          if (g.phase == GamePhase.playing &&
+                                              g.tricks.isNotEmpty)
+                                            Positioned(
+                                              right: 0,
+                                              bottom: 0,
+                                              child: LastTrickButton(
+                                                trick: g.tricks.last,
+                                                nameOf: nameOf,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: sideW,
+                                      child: Center(
+                                        child: KeyedSubtree(
+                                          key: deal.anchors[1],
+                                          child: PlayerAvatar(
+                                            key: const Key('seat-1'),
+                                            seat: 1,
+                                            table: table,
+                                            width: sideW,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Stack(
+                                alignment: Alignment.center,
+                                clipBehavior: Clip.none,
                                 children: [
-                                  SizedBox(
-                                    width: sideW,
-                                    child: Center(
-                                      child: KeyedSubtree(
-                                        key: deal.anchors[3],
-                                        child: PlayerAvatar(
-                                          key: const Key('seat-3'),
-                                          seat: 3,
-                                          table: table,
-                                          width: sideW,
-                                        ),
-                                      ),
-                                    ),
+                                  _StatusLine(
+                                    table: table,
+                                    hintShown: hintsOn && table.hint != null,
                                   ),
-                                  Expanded(child: TrickArea(table: table)),
-                                  SizedBox(
-                                    width: sideW,
-                                    child: Center(
-                                      child: KeyedSubtree(
-                                        key: deal.anchors[1],
-                                        child: PlayerAvatar(
-                                          key: const Key('seat-1'),
-                                          seat: 1,
-                                          table: table,
-                                          width: sideW,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
+                                  ?notice,
                                 ],
                               ),
-                            ),
-                            Stack(
-                              alignment: Alignment.center,
-                              clipBehavior: Clip.none,
-                              children: [
-                                _StatusLine(
-                                  table: table,
-                                  hintShown: hintsOn && table.hint != null,
+                              const SizedBox(height: Gap.s),
+                              if (g.phase == GamePhase.bidding)
+                                _BiddingPanel(
+                                  bids: ctrl.humanBids(),
+                                  onBid: ctrl.humanBid,
+                                  active: table.isHumanTurn && !deal.dealing,
+                                  compact: box.maxHeight < 720,
+                                )
+                              else
+                                _SelfStrip(table: table, name: myName),
+                              const SizedBox(height: Gap.m),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: Gap.l,
                                 ),
-                                ?notice,
-                              ],
-                            ),
-                            const SizedBox(height: Gap.s),
-                            if (g.phase == GamePhase.bidding)
-                              _BiddingPanel(
-                                bids: ctrl.humanBids(),
-                                onBid: ctrl.humanBid,
-                                active: table.isHumanTurn && !deal.dealing,
-                                compact: box.maxHeight < 720,
-                              )
-                            else
-                              _SelfStrip(table: table, name: myName),
-                            const SizedBox(height: Gap.m),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: Gap.l,
-                              ),
-                              child: KeyedSubtree(
-                                key: deal.anchors[kHumanSeat],
-                                child: HandView(
-                                  cards: sortHand(
-                                    g.hands[kHumanSeat],
-                                    g.phase == GamePhase.bidding
-                                        ? null
-                                        : g.contract?.type,
+                                child: KeyedSubtree(
+                                  key: deal.anchors[kHumanSeat],
+                                  child: HandView(
+                                    cards: sortHand(
+                                      g.hands[kHumanSeat],
+                                      g.phase == GamePhase.bidding
+                                          ? null
+                                          : g.contract?.type,
+                                    ),
+                                    legal: ctrl.humanLegalCards(),
+                                    hidden: deal.hiddenHand,
+                                    interactive:
+                                        table.isHumanTurn &&
+                                        !deal.dealing &&
+                                        g.phase == GamePhase.playing,
+                                    hint: hintsOn ? table.hint : null,
+                                    maxCardWidth: box.maxHeight < 720
+                                        ? 92
+                                        : 104,
+                                    onPlay: ctrl.humanPlay,
                                   ),
-                                  legal: ctrl.humanLegalCards(),
-                                  hidden: deal.hiddenHand,
-                                  interactive:
-                                      table.isHumanTurn &&
-                                      !deal.dealing &&
-                                      g.phase == GamePhase.playing,
-                                  hint: hintsOn ? table.hint : null,
-                                  maxCardWidth: box.maxHeight < 720 ? 92 : 104,
-                                  onPlay: ctrl.humanPlay,
                                 ),
                               ),
-                            ),
-                            if (footer != null) ...[
-                              const SizedBox(height: Gap.s),
-                              footer!,
-                              const SizedBox(height: Gap.s),
-                            ] else
-                              const SizedBox(height: Gap.l),
-                          ],
-                        ),
-                        if (showResult)
-                          Positioned.fill(
-                            child: DealResultPanel(
-                              game: g,
-                              onNext: ctrl.nextDeal,
-                              onNewMatch: ctrl.newMatch,
-                              newMatchLabel: newMatchLabel,
-                              waiting: table.waitingReady,
-                            ),
+                              if (footer != null) ...[
+                                const SizedBox(height: Gap.s),
+                                footer!,
+                                const SizedBox(height: Gap.s),
+                              ] else
+                                const SizedBox(height: Gap.l),
+                            ],
                           ),
-                        if (g.phase == GamePhase.allPassed)
-                          Positioned.fill(
-                            child: IgnorePointer(
-                              child: Center(
-                                child: Container(
-                                  margin: const EdgeInsets.all(Gap.page),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: Gap.page,
-                                    vertical: Gap.m + 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: c.surfaceHigh,
-                                    borderRadius: BorderRadius.circular(40),
-                                  ),
-                                  child: Text(
-                                    l.allPassed,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: c.textPrimary,
-                                      fontSize: AppText.label,
+                          if (showResult)
+                            Positioned.fill(
+                              child: DealResultPanel(
+                                game: g,
+                                onNext: ctrl.nextDeal,
+                                onNewMatch: ctrl.newMatch,
+                                newMatchLabel: newMatchLabel,
+                                waiting: table.waitingReady,
+                                nameOf: nameOf,
+                              ),
+                            ),
+                          if (g.phase == GamePhase.allPassed)
+                            Positioned.fill(
+                              child: IgnorePointer(
+                                child: Center(
+                                  child: Container(
+                                    margin: const EdgeInsets.all(Gap.page),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: Gap.page,
+                                      vertical: Gap.m + 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: c.surfaceHigh,
+                                      borderRadius: BorderRadius.circular(40),
+                                    ),
+                                    child: Text(
+                                      l.allPassed,
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: c.textPrimary,
+                                        fontSize: AppText.label,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                      ],
-                    ),
-                  );
-                },
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -340,61 +367,88 @@ class _TopBar extends StatelessWidget {
             ),
             Expanded(
               child: Center(
-                child: InkWell(
-                  key: const Key('scoreboard'),
-                  borderRadius: BorderRadius.circular(24),
-                  onTap: onScore,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: Gap.m,
-                      vertical: Gap.xs,
-                    ),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          team(
-                            l.teamUs,
-                            game.scores[0],
-                            c.teamUs,
-                            CrossAxisAlignment.end,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: InkWell(
+                        key: const Key('scoreboard'),
+                        borderRadius: BorderRadius.circular(24),
+                        onTap: onScore,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: Gap.m,
+                            vertical: Gap.xs,
                           ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: Gap.m,
-                            ),
-                            child: Column(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(
-                                  ':',
-                                  style: TextStyle(
-                                    color: c.textSecondary,
-                                    fontSize: AppText.title,
+                                team(
+                                  l.teamUs,
+                                  game.scores[0],
+                                  c.teamUs,
+                                  CrossAxisAlignment.end,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: Gap.m,
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        ':',
+                                        style: TextStyle(
+                                          color: c.textSecondary,
+                                          fontSize: AppText.title,
+                                        ),
+                                      ),
+                                      if (game.hanging > 0)
+                                        Text(
+                                          l.hanging(game.hanging),
+                                          style: TextStyle(
+                                            color: c.chipText,
+                                            fontSize: 10,
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ),
-                                if (game.hanging > 0)
-                                  Text(
-                                    l.hanging(game.hanging),
-                                    style: TextStyle(
-                                      color: c.chipText,
-                                      fontSize: 10,
-                                    ),
-                                  ),
+                                team(
+                                  l.teamThem,
+                                  game.scores[1],
+                                  c.teamThem,
+                                  CrossAxisAlignment.start,
+                                ),
                               ],
                             ),
                           ),
-                          team(
-                            l.teamThem,
-                            game.scores[1],
-                            c.teamThem,
-                            CrossAxisAlignment.start,
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
+                    Tooltip(
+                      message: AppLocalizations.of(context).scoreSheet,
+                      child: Material(
+                        color: c.surfaceHigh,
+                        shape: const CircleBorder(),
+                        child: InkWell(
+                          key: const Key('score-sheet-button'),
+                          customBorder: const CircleBorder(),
+                          onTap: onScore,
+                          child: Padding(
+                            padding: const EdgeInsets.all(7),
+                            child: Icon(
+                              Icons.receipt_long_rounded,
+                              size: 18,
+                              color: c.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

@@ -529,4 +529,82 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get hapticsDescription => 'Леко потрепване при ход, взятка и контра';
+
+  @override
+  String get scoreSheet => 'Лист';
+
+  @override
+  String get scoreSheetTitle => 'Резултатен лист';
+
+  @override
+  String get noTrumpDouble => 'Без коз ×2';
+
+  @override
+  String hangingLeft(int points) {
+    return '$points висят';
+  }
+
+  @override
+  String hangingAwardedLine(int points) {
+    return '+$points висящи';
+  }
+
+  @override
+  String get outsideExplain => 'Изкарана — всеки записва своите точки';
+
+  @override
+  String get insideExplain => 'Вкарана — всичко отива при противника';
+
+  @override
+  String get hangingExplain => 'Равенство — точките на играещите висят';
+
+  @override
+  String doubledExplain(String mult, int factor) {
+    return '$mult — по-силният отбор взима всичко ×$factor';
+  }
+
+  @override
+  String doubledHangingExplain(String mult, int factor) {
+    return '$mult при равенство — всичко виси ×$factor';
+  }
+
+  @override
+  String get tapToSkip => 'Докосни, за да видиш всичко';
+
+  @override
+  String get tapToClose => 'Докосни, за да затвориш';
+
+  @override
+  String trickTakenBy(String name) {
+    return 'Взе: $name';
+  }
+
+  @override
+  String get recapTab => 'Раздавка';
+
+  @override
+  String get sheetTab => 'Лист';
+
+  @override
+  String playsContract(String name) {
+    return '$name играе';
+  }
+
+  @override
+  String get markInside => 'вкарана';
+
+  @override
+  String get markHanging => 'висяща';
+
+  @override
+  String get markValat => 'капо';
+
+  @override
+  String get markDouble => 'контра';
+
+  @override
+  String get markRedouble => 'реконтра';
+
+  @override
+  String get matchScore => 'Резултат';
 }

@@ -162,5 +162,75 @@
   "sound": "Sound",
   "soundDescription": "Soft sounds for dealing, plays and tricks",
   "haptics": "Haptics",
-  "hapticsDescription": "Gentle taps on plays, tricks and contra"
+  "hapticsDescription": "Gentle taps on plays, tricks and contra",
+  "scoreSheet": "Sheet",
+  "scoreSheetTitle": "Score sheet",
+  "noTrumpDouble": "No trumps ×2",
+  "hangingLeft": "{points} hanging",
+  "@hangingLeft": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "hangingAwardedLine": "+{points} hanging",
+  "@hangingAwardedLine": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "outsideExplain": "Made — both teams write their points",
+  "insideExplain": "Failed — everything goes to the defenders",
+  "hangingExplain": "Tie — the declarers' points hang",
+  "doubledExplain": "{mult} — the stronger team takes all ×{factor}",
+  "@doubledExplain": {
+    "placeholders": {
+      "mult": {
+        "type": "String"
+      },
+      "factor": {
+        "type": "int"
+      }
+    }
+  },
+  "doubledHangingExplain": "{mult} and a tie — everything hangs ×{factor}",
+  "@doubledHangingExplain": {
+    "placeholders": {
+      "mult": {
+        "type": "String"
+      },
+      "factor": {
+        "type": "int"
+      }
+    }
+  },
+  "tapToSkip": "Tap to show everything",
+  "tapToClose": "Tap to close",
+  "trickTakenBy": "Won by {name}",
+  "@trickTakenBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "recapTab": "Deal",
+  "sheetTab": "Sheet",
+  "playsContract": "{name} plays",
+  "@playsContract": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "markInside": "failed",
+  "markHanging": "hanging",
+  "markValat": "valat",
+  "markDouble": "contra",
+  "markRedouble": "recontra",
+  "matchScore": "Score"
 }

@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/theme/app_theme.dart';
 import 'features/feedback/sound.dart';
+import 'features/game/game_controller.dart';
 import 'features/game/game_screen.dart';
 import 'features/home/home_screen.dart';
 import 'features/online/online_entry_screen.dart';
@@ -16,6 +17,7 @@ import 'l10n/generated/app_localizations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  _applyDemoTiming();
   final prefs = await SharedPreferences.getInstance();
   runApp(
     ProviderScope(
@@ -23,6 +25,17 @@ Future<void> main() async {
       child: const BelotApp(),
     ),
   );
+}
+
+/// Development builds only (`--dart-define=DEMO_AUTOPLAY_MS=…`, used for
+/// screenshots): faster auto-play and bots. Release builds keep defaults.
+void _applyDemoTiming() {
+  const autoplay = int.fromEnvironment('DEMO_AUTOPLAY_MS');
+  if (autoplay <= 0) return;
+  TurnTimers.autoPlayDelay = const Duration(milliseconds: autoplay);
+  TurnTimers.hintDelay = const Duration(milliseconds: autoplay ~/ 2);
+  GameController.botDelay = const Duration(milliseconds: 300);
+  GameController.trickPause = const Duration(milliseconds: 700);
 }
 
 class BelotApp extends ConsumerWidget {

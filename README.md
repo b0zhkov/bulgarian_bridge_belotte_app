@@ -71,6 +71,20 @@ Flutter app for Android, iOS and web. Rules follow [belot.bg](https://belot.bg/b
 - All sounds are synthesized by `tool/make_sounds.py` (numpy, 22 kHz mono WAV, ~290 KB total) and released as
   CC0 — see `assets/sounds/LICENSE.md`. Regenerate with `python3 tool/make_sounds.py`.
 
+## Beta 6 — score sheet and deal recap
+- Score sheet (`widgets/score_sheet.dart`): the paper "Ние / Вие" sheet in the app's style — one row per deal
+  with the points written and a running total, the contract badge in the middle (declarer's team colour, ×2/×4
+  for contra/recontra) and markers (вкарана, висяща, капо, контра, hanging points left/awarded), totals under a
+  double line. Opens from the sheet button next to the score (or tapping the score) and follows live state
+  (online: the host's state); shown at match end.
+- Last trick: the round button in the corner of the table shows the previous trick (who played what, who took
+  it); any tap closes it.
+- Deal recap (`widgets/deal_result_panel.dart`): animated breakdown — cards, last 10, declarations, belot,
+  No Trump ×2, valat, total, outcome (изкарана / вкарана / висяща, contra/recontra), the points written and
+  hanging points — counting up line by line; tap to skip; reduced motion shows it at once. Numbers come from the
+  engine (`DealScoreBreakdown` in `core/rules/scoring.dart`), tested against the engine on hundreds of deals.
+- Screenshots/dev only: `flutter build web --dart-define=DEMO_AUTOPLAY_MS=600` speeds up auto-play and bots.
+
 ## Structure
 ```
 lib/

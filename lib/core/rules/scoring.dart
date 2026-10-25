@@ -225,3 +225,69 @@ Settlement settle({
     awardedTo,
   );
 }
+
+/// One step of a deal's score, as points added for each team.
+enum ScoreStep {
+  /// Card points taken in tricks (before the No Trump doubling).
+  cards,
+
+  /// Bonus for the last trick.
+  lastTen,
+
+  /// Declarations that scored (tierce, quarte, quint, square).
+  declarations,
+
+  /// Belot (K+Q of trumps).
+  belot,
+
+  /// No Trump: cards and last 10 count double (this line is the extra).
+  noTrumpDouble,
+
+  /// Valat (capot) bonus, never doubled.
+  valat,
+}
+
+class ScoreLine {
+  const ScoreLine(this.step, this.points);
+  final ScoreStep step;
+  final List<int> points;
+}
+
+/// The engine's own breakdown of a [DealScore], for the deal recap. The
+/// lines add up to [DealScore.rawPoints] exactly; [writtenForDeal] plus the
+/// awarded hanging points gives [DealScore.scored].
+extension DealScoreBreakdown on DealScore {
+  List<ScoreLine> get breakdown {
+    final nt = contract.type == ContractType.noTrump;
+    final last = [
+      for (var t = 0; t < 2; t++) t == lastTrickTeam ? kLastTrickBonus : 0,
+    ];
+    return [
+      ScoreLine(ScoreStep.cards, this.cardPoints),
+      ScoreLine(ScoreStep.lastTen, last),
+      if (!nt && declarationPoints.any((p) => p > 0))
+        ScoreLine(ScoreStep.declarations, declarationPoints),
+      if (!nt && belotPoints.any((p) => p > 0))
+        ScoreLine(ScoreStep.belot, belotPoints),
+      if (nt)
+        ScoreLine(ScoreStep.noTrumpDouble, [
+          for (var t = 0; t < 2; t++)
+            this.cardPoints[t] +
+                last[t] +
+                declarationPoints[t] +
+                belotPoints[t],
+        ]),
+      if (valatTeam != null)
+        ScoreLine(ScoreStep.valat, [
+          for (var t = 0; t < 2; t++) t == valatTeam ? kValatBonus : 0,
+        ]),
+    ];
+  }
+
+  /// Match points this deal itself wrote (without hanging points carried in
+  /// from earlier deals).
+  List<int> get writtenForDeal => [
+    for (var t = 0; t < 2; t++)
+      scored[t] - (hangingAwardedTo == t ? hangingAwarded : 0),
+  ];
+}

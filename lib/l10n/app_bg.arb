@@ -238,5 +238,75 @@
   "sound": "Звук",
   "soundDescription": "Меки звуци при раздаване, ход и взятка",
   "haptics": "Вибрация",
-  "hapticsDescription": "Леко потрепване при ход, взятка и контра"
+  "hapticsDescription": "Леко потрепване при ход, взятка и контра",
+  "scoreSheet": "Лист",
+  "scoreSheetTitle": "Резултатен лист",
+  "noTrumpDouble": "Без коз ×2",
+  "hangingLeft": "{points} висят",
+  "@hangingLeft": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "hangingAwardedLine": "+{points} висящи",
+  "@hangingAwardedLine": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "outsideExplain": "Изкарана — всеки записва своите точки",
+  "insideExplain": "Вкарана — всичко отива при противника",
+  "hangingExplain": "Равенство — точките на играещите висят",
+  "doubledExplain": "{mult} — по-силният отбор взима всичко ×{factor}",
+  "@doubledExplain": {
+    "placeholders": {
+      "mult": {
+        "type": "String"
+      },
+      "factor": {
+        "type": "int"
+      }
+    }
+  },
+  "doubledHangingExplain": "{mult} при равенство — всичко виси ×{factor}",
+  "@doubledHangingExplain": {
+    "placeholders": {
+      "mult": {
+        "type": "String"
+      },
+      "factor": {
+        "type": "int"
+      }
+    }
+  },
+  "tapToSkip": "Докосни, за да видиш всичко",
+  "tapToClose": "Докосни, за да затвориш",
+  "trickTakenBy": "Взе: {name}",
+  "@trickTakenBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "recapTab": "Раздавка",
+  "sheetTab": "Лист",
+  "playsContract": "{name} играе",
+  "@playsContract": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "markInside": "вкарана",
+  "markHanging": "висяща",
+  "markValat": "капо",
+  "markDouble": "контра",
+  "markRedouble": "реконтра",
+  "matchScore": "Резултат"
 }

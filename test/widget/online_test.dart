@@ -369,4 +369,78 @@ void main() {
     expect(sound.played.where((s) => s == Sfx.deal).length, 20);
     await finish(t, container);
   });
+
+  testWidgets('score sheet follows the host state live (rotated to my team)', (
+    t,
+  ) async {
+    final h = await other(t, 'h', 'Мария', create: true);
+    final container = await pumpOnline(t, uid: 'me', name: 'Петър');
+    await t.tap(find.byKey(const Key('play-online')));
+    await t.pumpAndSettle();
+    await t.enterText(find.byKey(const Key('code-field')), 'HJKMN');
+    await t.tap(find.byKey(const Key('join-room')));
+    await settle(t);
+    await t.tap(find.byKey(const Key('join-team-1')));
+    await settle(t);
+    await h.addBots();
+    await settle(t, 3);
+    expect(await h.startMatch(), isTrue);
+    await settle(t, 5);
+    expect(find.byType(TableView), findsOneWidget);
+
+    // Open the sheet while the first deal is being played.
+    await t.tap(find.byKey(const Key('score-sheet-button')));
+    await settle(t, 4);
+    expect(find.byKey(const Key('score-sheet')), findsOneWidget);
+    expect(find.text('Все още няма изиграни раздавки'), findsOneWidget);
+
+    final ctrl = container.read(onlineControllerProvider.notifier);
+    for (var i = 0; i < 1500; i++) {
+      await settle(t, 1);
+      final g = h.game;
+      if (g != null && g.history.isNotEmpty) break;
+      // The host player (team 0) bids and plays from its client.
+      final seat = h.mySeat;
+      if (g != null && seat != null && g.currentSeat == seat && h.handInSync) {
+        if (g.phase == GamePhase.bidding) {
+          final bids = BelotEngine.validBids(g, seat);
+          await h.bid(
+            g.contract == null
+                ? bids.firstWhere((b) => b.kind == BidKind.contract)
+                : Bid.pass,
+          );
+        } else if (g.phase == GamePhase.playing) {
+          await h.play(BelotEngine.getLegalMoves(g, seat).first);
+        }
+      }
+      // And I play through my controller (the sheet stays open).
+      final table = container.read(onlineControllerProvider).table;
+      if (table != null && table.isHumanTurn) {
+        if (table.game.phase == GamePhase.bidding) {
+          ctrl.humanBid(Bid.pass);
+        } else if (table.game.phase == GamePhase.playing) {
+          ctrl.humanPlay(ctrl.humanLegalCards().first);
+        }
+      }
+    }
+    await settle(t, 4);
+    final hostGame = h.game!;
+    expect(hostGame.history, hasLength(1));
+    // I sit on team 1, so "Ние" is the host's team 1.
+    final d = hostGame.history.first;
+    String cell(int pts) => pts == 0 ? '–' : '$pts';
+    expect(
+      t.widget<Text>(find.byKey(const Key('sheet-us-0'))).data,
+      cell(d.scored[1]),
+    );
+    expect(
+      t.widget<Text>(find.byKey(const Key('sheet-them-0'))).data,
+      cell(d.scored[0]),
+    );
+    expect(
+      t.widget<Text>(find.byKey(const Key('sheet-total-us'))).data,
+      '${hostGame.scores[1]}',
+    );
+    await finish(t, container);
+  });
 }

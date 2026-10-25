@@ -530,4 +530,82 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hapticsDescription => 'Gentle taps on plays, tricks and contra';
+
+  @override
+  String get scoreSheet => 'Sheet';
+
+  @override
+  String get scoreSheetTitle => 'Score sheet';
+
+  @override
+  String get noTrumpDouble => 'No trumps ×2';
+
+  @override
+  String hangingLeft(int points) {
+    return '$points hanging';
+  }
+
+  @override
+  String hangingAwardedLine(int points) {
+    return '+$points hanging';
+  }
+
+  @override
+  String get outsideExplain => 'Made — both teams write their points';
+
+  @override
+  String get insideExplain => 'Failed — everything goes to the defenders';
+
+  @override
+  String get hangingExplain => 'Tie — the declarers\' points hang';
+
+  @override
+  String doubledExplain(String mult, int factor) {
+    return '$mult — the stronger team takes all ×$factor';
+  }
+
+  @override
+  String doubledHangingExplain(String mult, int factor) {
+    return '$mult and a tie — everything hangs ×$factor';
+  }
+
+  @override
+  String get tapToSkip => 'Tap to show everything';
+
+  @override
+  String get tapToClose => 'Tap to close';
+
+  @override
+  String trickTakenBy(String name) {
+    return 'Won by $name';
+  }
+
+  @override
+  String get recapTab => 'Deal';
+
+  @override
+  String get sheetTab => 'Sheet';
+
+  @override
+  String playsContract(String name) {
+    return '$name plays';
+  }
+
+  @override
+  String get markInside => 'failed';
+
+  @override
+  String get markHanging => 'hanging';
+
+  @override
+  String get markValat => 'valat';
+
+  @override
+  String get markDouble => 'contra';
+
+  @override
+  String get markRedouble => 'recontra';
+
+  @override
+  String get matchScore => 'Score';
 }

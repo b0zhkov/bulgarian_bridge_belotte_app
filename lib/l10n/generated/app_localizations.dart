@@ -1075,6 +1075,138 @@ abstract class AppLocalizations {
   /// In bg, this message translates to:
   /// **'Леко потрепване при ход, взятка и контра'**
   String get hapticsDescription;
+
+  /// No description provided for @scoreSheet.
+  ///
+  /// In bg, this message translates to:
+  /// **'Лист'**
+  String get scoreSheet;
+
+  /// No description provided for @scoreSheetTitle.
+  ///
+  /// In bg, this message translates to:
+  /// **'Резултатен лист'**
+  String get scoreSheetTitle;
+
+  /// No description provided for @noTrumpDouble.
+  ///
+  /// In bg, this message translates to:
+  /// **'Без коз ×2'**
+  String get noTrumpDouble;
+
+  /// No description provided for @hangingLeft.
+  ///
+  /// In bg, this message translates to:
+  /// **'{points} висят'**
+  String hangingLeft(int points);
+
+  /// No description provided for @hangingAwardedLine.
+  ///
+  /// In bg, this message translates to:
+  /// **'+{points} висящи'**
+  String hangingAwardedLine(int points);
+
+  /// No description provided for @outsideExplain.
+  ///
+  /// In bg, this message translates to:
+  /// **'Изкарана — всеки записва своите точки'**
+  String get outsideExplain;
+
+  /// No description provided for @insideExplain.
+  ///
+  /// In bg, this message translates to:
+  /// **'Вкарана — всичко отива при противника'**
+  String get insideExplain;
+
+  /// No description provided for @hangingExplain.
+  ///
+  /// In bg, this message translates to:
+  /// **'Равенство — точките на играещите висят'**
+  String get hangingExplain;
+
+  /// No description provided for @doubledExplain.
+  ///
+  /// In bg, this message translates to:
+  /// **'{mult} — по-силният отбор взима всичко ×{factor}'**
+  String doubledExplain(String mult, int factor);
+
+  /// No description provided for @doubledHangingExplain.
+  ///
+  /// In bg, this message translates to:
+  /// **'{mult} при равенство — всичко виси ×{factor}'**
+  String doubledHangingExplain(String mult, int factor);
+
+  /// No description provided for @tapToSkip.
+  ///
+  /// In bg, this message translates to:
+  /// **'Докосни, за да видиш всичко'**
+  String get tapToSkip;
+
+  /// No description provided for @tapToClose.
+  ///
+  /// In bg, this message translates to:
+  /// **'Докосни, за да затвориш'**
+  String get tapToClose;
+
+  /// No description provided for @trickTakenBy.
+  ///
+  /// In bg, this message translates to:
+  /// **'Взе: {name}'**
+  String trickTakenBy(String name);
+
+  /// No description provided for @recapTab.
+  ///
+  /// In bg, this message translates to:
+  /// **'Раздавка'**
+  String get recapTab;
+
+  /// No description provided for @sheetTab.
+  ///
+  /// In bg, this message translates to:
+  /// **'Лист'**
+  String get sheetTab;
+
+  /// No description provided for @playsContract.
+  ///
+  /// In bg, this message translates to:
+  /// **'{name} играе'**
+  String playsContract(String name);
+
+  /// No description provided for @markInside.
+  ///
+  /// In bg, this message translates to:
+  /// **'вкарана'**
+  String get markInside;
+
+  /// No description provided for @markHanging.
+  ///
+  /// In bg, this message translates to:
+  /// **'висяща'**
+  String get markHanging;
+
+  /// No description provided for @markValat.
+  ///
+  /// In bg, this message translates to:
+  /// **'капо'**
+  String get markValat;
+
+  /// No description provided for @markDouble.
+  ///
+  /// In bg, this message translates to:
+  /// **'контра'**
+  String get markDouble;
+
+  /// No description provided for @markRedouble.
+  ///
+  /// In bg, this message translates to:
+  /// **'реконтра'**
+  String get markRedouble;
+
+  /// No description provided for @matchScore.
+  ///
+  /// In bg, this message translates to:
+  /// **'Резултат'**
+  String get matchScore;
 }
 
 class _AppLocalizationsDelegate
