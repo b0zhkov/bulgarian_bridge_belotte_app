@@ -308,5 +308,14 @@
   "markValat": "капо",
   "markDouble": "контра",
   "markRedouble": "реконтра",
-  "matchScore": "Резултат"
+  "matchScore": "Резултат",
+  "emote": "Емоция",
+  "emotesSection": "Емоции",
+  "muteEmotes": "Скрий чуждите емоции",
+  "muteEmotesDescription": "Не показва реакциите на другите играчи",
+  "emotesCredit": "Анимирани емоджита: Noto Emoji Animation, Google (CC BY 4.0)",
+  "phraseBravo": "Браво!",
+  "phraseHayde": "Хайде!",
+  "phraseOops": "Упс!",
+  "phraseGg": "Добра игра"
 }

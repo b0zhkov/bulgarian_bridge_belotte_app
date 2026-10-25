@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/rules/rules.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../emotes/emotes.dart';
 import '../game_controller.dart';
 import '../labels.dart';
 
@@ -142,7 +143,8 @@ class PlayerAvatar extends StatelessWidget {
       chipColor = c.chipText;
     }
 
-    return SizedBox(
+    final emote = table.emotes[seat];
+    final avatar = SizedBox(
       width: width,
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 250),
@@ -220,6 +222,19 @@ class PlayerAvatar extends StatelessWidget {
           ],
         ),
       ),
+    );
+    if (emote == null) return avatar;
+    // Pops over the avatar circle, undimmed, for every player at the table.
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.topCenter,
+      children: [
+        avatar,
+        Positioned(
+          top: -12,
+          child: EmoteBurst(key: Key('emote-over-$seat'), show: emote),
+        ),
+      ],
     );
   }
 }

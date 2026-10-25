@@ -7,6 +7,7 @@ import '../../core/widgets/pill_button.dart';
 import '../../core/widgets/suit_icon.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../profile/profile_controller.dart';
+import '../emotes/emotes.dart';
 import 'game_controller.dart';
 import 'labels.dart';
 import 'widgets/deal_result_panel.dart';
@@ -42,7 +43,15 @@ class TableView extends ConsumerWidget {
     this.leaveTitle,
     this.leaveBody,
     this.notice,
+    this.onEmote,
+    this.canEmote,
   });
+
+  /// Online only: sends an emote (null hides the emote button).
+  final void Function(Emote e)? onEmote;
+
+  /// Online only: whether the emote rate limit allows sending now.
+  final bool Function()? canEmote;
 
   /// Short-lived message shown over the status line, between the trick area
   /// and the player's own cards (never over an avatar).
@@ -110,7 +119,7 @@ class TableView extends ConsumerWidget {
 
     return LiveGame(
       game: g,
-      builder: (context, live) => PopScope(
+      builder: (context, live, recapDone) => PopScope(
         canPop: false,
         onPopInvokedWithResult: (didPop, _) {
           if (!didPop) _confirmLeave(context);
@@ -130,10 +139,19 @@ class TableView extends ConsumerWidget {
                         children: [
                           Column(
                             children: [
-                              _TopBar(
-                                onBack: () => _confirmLeave(context),
-                                onScore: () => showScoreSheet(context, live),
-                                game: g,
+                              ValueListenableBuilder<int>(
+                                valueListenable: recapDone,
+                                builder: (context, done, _) {
+                                  final shown = shownScore(g, done);
+                                  return _TopBar(
+                                    onBack: () => _confirmLeave(context),
+                                    onScore: () =>
+                                        showScoreSheet(context, live),
+                                    game: g,
+                                    scores: shown.scores,
+                                    hanging: shown.hanging,
+                                  );
+                                },
                               ),
                               // Partner sits opposite (top), opponents left and right.
                               KeyedSubtree(
@@ -168,6 +186,15 @@ class TableView extends ConsumerWidget {
                                           Positioned.fill(
                                             child: TrickArea(table: table),
                                           ),
+                                          if (onEmote case final send?)
+                                            Positioned(
+                                              left: 0,
+                                              bottom: 0,
+                                              child: EmoteButton(
+                                                onPick: send,
+                                                canSend: canEmote,
+                                              ),
+                                            ),
                                           if (g.phase == GamePhase.playing &&
                                               g.tricks.isNotEmpty)
                                             Positioned(
@@ -207,6 +234,14 @@ class TableView extends ConsumerWidget {
                                     hintShown: hintsOn && table.hint != null,
                                   ),
                                   ?notice,
+                                  if (table.emotes[kHumanSeat] case final e?)
+                                    Positioned(
+                                      bottom: 0,
+                                      child: EmoteBurst(
+                                        key: const Key('emote-over-0'),
+                                        show: e,
+                                      ),
+                                    ),
                                 ],
                               ),
                               const SizedBox(height: Gap.s),
@@ -264,6 +299,11 @@ class TableView extends ConsumerWidget {
                                 newMatchLabel: newMatchLabel,
                                 waiting: table.waitingReady,
                                 nameOf: nameOf,
+                                onRecapDone: (n) {
+                                  if (n > recapDone.value) {
+                                    recapDone.value = n;
+                                  }
+                                },
                               ),
                             ),
                           if (g.phase == GamePhase.allPassed)
@@ -311,10 +351,14 @@ class _TopBar extends StatelessWidget {
     required this.onBack,
     required this.onScore,
     required this.game,
+    required this.scores,
+    required this.hanging,
   });
   final VoidCallback onBack;
   final VoidCallback onScore;
   final GameState game;
+  final List<int> scores;
+  final int hanging;
 
   @override
   Widget build(BuildContext context) {
@@ -327,6 +371,7 @@ class _TopBar extends StatelessWidget {
       int score,
       Color color,
       CrossAxisAlignment align,
+      Key key,
     ) => Column(
       crossAxisAlignment: align,
       mainAxisSize: MainAxisSize.min,
@@ -341,6 +386,7 @@ class _TopBar extends StatelessWidget {
         ),
         Text(
           '$score',
+          key: key,
           style: TextStyle(
             color: c.textPrimary,
             fontSize: AppText.score,
@@ -387,9 +433,10 @@ class _TopBar extends StatelessWidget {
                               children: [
                                 team(
                                   l.teamUs,
-                                  game.scores[0],
+                                  scores[0],
                                   c.teamUs,
                                   CrossAxisAlignment.end,
+                                  const Key('score-us'),
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
@@ -405,9 +452,9 @@ class _TopBar extends StatelessWidget {
                                           fontSize: AppText.title,
                                         ),
                                       ),
-                                      if (game.hanging > 0)
+                                      if (hanging > 0)
                                         Text(
-                                          l.hanging(game.hanging),
+                                          l.hanging(hanging),
                                           style: TextStyle(
                                             color: c.chipText,
                                             fontSize: 10,
@@ -418,9 +465,10 @@ class _TopBar extends StatelessWidget {
                                 ),
                                 team(
                                   l.teamThem,
-                                  game.scores[1],
+                                  scores[1],
                                   c.teamThem,
                                   CrossAxisAlignment.start,
+                                  const Key('score-them'),
                                 ),
                               ],
                             ),

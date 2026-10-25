@@ -119,6 +119,8 @@ class RoomScreen extends ConsumerWidget {
           leaveTitle: l.leaveOnlineGameTitle,
           leaveBody: l.leaveOnlineGameBody,
           notice: SeatNoticeToast(notice: s.notice),
+          onEmote: ctrl.sendEmote,
+          canEmote: () => ctrl.canEmote,
         );
       }
       return _WaitingView(client: c, onLeave: () => _leave(context, ref));

@@ -17,6 +17,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:bulgarian_bridge_belotte_app/features/feedback/sound.dart';
 import 'package:bulgarian_bridge_belotte_app/core/constants/deal_timing.dart';
 
+import 'package:bulgarian_bridge_belotte_app/features/emotes/emotes.dart';
+
 import 'fakes.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -319,6 +321,11 @@ void main() {
     final container = await pumpOnline(t);
     await t.tap(find.byKey(const Key('open-settings')));
     await t.pumpAndSettle();
+    await t.scrollUntilVisible(
+      find.byKey(const Key('autoplay-switch')),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.byKey(const Key('hints-switch')), findsOneWidget);
     expect(find.byKey(const Key('autoplay-switch')), findsOneWidget);
     expect(container.read(autoPlayEnabledProvider), isFalse);
@@ -334,6 +341,19 @@ void main() {
     await t.tap(find.byKey(const Key('level-easy')));
     await t.pumpAndSettle();
     expect(container.read(botLevelProvider), BotLevel.easy);
+    // Mute others' emotes (persisted) and the animation credit.
+    expect(container.read(emotesMutedProvider), isFalse);
+    await t.scrollUntilVisible(
+      find.byKey(const Key('mute-emotes-switch')),
+      -200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await t.tap(find.byKey(const Key('mute-emotes-switch')));
+    await t.pumpAndSettle();
+    expect(container.read(emotesMutedProvider), isTrue);
+    final sp = container.read(sharedPrefsProvider);
+    expect(sp.getBool('emotes_muted'), isTrue);
+    expect(find.textContaining('CC BY 4.0'), findsOneWidget);
   });
 
   testWidgets('online deal is animated from state; bots wait for it', (
@@ -442,5 +462,92 @@ void main() {
       '${hostGame.scores[1]}',
     );
     await finish(t, container);
+  });
+
+  testWidgets('emotes pop over the sender\'s seat for everyone; mute', (
+    t,
+  ) async {
+    final h = await other(t, 'h', 'Мария', create: true);
+    final container = await pumpOnline(t, uid: 'me', name: 'Петър');
+    await t.tap(find.byKey(const Key('play-online')));
+    await t.pumpAndSettle();
+    await t.enterText(find.byKey(const Key('code-field')), 'HJKMN');
+    await t.tap(find.byKey(const Key('join-room')));
+    await settle(t);
+    await t.tap(find.byKey(const Key('join-team-1')));
+    await settle(t);
+    await h.addBots();
+    await settle(t, 3);
+    expect(await h.startMatch(), isTrue);
+    await settle(t, 5);
+    expect(find.byType(TableView), findsOneWidget);
+    final ctrl = container.read(onlineControllerProvider.notifier);
+    final me = ctrl.client!;
+    final hostView = (h.mySeat! - me.mySeat!) % 4;
+    expect(hostView, isNot(0));
+
+    // Seen by the host: a fresh emote from me arrives over my seat there.
+    final hostSaw = <String>[];
+    h.onEmote = (uid, id) => hostSaw.add('$uid:$id');
+
+    // I pick 👏 from the picker: it pops over my own spot right away.
+    await t.tap(find.byKey(const Key('emote-button')));
+    await t.pumpAndSettle();
+    expect(find.byKey(const Key('emote-picker')), findsOneWidget);
+    expect(find.byKey(const Key('pick-bravo')), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('emote-picker')),
+        matching: find.text('🤖'),
+      ),
+      findsNothing,
+    );
+    expect(Emote.values.where((e) => e.emoji == '🤖'), isEmpty);
+    await t.tap(find.byKey(const Key('pick-clap')));
+    await settle(t, 3);
+    expect(find.byKey(const Key('emote-over-0')), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('emote-over-0')),
+        matching: find.byKey(const Key('emote-clap')),
+      ),
+      findsOneWidget,
+    );
+    expect(hostSaw, ['me:clap']);
+
+    // Client-side rate limit: a second one right away is refused.
+    expect(ctrl.canEmote, isFalse);
+    expect(ctrl.sendEmote(Emote.fire), isFalse);
+
+    // The host's emote shows over the host's avatar on my (rotated) table.
+    await h.sendEmote('fire');
+    await settle(t, 3);
+    expect(
+      find.descendant(
+        of: find.byKey(Key('emote-over-$hostView')),
+        matching: find.byKey(const Key('emote-fire')),
+      ),
+      findsOneWidget,
+    );
+    // ...and fades after ~2.5 s.
+    await t.pump(const Duration(seconds: 3));
+    await settle(t, 2);
+    expect(find.byKey(Key('emote-over-$hostView')), findsNothing);
+    expect(find.byKey(const Key('emote-over-0')), findsNothing);
+
+    // Muted: others' emotes are not shown, my own still are.
+    container.read(emotesMutedProvider.notifier).set(true);
+    await h.sendEmote('laugh');
+    await settle(t, 3);
+    expect(find.byKey(Key('emote-over-$hostView')), findsNothing);
+    expect(ctrl.sendEmote(Emote.bravo), isTrue);
+    await settle(t, 2);
+    expect(find.text('Браво!'), findsOneWidget);
+    await t.pump(const Duration(seconds: 3));
+    await settle(t, 2);
+
+    // Leaving removes my emote node.
+    await finish(t, container);
+    expect(await server.client('h').get('rooms/HJKMN/emotes/me'), isNull);
   });
 }

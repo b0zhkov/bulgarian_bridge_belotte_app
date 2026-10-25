@@ -8,6 +8,8 @@ import '../../core/rules/rules.dart';
 import '../../online/db.dart';
 import '../../online/firebase_db.dart';
 import '../../online/room_client.dart';
+import '../../online/room_logic.dart';
+import '../emotes/emotes.dart';
 import '../../online/room_models.dart';
 import '../game/game_controller.dart';
 import '../profile/profile_controller.dart';
@@ -77,6 +79,9 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
   SeatNotice? _notice;
   Timer? _noticeTimer;
   int _noticeId = 0;
+  final Map<int, EmoteShow> _emotes = {};
+  int _emoteNonce = 0;
+  final EmoteLimiter _emoteLimiter = EmoteLimiter();
 
   @override
   OnlineState build() {
@@ -118,6 +123,7 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
         return false;
       }
       _reset();
+      c.onEmote = _onEmote;
       _active = c;
       state = OnlineState(client: c);
       _changed();
@@ -141,6 +147,7 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
     _prevSeats = null;
     _notice = null;
     _noticeTimer?.cancel();
+    _emotes.clear();
   }
 
   Future<void> leave() async {
@@ -155,6 +162,41 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
 
   void clearError() =>
       state = OnlineState(client: state.client, table: state.table);
+
+  // -------------------------------------------------------------- emotes
+
+  /// Whether the rate limit allows another emote now.
+  bool get canEmote => _emoteLimiter.canSend();
+
+  /// Sends an emote; false when rate-limited or not seated.
+  bool sendEmote(Emote e) {
+    final c = state.client;
+    if (c == null || c.mySeat == null) return false;
+    if (!_emoteLimiter.tryUse()) return false;
+    c.sendEmote(e.name).catchError((_) {});
+    _onEmote(c.uid, e.name);
+    return true;
+  }
+
+  void _onEmote(String uid, String id) {
+    final c = _active;
+    final e = Emote.parse(id);
+    if (c == null || e == null) return;
+    final abs = RoomLogic.seatOf(c.seats, uid);
+    final me = c.mySeat;
+    if (abs == null || me == null) return;
+    if (uid != c.uid && ref.read(emotesMutedProvider)) return;
+    final view = (abs - me) % 4;
+    final show = EmoteShow(e, ++_emoteNonce);
+    _emotes[view] = show;
+    Timer(kEmoteDuration, () {
+      if (_emotes[view] == show) {
+        _emotes.remove(view);
+        _changed();
+      }
+    });
+    _changed();
+  }
 
   // ---------------------------------------------------------------- view
 
@@ -246,6 +288,7 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
       hint: _hint,
       locked: !c.handInSync || _pendingVersion == c.version,
       waitingReady: c.ready.contains(c.uid),
+      emotes: Map.of(_emotes),
     );
     if (table.isHumanTurn) {
       _startTurnTimers(c.version, view);

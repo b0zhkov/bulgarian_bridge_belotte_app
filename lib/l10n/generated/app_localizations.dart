@@ -1207,6 +1207,60 @@ abstract class AppLocalizations {
   /// In bg, this message translates to:
   /// **'Резултат'**
   String get matchScore;
+
+  /// No description provided for @emote.
+  ///
+  /// In bg, this message translates to:
+  /// **'Емоция'**
+  String get emote;
+
+  /// No description provided for @emotesSection.
+  ///
+  /// In bg, this message translates to:
+  /// **'Емоции'**
+  String get emotesSection;
+
+  /// No description provided for @muteEmotes.
+  ///
+  /// In bg, this message translates to:
+  /// **'Скрий чуждите емоции'**
+  String get muteEmotes;
+
+  /// No description provided for @muteEmotesDescription.
+  ///
+  /// In bg, this message translates to:
+  /// **'Не показва реакциите на другите играчи'**
+  String get muteEmotesDescription;
+
+  /// No description provided for @emotesCredit.
+  ///
+  /// In bg, this message translates to:
+  /// **'Анимирани емоджита: Noto Emoji Animation, Google (CC BY 4.0)'**
+  String get emotesCredit;
+
+  /// No description provided for @phraseBravo.
+  ///
+  /// In bg, this message translates to:
+  /// **'Браво!'**
+  String get phraseBravo;
+
+  /// No description provided for @phraseHayde.
+  ///
+  /// In bg, this message translates to:
+  /// **'Хайде!'**
+  String get phraseHayde;
+
+  /// No description provided for @phraseOops.
+  ///
+  /// In bg, this message translates to:
+  /// **'Упс!'**
+  String get phraseOops;
+
+  /// No description provided for @phraseGg.
+  ///
+  /// In bg, this message translates to:
+  /// **'Добра игра'**
+  String get phraseGg;
 }
 
 class _AppLocalizationsDelegate

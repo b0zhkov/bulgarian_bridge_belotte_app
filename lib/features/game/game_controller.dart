@@ -9,6 +9,7 @@ import '../../core/constants/deal_timing.dart';
 import '../../core/agents/bot_agent.dart';
 import '../../core/agents/bot_runner.dart';
 import '../../core/rules/rules.dart';
+import '../emotes/emotes.dart';
 import '../profile/profile_controller.dart';
 import '../../l10n/generated/app_localizations.dart';
 import 'labels.dart';
@@ -27,7 +28,11 @@ class TableState {
     this.seatInfos,
     this.locked = false,
     this.waitingReady = false,
+    this.emotes = const {},
   });
+
+  /// Online: emotes currently shown per (view) seat.
+  final Map<int, EmoteShow> emotes;
 
   /// Names/emojis per (view) seat for online games; null = offline bots.
   final List<SeatInfo>? seatInfos;
@@ -68,6 +73,7 @@ class TableState {
     List<SeatInfo>? seatInfos,
     bool? locked,
     bool? waitingReady,
+    Map<int, EmoteShow>? emotes,
   }) => TableState(
     game: game ?? this.game,
     displayTrick: clearDisplayTrick
@@ -78,6 +84,7 @@ class TableState {
     seatInfos: seatInfos ?? this.seatInfos,
     locked: locked ?? this.locked,
     waitingReady: waitingReady ?? this.waitingReady,
+    emotes: emotes ?? this.emotes,
   );
 
   /// Name and emoji for a view seat.

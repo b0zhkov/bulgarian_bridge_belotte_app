@@ -607,4 +607,32 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get matchScore => 'Резултат';
+
+  @override
+  String get emote => 'Емоция';
+
+  @override
+  String get emotesSection => 'Емоции';
+
+  @override
+  String get muteEmotes => 'Скрий чуждите емоции';
+
+  @override
+  String get muteEmotesDescription => 'Не показва реакциите на другите играчи';
+
+  @override
+  String get emotesCredit =>
+      'Анимирани емоджита: Noto Emoji Animation, Google (CC BY 4.0)';
+
+  @override
+  String get phraseBravo => 'Браво!';
+
+  @override
+  String get phraseHayde => 'Хайде!';
+
+  @override
+  String get phraseOops => 'Упс!';
+
+  @override
+  String get phraseGg => 'Добра игра';
 }

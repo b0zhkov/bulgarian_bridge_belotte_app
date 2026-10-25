@@ -70,6 +70,7 @@ flutter:
   generate: true
   assets:
     - assets/sounds/
+    - assets/emotes/
   fonts:
     - family: Comfortaa
       fonts:

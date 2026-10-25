@@ -24,6 +24,11 @@ class RoomClient {
   String name;
   void Function()? onChange;
 
+  /// Called for each new emote from another room member.
+  void Function(String uid, String emote)? onEmote;
+  final Map<String, int> _emoteSeen = {};
+  bool _emotesPrimed = false;
+
   RoomConnection connection = RoomConnection.connecting;
   RoomMeta? meta;
   Map<String, Member> members = {};
@@ -159,7 +164,33 @@ class RoomClient {
     _subs.add(db.watch('$_room/seats').listen(_onSeats, onError: _onError));
     _subs.add(db.watch('$_room/pub').listen(_onPub, onError: _onError));
     _subs.add(db.watch('$_room/hands/$uid').listen(_onHand, onError: _onError));
+    _subs.add(db.watch('$_room/emotes').listen(_onEmotes, onError: (_) {}));
   }
+
+  void _onEmotes(Object? v) {
+    final map = v is Map ? v : const {};
+    for (final e in map.entries) {
+      final val = e.value;
+      if (val is! Map) continue;
+      final t = val['t'];
+      final id = val['e'];
+      if (t is! num || id is! String) continue;
+      final key = e.key as String;
+      // Own emotes are shown on send (a local timestamp estimate followed
+      // by the server value would otherwise show them twice).
+      if (key == uid) continue;
+      final seen = _emoteSeen[key];
+      if (seen != null && t <= seen) continue;
+      _emoteSeen[key] = t.toInt();
+      // Emotes already in the room when joining are history, not news.
+      if (_emotesPrimed) onEmote?.call(key, id);
+    }
+    _emotesPrimed = true;
+  }
+
+  /// Sends an emote (the rules allow one per 2s per player).
+  Future<void> sendEmote(String id) =>
+      db.set('$_room/emotes/$uid', {'e': id, 't': const ServerTimestamp()});
 
   void _onError(Object e) {
     // Permission errors appear when the room is deleted under us.
@@ -342,6 +373,7 @@ class RoomClient {
         }
         await db.update({
           '$_room/members/$uid': null,
+          '$_room/emotes/$uid': null,
           '$_room/meta/onlineCount': const Increment(-1),
         });
       }

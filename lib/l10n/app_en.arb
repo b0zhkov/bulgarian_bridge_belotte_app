@@ -232,5 +232,14 @@
   "markValat": "valat",
   "markDouble": "contra",
   "markRedouble": "recontra",
-  "matchScore": "Score"
+  "matchScore": "Score",
+  "emote": "Emote",
+  "emotesSection": "Emotes",
+  "muteEmotes": "Hide others' emotes",
+  "muteEmotesDescription": "Don't show other players' reactions",
+  "emotesCredit": "Animated emoji: Noto Emoji Animation, Google (CC BY 4.0)",
+  "phraseBravo": "Bravo!",
+  "phraseHayde": "Come on!",
+  "phraseOops": "Oops!",
+  "phraseGg": "Good game"
 }

@@ -11,7 +11,11 @@ import '../labels.dart';
 class LiveGame extends StatefulWidget {
   const LiveGame({super.key, required this.game, required this.builder});
   final GameState game;
-  final Widget Function(BuildContext context, ValueListenable<GameState> live)
+  final Widget Function(
+    BuildContext context,
+    ValueListenable<GameState> live,
+    ValueNotifier<int> recapDone,
+  )
   builder;
 
   @override
@@ -20,6 +24,12 @@ class LiveGame extends StatefulWidget {
 
 class _LiveGameState extends State<LiveGame> {
   late final ValueNotifier<GameState> _live = ValueNotifier(widget.game);
+
+  /// Number of deals whose recap has finished (or was skipped); the score
+  /// shown at the top waits for it.
+  late final ValueNotifier<int> _recapDone = ValueNotifier(
+    widget.game.history.length,
+  );
 
   @override
   void didUpdateWidget(LiveGame old) {
@@ -36,11 +46,13 @@ class _LiveGameState extends State<LiveGame> {
   @override
   void dispose() {
     _live.dispose();
+    _recapDone.dispose();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) => widget.builder(context, _live);
+  Widget build(BuildContext context) =>
+      widget.builder(context, _live, _recapDone);
 }
 
 /// The score sheet as a bottom sheet that follows [live].
@@ -351,3 +363,19 @@ String sheetMarks(AppLocalizations l, DealScore d) => [
   if (d.newlyHanging > 0) l.hangingLeft(d.newlyHanging),
   if (d.hangingAwarded > 0) l.hangingAwardedLine(d.hangingAwarded),
 ].join(' · ');
+
+/// Scores (and hanging points) to show at the top: until the recap of the
+/// last deal has finished they stay as they were before that deal.
+({List<int> scores, int hanging}) shownScore(GameState g, int recapDone) {
+  final scored =
+      g.phase == GamePhase.dealScored || g.phase == GamePhase.matchOver;
+  if (!scored || g.history.isEmpty || recapDone >= g.history.length) {
+    return (scores: g.scores, hanging: g.hanging);
+  }
+  final d = g.history.last;
+  final before = [for (var t = 0; t < 2; t++) g.scores[t] - d.scored[t]];
+  final hanging = d.hangingAwarded > 0
+      ? d.hangingAwarded
+      : g.hanging - d.newlyHanging;
+  return (scores: before, hanging: hanging);
+}

@@ -85,6 +85,20 @@ Flutter app for Android, iOS and web. Rules follow [belot.bg](https://belot.bg/b
   engine (`DealScoreBreakdown` in `core/rules/scoring.dart`), tested against the engine on hundreds of deals.
 - Screenshots/dev only: `flutter build web --dart-define=DEMO_AUTOPLAY_MS=600` speeds up auto-play and bots.
 
+## Beta 7 — emotes
+- The top score now waits for the deal recap to finish counting (or a tap to skip) before it updates.
+- Emotes in online games (`lib/features/emotes/`): the round button at the bottom-left of the table opens a
+  compact picker with 8 animated reactions (👏 😂 😮 😤 👍 🙏 🤔 🔥) and 4 quick phrases (Браво!, Хайде!, Упс!,
+  Добра игра). The emote pops over the sender's avatar for everyone for ~2.5 s, then fades. There is no 🤖, which
+  is reserved for bots. Bots don't emote, and offline games don't show the button.
+- Sync: `rooms/$code/emotes/$uid = {e, t}`. Only the sender can write it, `t` must be the server time, and the
+  ids are whitelisted. The rules allow one emote per 2 s per player (`now >= previous t + 2000`), and the client
+  waits 2.2 s between sends. The node is removed when the player leaves and is deleted with the room.
+- Settings → Емоции: hide other players' emotes. Your own emotes are still shown.
+- Animated emoji: [Noto Emoji Animation](https://googlefonts.github.io/noto-emoji-animation/) by Google,
+  licensed **CC BY 4.0**. They are bundled offline as 96 px animated WebP (`tool/make_emotes.py`); see
+  `assets/emotes/LICENSE.md`.
+
 ## Structure
 ```
 lib/

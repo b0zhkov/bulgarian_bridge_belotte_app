@@ -115,3 +115,8 @@ final soundEnabledProvider = NotifierProvider<BoolPref, bool>(
 final hapticsEnabledProvider = NotifierProvider<BoolPref, bool>(
   () => BoolPref('haptics_enabled', true),
 );
+
+/// Hide other players' emotes (online).
+final emotesMutedProvider = NotifierProvider<BoolPref, bool>(
+  () => BoolPref('emotes_muted', false),
+);

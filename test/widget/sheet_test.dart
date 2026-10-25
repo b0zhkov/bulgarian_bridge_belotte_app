@@ -306,4 +306,62 @@ void main() {
     expect(find.text('Резултатен лист'), findsOneWidget);
     await app.leave(t);
   });
+
+  test('shownScore holds the last deal until the recap is done', () {
+    final g = scoredStates(1).first;
+    final d = g.history.last;
+    final held = shownScore(g, g.history.length - 1);
+    expect(held.scores, [g.scores[0] - d.scored[0], g.scores[1] - d.scored[1]]);
+    expect(shownScore(g, g.history.length).scores, g.scores);
+    expect(shownScore(g, g.history.length).hanging, g.hanging);
+  });
+
+  testWidgets('top score waits for the recap; no emote button offline', (
+    t,
+  ) async {
+    GameController.botDelay = const Duration(milliseconds: 10);
+    GameController.trickPause = const Duration(milliseconds: 10);
+    final c = await app.pumpApp(t);
+    await app.startOffline(t);
+    expect(find.byKey(const Key('emote-button')), findsNothing);
+    var bidMade = false;
+    for (var i = 0; i < 6000; i++) {
+      await t.pump(const Duration(milliseconds: 30));
+      final table = c.read(gameControllerProvider);
+      if (table.game.phase == GamePhase.dealScored) break;
+      if (table.game.phase == GamePhase.allPassed) bidMade = false;
+      if (!table.isHumanTurn) continue;
+      if (table.game.phase == GamePhase.bidding) {
+        final key = !bidMade && table.game.contract == null
+            ? 'bid-clubs'
+            : 'bid-pass';
+        if (find.byKey(Key(key)).evaluate().isEmpty) continue;
+        bidMade = true;
+        await t.tap(find.byKey(Key(key)));
+      } else if (table.game.phase == GamePhase.playing) {
+        final card = c
+            .read(gameControllerProvider.notifier)
+            .humanLegalCards()
+            .first;
+        await t.tap(find.byKey(Key('hand-${card.code}')));
+      }
+    }
+    final g = c.read(gameControllerProvider).game;
+    expect(g.phase, GamePhase.dealScored);
+    final d = g.history.last;
+    await t.pump(const Duration(milliseconds: 100));
+    expect(find.byKey(const Key('recap')), findsOneWidget);
+    // Counting: the top score still shows the total before this deal.
+    expect(text(t, 'score-us'), '${g.scores[0] - d.scored[0]}');
+    expect(text(t, 'score-them'), '${g.scores[1] - d.scored[1]}');
+    await t.pump(const Duration(milliseconds: 300));
+    expect(text(t, 'score-us'), '${g.scores[0] - d.scored[0]}');
+    // Skipping the count-up releases it.
+    await t.tap(find.byKey(const Key('recap')));
+    await t.pump();
+    await t.pump();
+    expect(text(t, 'score-us'), '${g.scores[0]}');
+    expect(text(t, 'score-them'), '${g.scores[1]}');
+    await app.leave(t);
+  });
 }

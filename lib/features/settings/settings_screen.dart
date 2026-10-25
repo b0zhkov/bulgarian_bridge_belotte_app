@@ -23,6 +23,7 @@ class SettingsScreen extends ConsumerWidget {
     final autoPlay = ref.watch(autoPlayEnabledProvider);
     final sound = ref.watch(soundEnabledProvider);
     final haptics = ref.watch(hapticsEnabledProvider);
+    final emotesMuted = ref.watch(emotesMutedProvider);
 
     Widget section(String title) => Padding(
       padding: const EdgeInsets.only(top: Gap.xl, bottom: Gap.m, left: Gap.xs),
@@ -198,6 +199,22 @@ class SettingsScreen extends ConsumerWidget {
                 value: haptics,
                 onChanged: (v) =>
                     ref.read(hapticsEnabledProvider.notifier).set(v),
+              ),
+              section(l.emotesSection),
+              switchTile(
+                key: const Key('mute-emotes-switch'),
+                title: l.muteEmotes,
+                description: l.muteEmotesDescription,
+                value: emotesMuted,
+                onChanged: (v) => ref.read(emotesMutedProvider.notifier).set(v),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: Gap.s, left: Gap.xs),
+                child: Text(
+                  l.emotesCredit,
+                  key: const Key('emotes-credit'),
+                  style: TextStyle(color: c.textSecondary, fontSize: 11),
+                ),
               ),
               section(l.gameplay),
               switchTile(

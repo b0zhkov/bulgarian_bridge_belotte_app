@@ -608,4 +608,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get matchScore => 'Score';
+
+  @override
+  String get emote => 'Emote';
+
+  @override
+  String get emotesSection => 'Emotes';
+
+  @override
+  String get muteEmotes => 'Hide others\' emotes';
+
+  @override
+  String get muteEmotesDescription => 'Don\'t show other players\' reactions';
+
+  @override
+  String get emotesCredit =>
+      'Animated emoji: Noto Emoji Animation, Google (CC BY 4.0)';
+
+  @override
+  String get phraseBravo => 'Bravo!';
+
+  @override
+  String get phraseHayde => 'Come on!';
+
+  @override
+  String get phraseOops => 'Oops!';
+
+  @override
+  String get phraseGg => 'Good game';
 }

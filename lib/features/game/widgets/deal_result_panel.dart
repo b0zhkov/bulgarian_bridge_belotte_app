@@ -21,8 +21,13 @@ class DealResultPanel extends StatefulWidget {
     this.newMatchLabel,
     this.waiting = false,
     this.nameOf,
+    this.onRecapDone,
   });
   final GameState game;
+
+  /// Called with the number of deals once the recap has finished counting
+  /// (or was skipped); at match end right away (the sheet is shown).
+  final void Function(int deals)? onRecapDone;
   final VoidCallback onNext;
   final VoidCallback onNewMatch;
 
@@ -42,6 +47,19 @@ class DealResultPanel extends StatefulWidget {
 class _DealResultPanelState extends State<DealResultPanel> {
   /// Match over: show the sheet (default) or the last deal's recap.
   bool _sheet = true;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.game.phase == GamePhase.matchOver) _done();
+  }
+
+  void _done() {
+    final n = widget.game.history.length;
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => widget.onRecapDone?.call(n),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -134,6 +152,7 @@ class _DealResultPanelState extends State<DealResultPanel> {
                       key: ValueKey('recap-${game.history.length}'),
                       game: game,
                       nameOf: widget.nameOf,
+                      onDone: _done,
                     ),
                   const SizedBox(height: 18),
                   PillButton(
@@ -177,8 +196,11 @@ class _Row {
 /// numbers count up; tap to show everything at once. Reduced motion shows the
 /// final state directly. Every number comes from the engine's score.
 class DealRecap extends StatefulWidget {
-  const DealRecap({super.key, required this.game, this.nameOf});
+  const DealRecap({super.key, required this.game, this.nameOf, this.onDone});
   final GameState game;
+
+  /// Counting finished or skipped.
+  final VoidCallback? onDone;
   final String Function(int seat)? nameOf;
 
   /// Delay between lines and the count-up duration of each line.
@@ -235,7 +257,10 @@ class _DealRecapState extends State<DealRecap>
     // Lines + outcome + written (+ hanging awarded).
     _lines = _rows(l).length + 2 + (d.hangingAwarded > 0 ? 1 : 0);
     final total = DealRecap.step * (_lines - 1) + DealRecap.count;
-    _ctrl = AnimationController(vsync: this, duration: total);
+    _ctrl = AnimationController(vsync: this, duration: total)
+      ..addStatusListener((st) {
+        if (st == AnimationStatus.completed) widget.onDone?.call();
+      });
     final reduced = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
     if (reduced) {
       _ctrl!.value = 1;
