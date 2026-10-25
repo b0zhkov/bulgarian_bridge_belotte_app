@@ -583,13 +583,23 @@ class _HistoryRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${r.won ? l.historyWin : l.historyLoss} · ${modeLabel(l, r)}',
+                      r.won ? l.historyWin : l.historyLoss,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: c.textPrimary,
                         fontSize: AppText.body,
                         fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${modeLabel(l, r)} · ${formatWhen(r.ended)}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: c.textSecondary,
+                        fontSize: AppText.caption,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -601,14 +611,6 @@ class _HistoryRow extends StatelessWidget {
                         color: c.textSecondary,
                         fontSize: AppText.caption,
                         height: 1.3,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      formatWhen(r.ended),
-                      style: TextStyle(
-                        color: c.textSecondary,
-                        fontSize: AppText.caption,
                       ),
                     ),
                   ],
