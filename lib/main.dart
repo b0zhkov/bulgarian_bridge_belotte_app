@@ -10,6 +10,9 @@ import 'features/game/labels.dart';
 import 'features/game/widgets/warm_up.dart';
 import 'features/home/home_screen.dart';
 import 'features/online/online_entry_screen.dart';
+import 'features/online/online_controller.dart';
+import 'online/host_driver.dart';
+import 'online/memory_db.dart';
 import 'features/online/invite/web_bridge.dart';
 import 'features/online/room_code.dart';
 import 'features/online/room_screen.dart';
@@ -28,11 +31,23 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
   runApp(
     ProviderScope(
-      overrides: [sharedPrefsProvider.overrideWithValue(prefs)],
+      overrides: [
+        sharedPrefsProvider.overrideWithValue(prefs),
+        if (_demoMemoryDb)
+          dbConnectorProvider.overrideWithValue(
+            () async => _demoServer.client('demo-player'),
+          ),
+      ],
       child: const BelotApp(),
     ),
   );
 }
+
+/// Development builds only (`--dart-define=DEMO_MEMORY_DB=true`, used for
+/// screenshots): online features run against an in-memory backend, so
+/// nothing is written to the real database.
+const _demoMemoryDb = bool.fromEnvironment('DEMO_MEMORY_DB');
+final _demoServer = MemoryDbServer();
 
 /// Development builds only (`--dart-define=DEMO_AUTOPLAY_MS=…`, used for
 /// screenshots): faster auto-play and bots. Release builds keep defaults.
@@ -43,6 +58,10 @@ void _applyDemoTiming() {
   TurnTimers.hintDelay = const Duration(milliseconds: autoplay ~/ 2);
   GameController.botDelay = const Duration(milliseconds: 300);
   GameController.trickPause = const Duration(milliseconds: 700);
+  HostDriver.botDelay = const Duration(milliseconds: 300);
+  HostDriver.trickPause = const Duration(milliseconds: 700);
+  HostDriver.dealEndTimeout = const Duration(seconds: 3);
+  OnlineController.trickPause = const Duration(milliseconds: 700);
 }
 
 class BelotApp extends ConsumerWidget {
