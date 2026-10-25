@@ -544,5 +544,14 @@
   "lastTrickHides": "Скрива се при следващата карта",
   "@lastTrickHides": {
     "description": "Beta 10: invites / score details (lastTrickHides)."
+  },
+  "upTo": "до {rank}",
+  "@upTo": {
+    "description": "Beta 10: declaration top card (upTo).",
+    "placeholders": {
+      "rank": {
+        "type": "String"
+      }
+    }
   }
 }

@@ -434,13 +434,25 @@ void main() {
         final team = teamOf(x.seat);
         expect(cell('detail-decl$k-$team'), '${x.points}');
         expect(cell('detail-decl$k-${1 - team}'), '–');
-        expect(
-          find.descendant(
-            of: details,
-            matching: find.textContaining(declarationDetail(l, x)),
-          ),
-          findsWidgets,
+        final label = t.widget<Text>(
+          find
+              .descendant(
+                of: find.byKey(Key('detail-label-decl$k')),
+                matching: find.byType(Text),
+              )
+              .first,
         );
+        final plain = label.textSpan!.toPlainText();
+        expect(plain, startsWith(declarationName(l, x)));
+        expect(
+          plain,
+          contains(
+            x.type == DeclarationType.square
+                ? x.cards.first.rank.label
+                : 'до ${x.highRank.label}',
+          ),
+        );
+        expect(plain, contains('P${x.seat}'));
       }
       expect(
         cell('detail-rounding'),

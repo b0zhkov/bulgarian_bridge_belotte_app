@@ -1554,6 +1554,12 @@ abstract class AppLocalizations {
   /// In bg, this message translates to:
   /// **'Скрива се при следващата карта'**
   String get lastTrickHides;
+
+  /// Beta 10: declaration top card (upTo).
+  ///
+  /// In bg, this message translates to:
+  /// **'до {rank}'**
+  String upTo(String rank);
 }
 
 class _AppLocalizationsDelegate

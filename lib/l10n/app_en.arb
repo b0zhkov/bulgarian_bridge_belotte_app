@@ -403,5 +403,13 @@
       }
     }
   },
-  "lastTrickHides": "Hides when the next card is played"
+  "lastTrickHides": "Hides when the next card is played",
+  "upTo": "to {rank}",
+  "@upTo": {
+    "placeholders": {
+      "rank": {
+        "type": "String"
+      }
+    }
+  }
 }

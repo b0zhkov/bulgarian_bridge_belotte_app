@@ -811,4 +811,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lastTrickHides => 'Hides when the next card is played';
+
+  @override
+  String upTo(String rank) {
+    return 'to $rank';
+  }
 }

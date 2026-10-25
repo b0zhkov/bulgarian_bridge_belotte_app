@@ -232,11 +232,18 @@ class BreakdownRow {
     this.points, {
     this.sub,
     this.subTeam,
+    this.suit,
+    this.tail,
   });
   final String key;
   final String label;
   final List<int> points;
   final String? sub;
+
+  /// Declarations: the suit (drawn as an icon after [label]) and the top
+  /// card ("до A") or the square's rank.
+  final Suit? suit;
+  final String? tail;
 
   /// Colours [sub] (e.g. the declaration's owner) in that team's colour.
   final int? subTeam;
@@ -259,10 +266,17 @@ List<BreakdownRow> breakdownRows(
       case ScoreStep.declarations:
         for (final (i, x) in d.scoringDeclarations.indexed) {
           final team = teamOf(x.seat);
+          final square = x.type == DeclarationType.square;
           rows.add(
             BreakdownRow(
               'decl$i',
-              declarationDetail(l, x),
+              declarationName(l, x),
+              suit: square ? null : x.suit,
+              tail: x.cards.isEmpty
+                  ? null
+                  : (square
+                        ? x.cards.first.rank.label
+                        : l.upTo(x.highRank.label)),
               [for (var t = 0; t < 2; t++) t == team ? x.points : 0],
               sub: nameOf?.call(x.seat) ?? teamName(l, team),
               subTeam: team,
@@ -290,4 +304,50 @@ List<BreakdownRow> breakdownRows(
     }
   }
   return rows;
+}
+
+/// A breakdown row's label: text, the suit icon and the top card.
+class BreakdownLabel extends StatelessWidget {
+  const BreakdownLabel(
+    this.row, {
+    super.key,
+    required this.style,
+    required this.color,
+    required this.red,
+    this.trailing,
+  });
+  final BreakdownRow row;
+  final TextStyle style;
+  final Color color;
+  final Color red;
+
+  /// Extra span after the label (e.g. the owner's name).
+  final InlineSpan? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final suit = row.suit;
+    final size = (style.fontSize ?? 14) * 0.95;
+    return Text.rich(
+      TextSpan(
+        text: row.label,
+        children: [
+          if (suit != null) ...[
+            const TextSpan(text: ' '),
+            WidgetSpan(
+              alignment: PlaceholderAlignment.middle,
+              child: SuitIcon(
+                suit,
+                size: size,
+                color: suit.isRed ? red : color,
+              ),
+            ),
+          ],
+          if (row.tail != null) TextSpan(text: ' ${row.tail}'),
+          ?trailing,
+        ],
+      ),
+      style: style,
+    );
+  }
 }

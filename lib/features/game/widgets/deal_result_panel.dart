@@ -189,6 +189,7 @@ class _Row {
     this.sub,
     this.subTeam,
     this.strong = false,
+    this.source,
   });
   final String key;
   final String label;
@@ -196,6 +197,9 @@ class _Row {
   final String? sub;
   final int? subTeam;
   final bool strong;
+
+  /// The engine row (declarations: suit icon and top card).
+  final BreakdownRow? source;
 }
 
 /// Animated breakdown of the last deal: each line appears in turn and its
@@ -227,7 +231,14 @@ class _DealRecapState extends State<DealRecap>
   List<_Row> _rows(AppLocalizations l) {
     final rows = [
       for (final r in breakdownRows(l, d, nameOf: widget.nameOf))
-        _Row(r.key, r.label, r.points, sub: r.sub, subTeam: r.subTeam),
+        _Row(
+          r.key,
+          r.label,
+          r.points,
+          sub: r.sub,
+          subTeam: r.subTeam,
+          source: r,
+        ),
     ];
     rows.add(_Row('raw', l.total, d.rawPoints, strong: true));
     return rows;
@@ -318,12 +329,15 @@ class _DealRecapState extends State<DealRecap>
       String? sub,
       int? subTeam,
       bool strong = false,
+      BreakdownRow? source,
     }) => Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
+          BreakdownLabel(
+            source ?? BreakdownRow('', label, const [0, 0]),
+            color: c.textPrimary,
+            red: c.cardRed,
             style: TextStyle(
               color: strong ? c.textPrimary : c.textSecondary,
               fontSize: strong ? AppText.body : AppText.label,
@@ -434,6 +448,7 @@ class _DealRecapState extends State<DealRecap>
                         sub: r.sub,
                         subTeam: r.subTeam,
                         strong: r.strong,
+                        source: r.source,
                       ),
                       numbers(i, r.key, r.points, strong: r.strong),
                     ],

@@ -453,6 +453,7 @@ class DealBreakdown extends StatelessWidget {
       int? subTeam,
       bool strong = false,
       bool topLine = false,
+      BreakdownRow? source,
     }) => Container(
       padding: const EdgeInsets.symmetric(vertical: 3),
       decoration: topLine
@@ -463,12 +464,19 @@ class DealBreakdown extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text.rich(
-              TextSpan(
-                text: label,
-                children: [
-                  if (sub != null)
-                    TextSpan(
+            child: BreakdownLabel(
+              source ?? BreakdownRow(key, label, pts),
+              key: Key('detail-label-$key'),
+              color: c.textPrimary,
+              red: c.cardRed,
+              style: TextStyle(
+                color: strong ? c.textPrimary : c.textSecondary,
+                fontSize: strong ? AppText.label + 1 : AppText.label,
+                fontWeight: strong ? FontWeight.w600 : FontWeight.w400,
+              ),
+              trailing: sub == null
+                  ? null
+                  : TextSpan(
                       text: '  $sub',
                       style: TextStyle(
                         color: subTeam == null
@@ -477,13 +485,6 @@ class DealBreakdown extends StatelessWidget {
                         fontSize: AppText.caption,
                       ),
                     ),
-                ],
-              ),
-              style: TextStyle(
-                color: strong ? c.textPrimary : c.textSecondary,
-                fontSize: strong ? AppText.label + 1 : AppText.label,
-                fontWeight: strong ? FontWeight.w600 : FontWeight.w400,
-              ),
             ),
           ),
           nums(key, pts, strong: strong),
@@ -556,7 +557,14 @@ class DealBreakdown extends StatelessWidget {
           ),
           const SizedBox(height: Gap.xs),
           for (final r in breakdownRows(l, d, nameOf: nameOf))
-            row(r.key, r.label, r.points, sub: r.sub, subTeam: r.subTeam),
+            row(
+              r.key,
+              r.label,
+              r.points,
+              sub: r.sub,
+              subTeam: r.subTeam,
+              source: r,
+            ),
           row('raw', l.total, d.rawPoints, strong: true, topLine: true),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: Gap.xs),
@@ -567,8 +575,9 @@ class DealBreakdown extends StatelessWidget {
                   outcomeExplain(l, d),
                   key: const Key('detail-outcome'),
                   style: TextStyle(
-                    color: c.chipText,
+                    color: c.textPrimary,
                     fontSize: AppText.caption,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 Text(

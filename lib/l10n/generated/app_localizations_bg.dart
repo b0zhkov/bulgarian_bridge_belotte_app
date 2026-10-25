@@ -810,4 +810,9 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get lastTrickHides => 'Скрива се при следващата карта';
+
+  @override
+  String upTo(String rank) {
+    return 'до $rank';
+  }
 }
