@@ -13,6 +13,8 @@ class HandView extends StatelessWidget {
     required this.legal,
     required this.interactive,
     required this.onPlay,
+    this.hint,
+    this.maxCardWidth = 104,
   });
 
   final List<Card> cards;
@@ -20,20 +22,27 @@ class HandView extends StatelessWidget {
   final bool interactive;
   final void Function(Card) onPlay;
 
+  /// Suggested card to highlight (glow + extra lift).
+  final Card? hint;
+  final double maxCardWidth;
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, box) {
         final w = box.maxWidth;
         final n = math.max(cards.length, 1);
-        final cw = math.min(108.0, w / (1 + (n - 1) * 0.55)).clamp(40.0, 108.0);
+        final cw = math
+            .min(maxCardWidth, w / (1 + (n - 1) * 0.55))
+            .clamp(40.0, maxCardWidth);
         final step = n == 1 ? 0.0 : math.min(cw * 0.86, (w - cw) / (n - 1));
         final totalW = cw + step * (n - 1);
         final left0 = (w - totalW) / 2;
         final ch = cw * PlayingCardView.aspect;
         const lift = 14.0;
+        const hintLift = 10.0;
         return SizedBox(
-          height: ch + lift,
+          height: ch + lift + hintLift,
           child: Stack(
             clipBehavior: Clip.none,
             children: [
@@ -43,7 +52,10 @@ class HandView extends StatelessWidget {
                   duration: const Duration(milliseconds: 260),
                   curve: Curves.easeOutCubic,
                   left: left0 + step * i,
-                  top: interactive && legal.contains(card) ? 0 : lift,
+                  top:
+                      hintLift +
+                      (interactive && legal.contains(card) ? 0 : lift) -
+                      (interactive && card == hint ? hintLift : 0),
                   child: GestureDetector(
                     key: Key('hand-${card.code}'),
                     behavior: HitTestBehavior.opaque,
@@ -54,6 +66,7 @@ class HandView extends StatelessWidget {
                       card: card,
                       width: cw,
                       dimmed: interactive && !legal.contains(card),
+                      glow: interactive && card == hint,
                     ),
                   ),
                 ),

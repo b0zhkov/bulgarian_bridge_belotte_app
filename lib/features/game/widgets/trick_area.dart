@@ -31,12 +31,12 @@ class TrickArea extends StatelessWidget {
       builder: (context, box) {
         final cw = math.min(
           76.0,
-          math.min(box.maxWidth * 0.2, box.maxHeight / 2.9),
+          math.min(box.maxWidth / 3.3, box.maxHeight / 2.75),
         );
         final ch = cw * PlayingCardView.aspect;
         final center = Offset(box.maxWidth / 2, box.maxHeight / 2);
-        final spreadX = cw * 1.1;
-        final spreadY = ch * 0.6;
+        final spreadX = cw * 1.15;
+        final spreadY = ch * 0.63;
         return Stack(
           clipBehavior: Clip.none,
           children: [
@@ -113,54 +113,63 @@ class _BiddingCenter extends StatelessWidget {
     final c = context.colors;
     final contract = game.contract;
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            l.bidding,
-            style: TextStyle(color: c.textSecondary, fontSize: 13),
-          ),
-          const SizedBox(height: 10),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
-            transitionBuilder: (child, a) =>
-                ScaleTransition(scale: a, child: child),
-            child: contract == null
-                ? Text(
-                    '—',
-                    key: const ValueKey('none'),
-                    style: TextStyle(
-                      color: c.textSecondary,
-                      fontSize: 40,
-                      fontWeight: FontWeight.w300,
-                    ),
-                  )
-                : Column(
-                    key: ValueKey(contract),
-                    children: [
-                      ContractGlyph(
-                        contract.type,
-                        size: 56,
-                        color: c.textPrimary,
-                        red: c.cardRed,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              l.bidding,
+              style: TextStyle(
+                color: c.textSecondary,
+                fontSize: AppText.caption,
+              ),
+            ),
+            const SizedBox(height: 10),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 250),
+              transitionBuilder: (child, a) =>
+                  ScaleTransition(scale: a, child: child),
+              child: contract == null
+                  ? Text(
+                      '—',
+                      key: const ValueKey('none'),
+                      style: TextStyle(
+                        color: c.textSecondary,
+                        fontSize: 40,
+                        fontWeight: FontWeight.w300,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '${contractName(l, contract.type)}${multiplierSuffix(l, contract.multiplier)}',
-                        style: TextStyle(
+                    )
+                  : Column(
+                      key: ValueKey(contract),
+                      children: [
+                        ContractGlyph(
+                          contract.type,
+                          size: 56,
                           color: c.textPrimary,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w300,
+                          red: c.cardRed,
                         ),
-                      ),
-                      Text(
-                        seatInfo(l, contract.declarer).name,
-                        style: TextStyle(color: c.textSecondary, fontSize: 13),
-                      ),
-                    ],
-                  ),
-          ),
-        ],
+                        const SizedBox(height: 8),
+                        Text(
+                          '${contractName(l, contract.type)}${multiplierSuffix(l, contract.multiplier)}',
+                          style: TextStyle(
+                            color: c.textPrimary,
+                            fontSize: AppText.body,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          seatInfo(l, contract.declarer).name,
+                          style: TextStyle(
+                            color: c.textSecondary,
+                            fontSize: AppText.caption,
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }

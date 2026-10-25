@@ -4,9 +4,7 @@
   "homeOfflineTitle": "Офлайн игра",
   "homeOfflineSubtitle": "Играй срещу трима компютърни играчи",
   "homeOnlineTitle": "Игра с приятели",
-  "homeOnlineSubtitle": "Стая с код · скоро",
-  "homeRulesTitle": "Правила",
-  "homeRulesSubtitle": "Според belot.bg",
+  "homeOnlineSubtitle": "Стая с код за четирима играчи",
   "settings": "Настройки",
   "theme": "Тема",
   "themeDark": "Тъмна",
@@ -96,5 +94,44 @@
   "leave": "Изход",
   "cancel": "Отказ",
   "comingSoon": "Скоро",
-  "rulesBody": "Играе се с 32 карти от 7 до асо, двама срещу двама, обратно на часовниковата стрелка. Раздават се 3+2 карти, следва наддаване (спатия, каро, купа, пика, без коз, всичко коз, контра, реконтра) и още 3 карти. Анонсите се обявяват автоматично с първата карта. Играта е до 151 точки. С капо не се излиза."
+  "partner": "Партньор",
+  "opponent": "Противник",
+  "stats": "Статистика",
+  "statsMatches": "Игри",
+  "statsWins": "Победи",
+  "statsWinRate": "Успеваемост",
+  "statsDeals": "Раздавки",
+  "statsAvgPoints": "Средно точки на раздавка",
+  "statsContracts": "Изкарани обяви",
+  "statsValats": "Капо",
+  "statsEmpty": "Изиграй първата си игра, за да видиш статистика.",
+  "statsSubtitle": "Твоето представяне",
+  "statsReset": "Нулиране на статистиката",
+  "namePromptTitle": "Как да те наричаме?",
+  "namePromptSubtitle": "Името ти ще се вижда на масата и в статистиката.",
+  "nameLabel": "Име",
+  "nameHint": "напр. Георги",
+  "nameErrorEmpty": "Въведи име",
+  "nameErrorShort": "Поне 2 символа",
+  "nameErrorLong": "Най-много 16 символа",
+  "nameErrorChars": "Само букви, цифри, интервал и . - _",
+  "continueLabel": "Напред",
+  "save": "Запази",
+  "playerName": "Име на играча",
+  "changeName": "Смяна на името",
+  "hints": "Подсказки",
+  "hintsDescription": "Предлага карта, ако не играеш 25 секунди",
+  "hintLabel": "Подсказка",
+  "greeting": "Здравей, {name}",
+  "@greeting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "gameplay": "Игра",
+  "teamUs": "Ние",
+  "teamThem": "Вие",
+  "statsResetConfirm": "Нулирай"
 }

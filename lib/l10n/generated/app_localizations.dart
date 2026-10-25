@@ -125,20 +125,8 @@ abstract class AppLocalizations {
   /// No description provided for @homeOnlineSubtitle.
   ///
   /// In bg, this message translates to:
-  /// **'Стая с код · скоро'**
+  /// **'Стая с код за четирима играчи'**
   String get homeOnlineSubtitle;
-
-  /// No description provided for @homeRulesTitle.
-  ///
-  /// In bg, this message translates to:
-  /// **'Правила'**
-  String get homeRulesTitle;
-
-  /// No description provided for @homeRulesSubtitle.
-  ///
-  /// In bg, this message translates to:
-  /// **'Според belot.bg'**
-  String get homeRulesSubtitle;
 
   /// No description provided for @settings.
   ///
@@ -488,11 +476,203 @@ abstract class AppLocalizations {
   /// **'Скоро'**
   String get comingSoon;
 
-  /// No description provided for @rulesBody.
+  /// No description provided for @partner.
   ///
   /// In bg, this message translates to:
-  /// **'Играе се с 32 карти от 7 до асо, двама срещу двама, обратно на часовниковата стрелка. Раздават се 3+2 карти, следва наддаване (спатия, каро, купа, пика, без коз, всичко коз, контра, реконтра) и още 3 карти. Анонсите се обявяват автоматично с първата карта. Играта е до 151 точки. С капо не се излиза.'**
-  String get rulesBody;
+  /// **'Партньор'**
+  String get partner;
+
+  /// No description provided for @opponent.
+  ///
+  /// In bg, this message translates to:
+  /// **'Противник'**
+  String get opponent;
+
+  /// No description provided for @stats.
+  ///
+  /// In bg, this message translates to:
+  /// **'Статистика'**
+  String get stats;
+
+  /// No description provided for @statsMatches.
+  ///
+  /// In bg, this message translates to:
+  /// **'Игри'**
+  String get statsMatches;
+
+  /// No description provided for @statsWins.
+  ///
+  /// In bg, this message translates to:
+  /// **'Победи'**
+  String get statsWins;
+
+  /// No description provided for @statsWinRate.
+  ///
+  /// In bg, this message translates to:
+  /// **'Успеваемост'**
+  String get statsWinRate;
+
+  /// No description provided for @statsDeals.
+  ///
+  /// In bg, this message translates to:
+  /// **'Раздавки'**
+  String get statsDeals;
+
+  /// No description provided for @statsAvgPoints.
+  ///
+  /// In bg, this message translates to:
+  /// **'Средно точки на раздавка'**
+  String get statsAvgPoints;
+
+  /// No description provided for @statsContracts.
+  ///
+  /// In bg, this message translates to:
+  /// **'Изкарани обяви'**
+  String get statsContracts;
+
+  /// No description provided for @statsValats.
+  ///
+  /// In bg, this message translates to:
+  /// **'Капо'**
+  String get statsValats;
+
+  /// No description provided for @statsEmpty.
+  ///
+  /// In bg, this message translates to:
+  /// **'Изиграй първата си игра, за да видиш статистика.'**
+  String get statsEmpty;
+
+  /// No description provided for @statsSubtitle.
+  ///
+  /// In bg, this message translates to:
+  /// **'Твоето представяне'**
+  String get statsSubtitle;
+
+  /// No description provided for @statsReset.
+  ///
+  /// In bg, this message translates to:
+  /// **'Нулиране на статистиката'**
+  String get statsReset;
+
+  /// No description provided for @namePromptTitle.
+  ///
+  /// In bg, this message translates to:
+  /// **'Как да те наричаме?'**
+  String get namePromptTitle;
+
+  /// No description provided for @namePromptSubtitle.
+  ///
+  /// In bg, this message translates to:
+  /// **'Името ти ще се вижда на масата и в статистиката.'**
+  String get namePromptSubtitle;
+
+  /// No description provided for @nameLabel.
+  ///
+  /// In bg, this message translates to:
+  /// **'Име'**
+  String get nameLabel;
+
+  /// No description provided for @nameHint.
+  ///
+  /// In bg, this message translates to:
+  /// **'напр. Георги'**
+  String get nameHint;
+
+  /// No description provided for @nameErrorEmpty.
+  ///
+  /// In bg, this message translates to:
+  /// **'Въведи име'**
+  String get nameErrorEmpty;
+
+  /// No description provided for @nameErrorShort.
+  ///
+  /// In bg, this message translates to:
+  /// **'Поне 2 символа'**
+  String get nameErrorShort;
+
+  /// No description provided for @nameErrorLong.
+  ///
+  /// In bg, this message translates to:
+  /// **'Най-много 16 символа'**
+  String get nameErrorLong;
+
+  /// No description provided for @nameErrorChars.
+  ///
+  /// In bg, this message translates to:
+  /// **'Само букви, цифри, интервал и . - _'**
+  String get nameErrorChars;
+
+  /// No description provided for @continueLabel.
+  ///
+  /// In bg, this message translates to:
+  /// **'Напред'**
+  String get continueLabel;
+
+  /// No description provided for @save.
+  ///
+  /// In bg, this message translates to:
+  /// **'Запази'**
+  String get save;
+
+  /// No description provided for @playerName.
+  ///
+  /// In bg, this message translates to:
+  /// **'Име на играча'**
+  String get playerName;
+
+  /// No description provided for @changeName.
+  ///
+  /// In bg, this message translates to:
+  /// **'Смяна на името'**
+  String get changeName;
+
+  /// No description provided for @hints.
+  ///
+  /// In bg, this message translates to:
+  /// **'Подсказки'**
+  String get hints;
+
+  /// No description provided for @hintsDescription.
+  ///
+  /// In bg, this message translates to:
+  /// **'Предлага карта, ако не играеш 25 секунди'**
+  String get hintsDescription;
+
+  /// No description provided for @hintLabel.
+  ///
+  /// In bg, this message translates to:
+  /// **'Подсказка'**
+  String get hintLabel;
+
+  /// No description provided for @greeting.
+  ///
+  /// In bg, this message translates to:
+  /// **'Здравей, {name}'**
+  String greeting(String name);
+
+  /// No description provided for @gameplay.
+  ///
+  /// In bg, this message translates to:
+  /// **'Игра'**
+  String get gameplay;
+
+  /// No description provided for @teamUs.
+  ///
+  /// In bg, this message translates to:
+  /// **'Ние'**
+  String get teamUs;
+
+  /// No description provided for @teamThem.
+  ///
+  /// In bg, this message translates to:
+  /// **'Вие'**
+  String get teamThem;
+
+  /// No description provided for @statsResetConfirm.
+  ///
+  /// In bg, this message translates to:
+  /// **'Нулирай'**
+  String get statsResetConfirm;
 }
 
 class _AppLocalizationsDelegate

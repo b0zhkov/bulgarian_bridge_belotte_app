@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/theme/app_theme.dart';
 import 'features/game/game_screen.dart';
 import 'features/home/home_screen.dart';
+import 'features/profile/name_screen.dart';
+import 'features/profile/profile_controller.dart';
 import 'features/settings/settings_screen.dart';
 import 'features/settings/settings_controller.dart';
 import 'l10n/generated/app_localizations.dart';
@@ -36,10 +38,24 @@ class BelotApp extends ConsumerWidget {
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       routes: {
-        '/': (_) => const HomeScreen(),
+        '/': (_) => const _RootGate(),
         '/game': (_) => const GameScreen(),
         '/settings': (_) => const SettingsScreen(),
       },
+    );
+  }
+}
+
+/// Shows the name prompt on first launch, the home screen afterwards.
+class _RootGate extends ConsumerWidget {
+  const _RootGate();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final name = ref.watch(playerNameProvider);
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      child: name == null ? const NameScreen() : const HomeScreen(),
     );
   }
 }

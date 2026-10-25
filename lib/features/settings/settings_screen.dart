@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_theme.dart';
-import '../../l10n/generated/app_localizations.dart';
 import '../../core/widgets/pill_button.dart';
+import '../../l10n/generated/app_localizations.dart';
+import '../profile/name_form.dart';
+import '../profile/profile_controller.dart';
 import 'settings_controller.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -14,6 +16,44 @@ class SettingsScreen extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final c = context.colors;
     final mode = ref.watch(themeModeProvider);
+    final name = ref.watch(playerNameProvider);
+    final hints = ref.watch(hintsEnabledProvider);
+
+    Widget section(String title) => Padding(
+      padding: const EdgeInsets.only(top: Gap.xl, bottom: Gap.m, left: Gap.xs),
+      child: Text(
+        title,
+        style: TextStyle(
+          color: c.textSecondary,
+          fontSize: AppText.label,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+
+    Widget tile({required Widget child, VoidCallback? onTap, Key? key}) =>
+        Material(
+          color: c.surface,
+          borderRadius: BorderRadius.circular(20),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            key: key,
+            onTap: onTap,
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 64),
+              padding: const EdgeInsets.symmetric(
+                horizontal: Gap.page,
+                vertical: Gap.m,
+              ),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: c.outline),
+              ),
+              child: child,
+            ),
+          ),
+        );
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -22,20 +62,48 @@ class SettingsScreen extends ConsumerWidget {
         ),
         title: Text(
           l.settings,
-          style: const TextStyle(fontWeight: FontWeight.w500),
+          style: const TextStyle(
+            fontSize: AppText.title,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 520),
           child: ListView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(Gap.page, 0, Gap.page, Gap.xl),
             children: [
-              Text(
-                l.theme,
-                style: TextStyle(color: c.textSecondary, fontSize: 14),
+              section(l.playerName),
+              tile(
+                key: const Key('change-name'),
+                onTap: () => showNameSheet(context),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        name ?? l.you,
+                        key: const Key('settings-name'),
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: c.textPrimary,
+                          fontSize: AppText.body,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      l.changeName,
+                      style: TextStyle(
+                        color: c.textSecondary,
+                        fontSize: AppText.caption,
+                      ),
+                    ),
+                    const SizedBox(width: Gap.xs),
+                    Icon(Icons.edit_outlined, size: 18, color: c.textSecondary),
+                  ],
+                ),
               ),
-              const SizedBox(height: 12),
+              section(l.theme),
               Row(
                 children: [
                   Expanded(
@@ -49,7 +117,7 @@ class SettingsScreen extends ConsumerWidget {
                           .set(ThemeMode.dark),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: Gap.m),
                   Expanded(
                     child: PillButton(
                       key: const Key('theme-light'),
@@ -63,16 +131,63 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 28),
-              Text(
-                l.language,
-                style: TextStyle(color: c.textSecondary, fontSize: 14),
+              section(l.gameplay),
+              tile(
+                onTap: () =>
+                    ref.read(hintsEnabledProvider.notifier).set(!hints),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l.hints,
+                            style: TextStyle(
+                              color: c.textPrimary,
+                              fontSize: AppText.body,
+                            ),
+                          ),
+                          const SizedBox(height: Gap.xs),
+                          Text(
+                            l.hintsDescription,
+                            style: TextStyle(
+                              color: c.textSecondary,
+                              fontSize: AppText.caption,
+                              height: 1.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: Gap.m),
+                    Switch.adaptive(
+                      key: const Key('hints-switch'),
+                      value: hints,
+                      activeTrackColor: c.success,
+                      thumbColor: const WidgetStatePropertyAll(Colors.white),
+                      onChanged: (v) =>
+                          ref.read(hintsEnabledProvider.notifier).set(v),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 12),
-              PillButton(
-                label: l.languageBulgarian,
-                selected: true,
-                onTap: () {},
+              section(l.language),
+              tile(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l.languageBulgarian,
+                        style: TextStyle(
+                          color: c.textPrimary,
+                          fontSize: AppText.body,
+                        ),
+                      ),
+                    ),
+                    Icon(Icons.check_rounded, color: c.textPrimary, size: 20),
+                  ],
+                ),
               ),
             ],
           ),

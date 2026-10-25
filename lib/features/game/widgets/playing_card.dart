@@ -15,6 +15,7 @@ class PlayingCardView extends StatelessWidget {
     this.faceUp = true,
     this.dimmed = false,
     this.highlighted = false,
+    this.glow = false,
   });
 
   final Card? card;
@@ -22,6 +23,9 @@ class PlayingCardView extends StatelessWidget {
   final bool faceUp;
   final bool dimmed;
   final bool highlighted;
+
+  /// Hint glow around a suggested card.
+  final bool glow;
 
   static const double aspect = 1.4;
 
@@ -39,12 +43,18 @@ class PlayingCardView extends StatelessWidget {
         borderRadius: radius,
         color: show ? c.cardFace : c.cardBack,
         border: show
-            ? null
+            ? (glow ? Border.all(color: c.chipText, width: 2.5) : null)
             : Border.all(
                 color: Colors.white,
                 width: math.max(2, width * 0.035),
               ),
         boxShadow: [
+          if (glow)
+            BoxShadow(
+              color: c.chipText.withValues(alpha: 0.85),
+              blurRadius: 22,
+              spreadRadius: 3,
+            ),
           BoxShadow(
             color: Colors.black.withValues(alpha: highlighted ? 0.45 : 0.22),
             blurRadius: highlighted ? 18 : 10,

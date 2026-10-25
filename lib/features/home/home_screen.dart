@@ -1,67 +1,89 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/models/card.dart' as m;
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/suit_icon.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../game/widgets/playing_card.dart';
-import '../../core/models/card.dart' as m;
+import '../profile/profile_controller.dart';
+import '../stats/stats_controller.dart';
+import '../stats/stats_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
     final c = context.colors;
+    final name = ref.watch(playerNameProvider);
+    final stats = ref.watch(statsProvider);
     return Scaffold(
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 520),
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(22, 12, 22, 24),
+              padding: const EdgeInsets.fromLTRB(
+                Gap.page,
+                Gap.s,
+                Gap.page,
+                Gap.xl,
+              ),
               children: [
-                Row(
-                  children: [
-                    Row(
-                      children: [
-                        for (final suit in const [
-                          m.Suit.spades,
-                          m.Suit.hearts,
-                          m.Suit.clubs,
-                          m.Suit.diamonds,
-                        ])
-                          Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: SuitIcon(
-                              suit,
-                              size: 16,
-                              color: suit.isRed ? c.cardRed : c.textSecondary,
-                            ),
+                SizedBox(
+                  height: 48,
+                  child: Row(
+                    children: [
+                      for (final suit in const [
+                        m.Suit.spades,
+                        m.Suit.hearts,
+                        m.Suit.clubs,
+                        m.Suit.diamonds,
+                      ])
+                        Padding(
+                          padding: const EdgeInsets.only(right: Gap.s),
+                          child: SuitIcon(
+                            suit,
+                            size: 16,
+                            color: suit.isRed ? c.cardRed : c.textSecondary,
                           ),
-                      ],
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      key: const Key('open-settings'),
-                      icon: Icon(Icons.settings_outlined, color: c.textPrimary),
-                      onPressed: () =>
-                          Navigator.of(context).pushNamed('/settings'),
-                    ),
-                  ],
+                        ),
+                      const Spacer(),
+                      IconButton(
+                        key: const Key('open-settings'),
+                        icon: Icon(
+                          Icons.settings_outlined,
+                          color: c.textPrimary,
+                        ),
+                        onPressed: () =>
+                            Navigator.of(context).pushNamed('/settings'),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: Gap.xl),
+                if (name != null)
+                  Text(
+                    l.greeting(name),
+                    key: const Key('greeting'),
+                    style: TextStyle(
+                      color: c.textSecondary,
+                      fontSize: AppText.body,
+                    ),
+                  ),
+                const SizedBox(height: Gap.xs),
                 Text(
                   l.appTitle,
                   style: TextStyle(
                     color: c.textPrimary,
-                    fontSize: 76,
-                    fontWeight: FontWeight.w300,
-                    height: 1,
-                    letterSpacing: -2,
+                    fontSize: AppText.display,
+                    fontWeight: FontWeight.w600,
+                    height: 1.15,
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: Gap.xl),
                 _ModeCard(
                   key: const Key('play-offline'),
                   title: l.homeOfflineTitle,
@@ -70,31 +92,91 @@ class HomeScreen extends StatelessWidget {
                   art: const _FannedCards(),
                   onTap: () => Navigator.of(context).pushNamed('/game'),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: Gap.m),
                 _ModeCard(
                   title: l.homeOnlineTitle,
                   subtitle: l.homeOnlineSubtitle,
                   colors: const [Color(0xFFFFE3E0), Color(0xFFFFF1D6)],
-                  art: const Text('👥', style: TextStyle(fontSize: 48)),
+                  art: const Text('👥', style: TextStyle(fontSize: 44)),
+                  badge: l.comingSoon,
                   onTap: null,
                 ),
-                const SizedBox(height: 28),
-                Text(
-                  l.homeRulesTitle,
-                  style: TextStyle(color: c.textPrimary, fontSize: 18),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  l.rulesBody,
-                  style: TextStyle(color: c.textSecondary, height: 1.45),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  l.homeRulesSubtitle,
-                  style: TextStyle(color: c.textSecondary, fontSize: 12),
-                ),
+                const SizedBox(height: Gap.m),
+                _StatsCard(stats: stats),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatsCard extends StatelessWidget {
+  const _StatsCard({required this.stats});
+  final PlayerStats stats;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final c = context.colors;
+    return Material(
+      color: c.surface,
+      borderRadius: BorderRadius.circular(28),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        key: const Key('open-stats'),
+        onTap: () =>
+            Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => const StatsScreen())),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(Gap.xl, Gap.page, Gap.l, Gap.xl),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: c.outline),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    l.stats,
+                    style: TextStyle(
+                      color: c.textPrimary,
+                      fontSize: AppText.title,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  Icon(Icons.chevron_right_rounded, color: c.textSecondary),
+                ],
+              ),
+              const SizedBox(height: Gap.l),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: StatTile(
+                      value: '${stats.matchesPlayed}',
+                      label: l.statsMatches,
+                    ),
+                  ),
+                  Expanded(
+                    child: StatTile(
+                      value: '${stats.matchesWon}',
+                      label: l.statsWins,
+                    ),
+                  ),
+                  Expanded(
+                    child: StatTile(
+                      value: percent(stats.winRate),
+                      label: l.statsWinRate,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
@@ -110,55 +192,80 @@ class _ModeCard extends StatelessWidget {
     required this.colors,
     required this.art,
     this.onTap,
+    this.badge,
   });
   final String title;
   final String subtitle;
   final List<Color> colors;
   final Widget art;
   final VoidCallback? onTap;
+  final String? badge;
 
   @override
   Widget build(BuildContext context) {
-    return Opacity(
-      opacity: onTap == null ? 0.7 : 1,
-      child: Material(
-        borderRadius: BorderRadius.circular(28),
-        clipBehavior: Clip.antiAlias,
-        child: Ink(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: colors,
-            ),
+    return Material(
+      borderRadius: BorderRadius.circular(28),
+      clipBehavior: Clip.antiAlias,
+      child: Ink(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: colors,
           ),
-          child: InkWell(
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(26, 26, 26, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: 84, child: art),
-                  const SizedBox(height: 20),
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: Color(0xFF111111),
-                      fontSize: 24,
-                      fontWeight: FontWeight.w400,
-                    ),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(Gap.xl),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 76, child: art),
+                    const Spacer(),
+                    if (badge != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: Gap.m,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0x14000000),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          badge!,
+                          style: const TextStyle(
+                            color: Color(0xFF333333),
+                            fontSize: AppText.caption,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: Gap.l),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Color(0xFF111111),
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(
-                      color: Color(0xFF444444),
-                      fontSize: 14,
-                    ),
+                ),
+                const SizedBox(height: Gap.xs),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: Color(0xFF444444),
+                    fontSize: AppText.label,
+                    height: 1.35,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -178,16 +285,16 @@ class _FannedCards extends StatelessWidget {
       m.Card(m.Suit.clubs, m.Rank.ace),
     ];
     return SizedBox(
-      width: 140,
+      width: 130,
       child: Stack(
         children: [
           for (final (i, card) in cards.indexed)
             Positioned(
-              left: i * 30.0,
-              top: 0,
+              left: i * 28.0,
+              top: 4,
               child: Transform.rotate(
                 angle: (i - 1) * 0.12,
-                child: PlayingCardView(card: card, width: 58),
+                child: PlayingCardView(card: card, width: 50),
               ),
             ),
         ],

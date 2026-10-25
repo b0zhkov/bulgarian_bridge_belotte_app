@@ -22,13 +22,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeOnlineTitle => 'Play with friends';
 
   @override
-  String get homeOnlineSubtitle => 'Room code · coming soon';
-
-  @override
-  String get homeRulesTitle => 'Rules';
-
-  @override
-  String get homeRulesSubtitle => 'As on belot.bg';
+  String get homeOnlineSubtitle => 'Room code for four players';
 
   @override
   String get settings => 'Settings';
@@ -213,6 +207,105 @@ class AppLocalizationsEn extends AppLocalizations {
   String get comingSoon => 'Soon';
 
   @override
-  String get rulesBody =>
-      '32 cards from 7 to ace, two against two, counter-clockwise. 3+2 cards are dealt, then bidding (clubs, diamonds, hearts, spades, no trump, all trump, double, redouble) and 3 more cards. Declarations are announced automatically with the first card. The match is played to 151. A match cannot be won with a valat.';
+  String get partner => 'Partner';
+
+  @override
+  String get opponent => 'Opponent';
+
+  @override
+  String get stats => 'Statistics';
+
+  @override
+  String get statsMatches => 'Matches';
+
+  @override
+  String get statsWins => 'Wins';
+
+  @override
+  String get statsWinRate => 'Win rate';
+
+  @override
+  String get statsDeals => 'Deals';
+
+  @override
+  String get statsAvgPoints => 'Avg points per deal';
+
+  @override
+  String get statsContracts => 'Contracts made';
+
+  @override
+  String get statsValats => 'Valats';
+
+  @override
+  String get statsEmpty => 'Play your first match to see statistics.';
+
+  @override
+  String get statsSubtitle => 'Your performance';
+
+  @override
+  String get statsReset => 'Reset statistics';
+
+  @override
+  String get namePromptTitle => 'What should we call you?';
+
+  @override
+  String get namePromptSubtitle =>
+      'Your name is shown at the table and in statistics.';
+
+  @override
+  String get nameLabel => 'Name';
+
+  @override
+  String get nameHint => 'e.g. George';
+
+  @override
+  String get nameErrorEmpty => 'Enter a name';
+
+  @override
+  String get nameErrorShort => 'At least 2 characters';
+
+  @override
+  String get nameErrorLong => 'At most 16 characters';
+
+  @override
+  String get nameErrorChars => 'Letters, digits, space and . - _ only';
+
+  @override
+  String get continueLabel => 'Continue';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get playerName => 'Player name';
+
+  @override
+  String get changeName => 'Change name';
+
+  @override
+  String get hints => 'Hints';
+
+  @override
+  String get hintsDescription =>
+      'Suggests a card after 25 seconds of inactivity';
+
+  @override
+  String get hintLabel => 'Hint';
+
+  @override
+  String greeting(String name) {
+    return 'Hi, $name';
+  }
+
+  @override
+  String get gameplay => 'Gameplay';
+
+  @override
+  String get teamUs => 'Us';
+
+  @override
+  String get teamThem => 'Them';
+
+  @override
+  String get statsResetConfirm => 'Reset';
 }

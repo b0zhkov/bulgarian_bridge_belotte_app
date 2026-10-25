@@ -13,6 +13,13 @@ Flutter app for Android, iOS and web. Rules follow [belot.bg](https://belot.bg/b
 - The three other seats use a placeholder `RandomAgent` (random legal moves) behind the
   `PlayerAgent` interface (`lib/core/agents`). Real bots come later.
 
+## Beta 2
+- First-launch name prompt (2–16 chars, letters/digits/space/. - _), editable in Settings.
+- Home: Stats card (matches, wins, win rate) → Stats screen (deals, avg points per deal, contracts made, valats), stored locally.
+- Table: partner opposite (top), opponents left/right, team colour rings and "Партньор"/"Противник" labels, "Ние"/"Вие" scores in team colours.
+- Hints: after 25 s of inactivity on your card turn a suggested legal card glows (`lib/core/agents/hint.dart`); toggle in Settings (on by default).
+- Live web build: https://b0zhkov.github.io/bulgarian_bridge_belotte_app/
+
 ## Structure
 ```
 lib/
@@ -43,4 +50,4 @@ flutter build apk        # build/app/outputs/flutter-apk/app-release.apk
 ```
 The table can be opened directly at `/#/game` on web.
 
-Fonts: Inter (SIL Open Font License, see `assets/fonts/Inter-LICENSE.txt`).
+Font: Comfortaa (bundled static weights 300–700 instanced from the Google Fonts variable font; SIL Open Font License, see `assets/fonts/Comfortaa-OFL.txt`).

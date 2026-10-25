@@ -4,8 +4,11 @@ import 'dart:math';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/agents/hint.dart';
 import '../../core/agents/player_agent.dart';
 import '../../core/rules/rules.dart';
+import '../profile/profile_controller.dart';
+import '../stats/stats_controller.dart';
 
 const int kHumanSeat = 0;
 
@@ -16,6 +19,7 @@ class TableState {
     required this.game,
     this.displayTrick,
     this.bubbles = const {},
+    this.hint,
   });
 
   final GameState game;
@@ -25,6 +29,9 @@ class TableState {
 
   /// Short-lived announcements per seat (declarations, belot).
   final Map<int, Announcement> bubbles;
+
+  /// Suggested card for the human after a long pause (null = no hint).
+  final Card? hint;
 
   bool get holding => displayTrick != null;
   Trick get visibleTrick => displayTrick ?? game.currentTrick;
@@ -38,12 +45,15 @@ class TableState {
     Trick? displayTrick,
     bool clearDisplayTrick = false,
     Map<int, Announcement>? bubbles,
+    Card? hint,
+    bool clearHint = false,
   }) => TableState(
     game: game ?? this.game,
     displayTrick: clearDisplayTrick
         ? null
         : (displayTrick ?? this.displayTrick),
     bubbles: bubbles ?? this.bubbles,
+    hint: clearHint ? null : (hint ?? this.hint),
   );
 }
 
@@ -56,7 +66,9 @@ class GameController extends Notifier<TableState> {
   static Duration botDelay = const Duration(milliseconds: 650);
   static Duration trickPause = const Duration(milliseconds: 1100);
   static Duration redealPause = const Duration(milliseconds: 1600);
+  static Duration hintDelay = const Duration(seconds: 25);
   static int? fixedSeed;
+  Timer? _hintTimer;
 
   @override
   TableState build() {
@@ -75,6 +87,8 @@ class GameController extends Notifier<TableState> {
   }
 
   void _cancelTimers() {
+    _hintTimer?.cancel();
+    _hintTimer = null;
     for (final t in _timers) {
       t.cancel();
     }
@@ -106,6 +120,7 @@ class GameController extends Notifier<TableState> {
           });
         }
       case GamePhase.playing:
+        if (g.currentSeat == kHumanSeat) _startHintTimer();
         if (g.currentSeat != kHumanSeat) {
           _after(botDelay, () {
             final seat = state.game.currentSeat;
@@ -133,6 +148,36 @@ class GameController extends Notifier<TableState> {
     }
   }
 
+  int _cardsPlayed(GameState g) =>
+      g.tricks.length * 4 + g.currentTrick.plays.length;
+
+  /// Starts (or restarts) the 25 s hint timer for the human's turn.
+  void _startHintTimer() {
+    _hintTimer?.cancel();
+    if (!ref.read(hintsEnabledProvider)) return;
+    final token = (state.game.dealNumber, _cardsPlayed(state.game));
+    _hintTimer = Timer(hintDelay, () {
+      final g = state.game;
+      if (!state.isHumanTurn || g.phase != GamePhase.playing) return;
+      if ((g.dealNumber, _cardsPlayed(g)) != token) return;
+      if (!ref.read(hintsEnabledProvider)) return;
+      state = state.copyWith(hint: suggestCard(g, kHumanSeat));
+    });
+  }
+
+  void _recordStats(GameState before, GameState after) {
+    if (before.phase != GamePhase.playing) return;
+    if (after.phase != GamePhase.dealScored &&
+        after.phase != GamePhase.matchOver) {
+      return;
+    }
+    final stats = ref.read(statsProvider.notifier);
+    stats.recordDeal(after.lastDeal!);
+    if (after.phase == GamePhase.matchOver) {
+      stats.recordMatch(won: after.winnerTeam == 0);
+    }
+  }
+
   void _bid(int seat, Bid bid) {
     state = state.copyWith(game: BelotEngine.applyBid(state.game, seat, bid));
     _schedule();
@@ -141,6 +186,11 @@ class GameController extends Notifier<TableState> {
   void _play(int seat, Card card) {
     final before = state.game;
     final after = BelotEngine.applyPlay(before, seat, card);
+    if (seat == kHumanSeat) {
+      _hintTimer?.cancel();
+      state = state.copyWith(clearHint: true);
+    }
+    _recordStats(before, after);
     var bubbles = state.bubbles;
     final a = after.lastAnnouncement;
     if (a != null) {

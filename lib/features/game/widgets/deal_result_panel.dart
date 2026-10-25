@@ -29,7 +29,7 @@ class DealResultPanel extends StatelessWidget {
     TableRow row(String label, int a, int b, {bool strong = false}) {
       final st = TextStyle(
         color: strong ? c.textPrimary : c.textSecondary,
-        fontSize: strong ? 17 : 15,
+        fontSize: strong ? AppText.body : AppText.label,
         fontWeight: strong ? FontWeight.w500 : FontWeight.w400,
       );
       return TableRow(
@@ -52,127 +52,145 @@ class DealResultPanel extends StatelessWidget {
       child: Container(
         color: c.background.withValues(alpha: 0.82),
         alignment: Alignment.center,
-        padding: const EdgeInsets.all(20),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
-          decoration: BoxDecoration(
-            color: c.surface,
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: c.outline),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (over) ...[
-                Text(
-                  won ? '🏆' : '🤝',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 48),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  won ? l.matchWon : l.matchLost,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: c.textPrimary,
-                    fontSize: 30,
-                    fontWeight: FontWeight.w300,
-                  ),
-                ),
-                Text(
-                  l.finalScore(game.scores[0], game.scores[1]),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: c.textSecondary),
-                ),
-                const SizedBox(height: 16),
-              ],
-              Text(
-                l.dealResult,
-                style: TextStyle(color: c.textSecondary, fontSize: 13),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(Gap.page),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 440),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(
+                Gap.xl,
+                Gap.xl,
+                Gap.xl,
+                Gap.page,
               ),
-              const SizedBox(height: 4),
-              Text(
-                '${contractName(l, d.contract.type)}${multiplierSuffix(l, d.contract.multiplier)} · ${outcomeLabel(l, d)}',
-                style: TextStyle(
-                  color: c.textPrimary,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w400,
-                ),
+              decoration: BoxDecoration(
+                color: c.surface,
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: c.outline),
               ),
-              const SizedBox(height: 12),
-              Table(
-                columnWidths: const {
-                  0: FlexColumnWidth(2),
-                  1: FlexColumnWidth(1),
-                  2: FlexColumnWidth(1),
-                },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  TableRow(
+                  if (over) ...[
+                    Text(
+                      won ? '🏆' : '🤝',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 48),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      won ? l.matchWon : l.matchLost,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: c.textPrimary,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w300,
+                      ),
+                    ),
+                    Text(
+                      l.finalScore(game.scores[0], game.scores[1]),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: c.textSecondary),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  Text(
+                    l.dealResult,
+                    style: TextStyle(
+                      color: c.textSecondary,
+                      fontSize: AppText.caption,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${contractName(l, d.contract.type)}${multiplierSuffix(l, d.contract.multiplier)} · ${outcomeLabel(l, d)}',
+                    style: TextStyle(
+                      color: c.textPrimary,
+                      fontSize: AppText.title,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Table(
+                    columnWidths: const {
+                      0: FlexColumnWidth(2),
+                      1: FlexColumnWidth(1),
+                      2: FlexColumnWidth(1),
+                    },
                     children: [
-                      const SizedBox(),
-                      Text(
-                        l.us,
-                        textAlign: TextAlign.right,
-                        style: TextStyle(
-                          color: c.textPrimary,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      TableRow(
+                        children: [
+                          const SizedBox(),
+                          Text(
+                            l.us,
+                            textAlign: TextAlign.right,
+                            style: TextStyle(
+                              color: c.textPrimary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            l.them,
+                            textAlign: TextAlign.right,
+                            style: TextStyle(
+                              color: c.textPrimary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        l.them,
-                        textAlign: TextAlign.right,
-                        style: TextStyle(
-                          color: c.textPrimary,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      row(
+                        l.cardPoints,
+                        d.cardPoints[0] * noTrumpFactor,
+                        d.cardPoints[1] * noTrumpFactor,
                       ),
+                      row(
+                        l.lastTen,
+                        d.lastTrickTeam == 0 ? 10 * noTrumpFactor : 0,
+                        d.lastTrickTeam == 1 ? 10 * noTrumpFactor : 0,
+                      ),
+                      if (d.contract.type != ContractType.noTrump) ...[
+                        row(
+                          l.premiums,
+                          d.declarationPoints[0],
+                          d.declarationPoints[1],
+                        ),
+                        row(l.belot, d.belotPoints[0], d.belotPoints[1]),
+                      ],
+                      if (d.isValat)
+                        row(
+                          l.valat,
+                          d.valatTeam == 0 ? 90 : 0,
+                          d.valatTeam == 1 ? 90 : 0,
+                        ),
+                      row(
+                        l.total,
+                        d.rawPoints[0],
+                        d.rawPoints[1],
+                        strong: true,
+                      ),
+                      row(l.written, d.scored[0], d.scored[1], strong: true),
                     ],
                   ),
-                  row(
-                    l.cardPoints,
-                    d.cardPoints[0] * noTrumpFactor,
-                    d.cardPoints[1] * noTrumpFactor,
-                  ),
-                  row(
-                    l.lastTen,
-                    d.lastTrickTeam == 0 ? 10 * noTrumpFactor : 0,
-                    d.lastTrickTeam == 1 ? 10 * noTrumpFactor : 0,
-                  ),
-                  if (d.contract.type != ContractType.noTrump) ...[
-                    row(
-                      l.premiums,
-                      d.declarationPoints[0],
-                      d.declarationPoints[1],
+                  if (d.newlyHanging > 0 || game.hanging > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Text(
+                        l.hanging(game.hanging),
+                        style: TextStyle(color: c.chipText),
+                      ),
                     ),
-                    row(l.belot, d.belotPoints[0], d.belotPoints[1]),
-                  ],
-                  if (d.isValat)
-                    row(
-                      l.valat,
-                      d.valatTeam == 0 ? 90 : 0,
-                      d.valatTeam == 1 ? 90 : 0,
-                    ),
-                  row(l.total, d.rawPoints[0], d.rawPoints[1], strong: true),
-                  row(l.written, d.scored[0], d.scored[1], strong: true),
+                  const SizedBox(height: 18),
+                  PillButton(
+                    key: const Key('result-continue'),
+                    label: over ? l.newMatch : l.nextDeal,
+                    selected: true,
+                    onTap: over ? onNewMatch : onNext,
+                  ),
                 ],
               ),
-              if (d.newlyHanging > 0 || game.hanging > 0)
-                Padding(
-                  padding: const EdgeInsets.only(top: 6),
-                  child: Text(
-                    l.hanging(game.hanging),
-                    style: TextStyle(color: c.chipText),
-                  ),
-                ),
-              const SizedBox(height: 18),
-              PillButton(
-                key: const Key('result-continue'),
-                label: over ? l.newMatch : l.nextDeal,
-                selected: true,
-                onTap: over ? onNewMatch : onNext,
-              ),
-            ],
+            ),
           ),
         ),
       ),

@@ -27,20 +27,84 @@ class DealerBadge extends StatelessWidget {
         l.dealer,
         style: TextStyle(
           color: c.textPrimary,
-          fontSize: size * 0.5,
-          fontWeight: FontWeight.w600,
+          fontSize: size * 0.48,
+          fontWeight: FontWeight.w700,
+          height: 1,
         ),
       ),
     );
   }
 }
 
-/// Emoji avatar with name, dealer badge and a chip showing the last bid or
-/// the current announcement, dimmed when it is not this seat's turn.
+Color teamColor(BuildContext context, int seat) =>
+    teamOf(seat) == teamOf(kHumanSeat)
+    ? context.colors.teamUs
+    : context.colors.teamThem;
+
+/// Emoji in a ring coloured by team, with an optional dealer badge.
+class TeamEmoji extends StatelessWidget {
+  const TeamEmoji({
+    super.key,
+    required this.seat,
+    required this.emoji,
+    this.size = 40,
+    this.dealer = false,
+    this.active = false,
+  });
+  final int seat;
+  final String emoji;
+  final double size;
+  final bool dealer;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = teamColor(context, seat);
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          width: size + 14,
+          height: size + 14,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: color, width: active ? 3 : 2),
+            boxShadow: active
+                ? [
+                    BoxShadow(
+                      color: color.withValues(alpha: 0.45),
+                      blurRadius: 14,
+                    ),
+                  ]
+                : null,
+          ),
+          child: Text(
+            emoji,
+            style: TextStyle(fontSize: size * 0.82, height: 1.1),
+          ),
+        ),
+        if (dealer)
+          const Positioned(right: -4, bottom: -2, child: DealerBadge()),
+      ],
+    );
+  }
+}
+
+/// A seat at the table: team-ringed emoji, name, role ("Партньор" /
+/// "Противник") in the team colour, and a chip with the last bid or the
+/// current announcement. Dimmed when it is not this seat's turn.
 class PlayerAvatar extends StatelessWidget {
-  const PlayerAvatar({super.key, required this.seat, required this.table});
+  const PlayerAvatar({
+    super.key,
+    required this.seat,
+    required this.table,
+    this.width = 84,
+  });
   final int seat;
   final TableState table;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +116,8 @@ class PlayerAvatar extends StatelessWidget {
         !table.holding &&
         g.currentSeat == seat &&
         (g.phase == GamePhase.bidding || g.phase == GamePhase.playing);
-    final isPartner = seat == 2;
+    final isPartner = teamOf(seat) == teamOf(kHumanSeat);
+    final color = teamColor(context, seat);
 
     String? chip;
     ContractType? chipContract;
@@ -66,9 +131,6 @@ class PlayerAvatar extends StatelessWidget {
             ? contractShort(l, b.type!)
             : bidLabel(l, b);
         if (b.kind == BidKind.pass) chipColor = Colors.white70;
-        if (b.kind == BidKind.contract && (b.type!.trumpSuit?.isRed ?? false)) {
-          chipColor = c.cardRed;
-        }
       }
     }
     final bubble = table.bubbles[seat];
@@ -79,7 +141,7 @@ class PlayerAvatar extends StatelessWidget {
     }
 
     return SizedBox(
-      width: 104,
+      width: width,
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 250),
         opacity:
@@ -87,36 +149,40 @@ class PlayerAvatar extends StatelessWidget {
                 g.phase == GamePhase.dealScored ||
                 g.phase == GamePhase.matchOver
             ? 1
-            : 0.45,
+            : 0.55,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                AnimatedScale(
-                  duration: const Duration(milliseconds: 250),
-                  scale: active ? 1.08 : 1,
-                  child: Text(info.emoji, style: const TextStyle(fontSize: 44)),
-                ),
-                if (g.dealer == seat)
-                  const Positioned(right: -6, bottom: 2, child: DealerBadge()),
-              ],
+            TeamEmoji(
+              seat: seat,
+              emoji: info.emoji,
+              dealer: g.dealer == seat,
+              active: active,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: Gap.xs + 2),
             Text(
               info.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: c.textPrimary,
-                fontSize: 13,
-                fontWeight: isPartner ? FontWeight.w500 : FontWeight.w400,
+                fontSize: AppText.label,
+                fontWeight: FontWeight.w600,
               ),
             ),
+            const SizedBox(height: 2),
             Text(
-              '${g.hands[seat].length}',
-              style: TextStyle(color: c.textSecondary, fontSize: 13),
+              isPartner ? l.partner : l.opponent,
+              key: Key('role-$seat'),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: color,
+                fontSize: AppText.caption - 1,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: Gap.xs),
             SizedBox(
               height: 26,
               child: AnimatedSwitcher(
@@ -127,6 +193,7 @@ class PlayerAvatar extends StatelessWidget {
                     ? const SizedBox.shrink()
                     : Container(
                         key: ValueKey(chip),
+                        constraints: BoxConstraints(maxWidth: width),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
                           vertical: 4,
@@ -148,8 +215,8 @@ class PlayerAvatar extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   color: chipColor,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
+                                  fontSize: AppText.caption,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
                       ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Design tokens inspired by Offsuit: pure black canvas, white cards,
-/// dark-grey pill buttons, clean Inter typography.
+/// dark-grey pill buttons, Comfortaa typography (bundled, Cyrillic).
 @immutable
 class BelotColors extends ThemeExtension<BelotColors> {
   const BelotColors({
@@ -21,6 +21,8 @@ class BelotColors extends ThemeExtension<BelotColors> {
     required this.chipText,
     required this.success,
     required this.danger,
+    required this.teamUs,
+    required this.teamThem,
   });
 
   final Color background;
@@ -40,6 +42,10 @@ class BelotColors extends ThemeExtension<BelotColors> {
   final Color success;
   final Color danger;
 
+  /// Team accents: our partnership vs the opponents.
+  final Color teamUs;
+  final Color teamThem;
+
   static const dark = BelotColors(
     background: Color(0xFF000000),
     surface: Color(0xFF1C1C1E),
@@ -57,6 +63,8 @@ class BelotColors extends ThemeExtension<BelotColors> {
     chipText: Color(0xFFFFE45C),
     success: Color(0xFF34C759),
     danger: Color(0xFFFF453A),
+    teamUs: Color(0xFF5AC8FA),
+    teamThem: Color(0xFFFF9F0A),
   );
 
   static const light = BelotColors(
@@ -76,6 +84,8 @@ class BelotColors extends ThemeExtension<BelotColors> {
     chipText: Color(0xFFFFE45C),
     success: Color(0xFF248A3D),
     danger: Color(0xFFD70015),
+    teamUs: Color(0xFF0A84FF),
+    teamThem: Color(0xFFE07800),
   );
 
   @override
@@ -102,6 +112,8 @@ class BelotColors extends ThemeExtension<BelotColors> {
       chipText: l(chipText, other.chipText),
       success: l(success, other.success),
       danger: l(danger, other.danger),
+      teamUs: l(teamUs, other.teamUs),
+      teamThem: l(teamThem, other.teamThem),
     );
   }
 }
@@ -118,7 +130,7 @@ class AppTheme {
     final base = ThemeData(
       brightness: b,
       useMaterial3: true,
-      fontFamily: 'Inter',
+      fontFamily: 'Comfortaa',
       scaffoldBackgroundColor: c.background,
       colorScheme: ColorScheme.fromSeed(
         seedColor: c.cardBack,
@@ -154,4 +166,25 @@ class AppTheme {
       ),
     );
   }
+}
+
+/// Type scale (Comfortaa is wide, so sizes are a touch smaller than Inter).
+class AppText {
+  static const double display = 52;
+  static const double score = 26;
+  static const double title = 20;
+  static const double body = 16;
+  static const double label = 14;
+  static const double caption = 12;
+}
+
+/// Spacing scale.
+class Gap {
+  static const double xs = 4;
+  static const double s = 8;
+  static const double m = 12;
+  static const double l = 16;
+  static const double xl = 24;
+  static const double xxl = 32;
+  static const double page = 20;
 }

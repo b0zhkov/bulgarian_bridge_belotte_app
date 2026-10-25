@@ -22,13 +22,7 @@ class AppLocalizationsBg extends AppLocalizations {
   String get homeOnlineTitle => 'Игра с приятели';
 
   @override
-  String get homeOnlineSubtitle => 'Стая с код · скоро';
-
-  @override
-  String get homeRulesTitle => 'Правила';
-
-  @override
-  String get homeRulesSubtitle => 'Според belot.bg';
+  String get homeOnlineSubtitle => 'Стая с код за четирима играчи';
 
   @override
   String get settings => 'Настройки';
@@ -213,6 +207,104 @@ class AppLocalizationsBg extends AppLocalizations {
   String get comingSoon => 'Скоро';
 
   @override
-  String get rulesBody =>
-      'Играе се с 32 карти от 7 до асо, двама срещу двама, обратно на часовниковата стрелка. Раздават се 3+2 карти, следва наддаване (спатия, каро, купа, пика, без коз, всичко коз, контра, реконтра) и още 3 карти. Анонсите се обявяват автоматично с първата карта. Играта е до 151 точки. С капо не се излиза.';
+  String get partner => 'Партньор';
+
+  @override
+  String get opponent => 'Противник';
+
+  @override
+  String get stats => 'Статистика';
+
+  @override
+  String get statsMatches => 'Игри';
+
+  @override
+  String get statsWins => 'Победи';
+
+  @override
+  String get statsWinRate => 'Успеваемост';
+
+  @override
+  String get statsDeals => 'Раздавки';
+
+  @override
+  String get statsAvgPoints => 'Средно точки на раздавка';
+
+  @override
+  String get statsContracts => 'Изкарани обяви';
+
+  @override
+  String get statsValats => 'Капо';
+
+  @override
+  String get statsEmpty => 'Изиграй първата си игра, за да видиш статистика.';
+
+  @override
+  String get statsSubtitle => 'Твоето представяне';
+
+  @override
+  String get statsReset => 'Нулиране на статистиката';
+
+  @override
+  String get namePromptTitle => 'Как да те наричаме?';
+
+  @override
+  String get namePromptSubtitle =>
+      'Името ти ще се вижда на масата и в статистиката.';
+
+  @override
+  String get nameLabel => 'Име';
+
+  @override
+  String get nameHint => 'напр. Георги';
+
+  @override
+  String get nameErrorEmpty => 'Въведи име';
+
+  @override
+  String get nameErrorShort => 'Поне 2 символа';
+
+  @override
+  String get nameErrorLong => 'Най-много 16 символа';
+
+  @override
+  String get nameErrorChars => 'Само букви, цифри, интервал и . - _';
+
+  @override
+  String get continueLabel => 'Напред';
+
+  @override
+  String get save => 'Запази';
+
+  @override
+  String get playerName => 'Име на играча';
+
+  @override
+  String get changeName => 'Смяна на името';
+
+  @override
+  String get hints => 'Подсказки';
+
+  @override
+  String get hintsDescription => 'Предлага карта, ако не играеш 25 секунди';
+
+  @override
+  String get hintLabel => 'Подсказка';
+
+  @override
+  String greeting(String name) {
+    return 'Здравей, $name';
+  }
+
+  @override
+  String get gameplay => 'Игра';
+
+  @override
+  String get teamUs => 'Ние';
+
+  @override
+  String get teamThem => 'Вие';
+
+  @override
+  String get statsResetConfirm => 'Нулирай';
 }

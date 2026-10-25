@@ -10,12 +10,13 @@ class SeatInfo {
   final String name;
 }
 
-SeatInfo seatInfo(AppLocalizations l, int seat) => switch (seat) {
-  0 => SeatInfo('🙂', l.you),
-  1 => SeatInfo('🐼', l.botName1),
-  2 => SeatInfo('🦊', l.botName2),
-  _ => SeatInfo('🧙', l.botName3),
-};
+SeatInfo seatInfo(AppLocalizations l, int seat, [String? myName]) =>
+    switch (seat) {
+      0 => SeatInfo('🙂', myName ?? l.you),
+      1 => SeatInfo('🐼', l.botName1),
+      2 => SeatInfo('🦊', l.botName2),
+      _ => SeatInfo('🧙', l.botName3),
+    };
 
 String contractName(AppLocalizations l, ContractType t) => switch (t) {
   ContractType.clubs => l.clubs,
