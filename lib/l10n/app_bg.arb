@@ -175,7 +175,7 @@
   "spectators": "Без отбор",
   "leaveRoom": "Напусни стаята",
   "leaveRoomTitle": "Да напуснеш ли стаята?",
-  "leaveRoomBody": "Ако играта тече, бот ще играе на твоето място.",
+  "leaveRoomBody": "Ако играта тече, бот ще играе на твоето място, а то остава запазено за теб до края на мача.",
   "roomNotFound": "Няма стая с този код",
   "roomClosed": "Стаята е затворена",
   "connecting": "Свързване…",
@@ -221,7 +221,7 @@
     }
   },
   "leaveOnlineGameTitle": "Да напуснеш ли играта?",
-  "leaveOnlineGameBody": "Бот ще поеме мястото ти. Можеш да се върнеш със същия код до края на раздаването.",
+  "leaveOnlineGameBody": "Бот ще поеме мястото ти, а то остава запазено за теб до края на мача. Можеш да се върнеш по всяко време.",
   "botName0": "Иван",
   "botLevel": "Трудност на ботовете",
   "botLevelDescription": "По подразбиране за офлайн игра",
@@ -553,5 +553,131 @@
         "type": "String"
       }
     }
-  }
+  },
+  "quickTitle": "Бърза игра",
+  "quickSubtitle": "Случайни противници · рейтинг",
+  "quickSearching": "Търсим играчи…",
+  "quickFound": "Намерени играчи: {n}/4",
+  "@quickFound": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "quickBotsHint": "Ако няма достатъчно хора, след {s} s започваме с ботове.",
+  "@quickBotsHint": {
+    "placeholders": {
+      "s": {
+        "type": "int"
+      }
+    }
+  },
+  "quickStarting": "Започваме…",
+  "quickCancel": "Откажи",
+  "quickFailed": "Търсенето не успя. Провери връзката.",
+  "quickAgain": "Нова бърза игра",
+  "goHome": "Начало",
+  "quickWaitingStart": "Подреждаме масата…",
+  "rating": "Рейтинг",
+  "ratingNote": "Рейтингът се променя само в бързи игри.",
+  "ratingChange": "Рейтинг {rating} ({delta}) · {rank}",
+  "@ratingChange": {
+    "placeholders": {
+      "rating": {
+        "type": "int"
+      },
+      "delta": {
+        "type": "String"
+      },
+      "rank": {
+        "type": "String"
+      }
+    }
+  },
+  "ratingPending": "Обновяваме рейтинга…",
+  "ratingGames": "Бързи игри: {n}",
+  "@ratingGames": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "rankNovice": "Новак",
+  "rankBronze": "Бронз",
+  "rankSilver": "Сребро",
+  "rankGold": "Злато",
+  "rankPlatinum": "Платина",
+  "rankDiamond": "Диамант",
+  "rankMaster": "Майстор",
+  "achievements": "Постижения",
+  "achievementsCount": "{n} от {total}",
+  "@achievementsCount": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "achievementUnlocked": "Ново постижение",
+  "achLocked": "Заключено",
+  "achFirstWin": "Първа победа",
+  "achFirstWinDesc": "Спечели мач.",
+  "achWins10": "10 победи",
+  "achWins10Desc": "Спечели 10 мача.",
+  "achWins50": "50 победи",
+  "achWins50Desc": "Спечели 50 мача.",
+  "achWins100": "100 победи",
+  "achWins100Desc": "Спечели 100 мача.",
+  "achCapot": "Капо",
+  "achCapotDesc": "Отборът ти взема всички взятки.",
+  "achBelot": "Белот!",
+  "achBelotDesc": "Обяви белот.",
+  "achSquare": "Каре",
+  "achSquareDesc": "Обяви каре, което се зачита.",
+  "achQuint": "Квинта",
+  "achQuintDesc": "Обяви квинта, която се зачита.",
+  "achNoTrump": "Без коз",
+  "achNoTrumpDesc": "Изкарай обявено от отбора ти Без коз.",
+  "achAllTrump": "Всичко коз",
+  "achAllTrumpDesc": "Изкарай обявено от отбора ти Всичко коз.",
+  "achContra": "Контра на място",
+  "achContraDesc": "Дай контра и вкарай противниците.",
+  "achRecontra": "Реконтра",
+  "achRecontraDesc": "Изкарай игра с реконтра.",
+  "achComeback": "Обрат",
+  "achComebackDesc": "Спечели мач, след като си изоставал с 50+ точки.",
+  "achBeatHard": "Срещу трудните",
+  "achBeatHardDesc": "Победи трудните ботове.",
+  "achFirstQuick": "Първа бърза игра",
+  "achFirstQuickDesc": "Изиграй бърза игра докрай.",
+  "achRankGold": "Златен ранг",
+  "achRankGoldDesc": "Достигни рейтинг 1200 (Злато).",
+  "resumeTitle": "Върни се в играта",
+  "resumeBody": "Мястото ти в стая {code} те чака — ботът играе вместо теб.",
+  "@resumeBody": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "resumeJoin": "Върни се",
+  "resumeDismiss": "Не сега",
+  "tableSection": "Маса и карти",
+  "cardBack": "Гръб на картите",
+  "tableColor": "Цвят на масата",
+  "backClassic": "Класически",
+  "backMidnight": "Нощ",
+  "backForest": "Гора",
+  "backMono": "Минимал",
+  "tableClassic": "Класическа",
+  "tableFelt": "Сукно",
+  "tableWine": "Бордо",
+  "tableSlate": "Графит",
+  "languageEnglish": "English"
 }

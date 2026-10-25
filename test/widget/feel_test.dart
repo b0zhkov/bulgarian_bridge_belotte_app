@@ -172,6 +172,11 @@ void main() {
     expect(c.read(hapticsEnabledProvider), isTrue);
     Navigator.of(t.element(find.byType(Scaffold).first)).pushNamed('/settings');
     await t.pumpAndSettle();
+    await t.scrollUntilVisible(
+      find.byKey(const Key('sound-switch')),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await t.tap(find.byKey(const Key('sound-switch')));
     await t.pumpAndSettle();
     await t.ensureVisible(find.byKey(const Key('haptics-switch')));

@@ -7,14 +7,21 @@ import '../../core/widgets/suit_icon.dart';
 import '../../l10n/generated/app_localizations.dart';
 
 class SeatInfo {
-  const SeatInfo(this.emoji, this.name);
+  const SeatInfo(this.emoji, this.name, [this.tag]);
   final String emoji;
   final String name;
+
+  /// Small extra shown after the name (quick match: the rating).
+  final String? tag;
 }
 
-/// Strings outside a widget tree (controllers): the app's locale is fixed
-/// to Bulgarian (see `main.dart`).
-AppLocalizations appStrings() => lookupAppLocalizations(const Locale('bg'));
+String _stringsLocale = 'bg';
+
+/// Keeps [appStrings] in the app's language (set by `main.dart`).
+void setAppStringsLocale(String code) => _stringsLocale = code;
+
+/// Strings outside a widget tree (controllers), in the app's language.
+AppLocalizations appStrings() => lookupAppLocalizations(Locale(_stringsLocale));
 
 /// Bot names for the four absolute seats, avoiding [humans]' names.
 List<String> botNames(

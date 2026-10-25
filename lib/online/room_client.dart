@@ -69,6 +69,7 @@ class RoomClient {
     String? avatar,
     String Function()? codeGen,
     void Function()? onChange,
+    bool quick = false,
   }) async {
     for (var attempt = 0; attempt < 8; attempt++) {
       final code = (codeGen ?? generateRoomCode)();
@@ -85,6 +86,7 @@ class RoomClient {
           'onlineCount': 0,
           'matchNo': 0,
           'createdAt': const ServerTimestamp(),
+          if (quick) 'qm': true,
         },
         'members': {
           db.uid: {
@@ -336,6 +338,10 @@ class RoomClient {
 
   Future<bool> startMatch() async => await host?.startMatch() ?? false;
 
+  /// Quick rooms: starts at once with [players] on random seats.
+  Future<bool> startQuick(List<({String uid, String name})> players) async =>
+      await host?.startQuick(players) ?? false;
+
   int _nextNonce() {
     final t = clock.now().millisecondsSinceEpoch;
     _nonce = t > _nonce ? t : _nonce + 1;
@@ -357,8 +363,16 @@ class RoomClient {
   Future<void> markReady() =>
       sendIntent('ready', null, version: game?.dealNumber ?? 0);
 
+  /// Whether this player has a seat (in person or reserved) in the
+  /// running match.
+  bool get hasMatchSeat =>
+      meta?.status == RoomStatus.playing &&
+      game?.phase != GamePhase.matchOver &&
+      RoomLogic.hasSeat(seats, uid);
+
   /// Leaves the room: hands the host role over, deletes the room when this
-  /// was the last player online.
+  /// was the last player online. During a match the member entry stays
+  /// (offline) so the seat remains reserved and the player can come back.
   Future<void> leave() async {
     if (_left) return;
     _left = true;
@@ -381,7 +395,10 @@ class RoomClient {
           if (next != null) await db.set('$_room/meta/host', next);
         }
         await db.update({
-          '$_room/members/$uid': null,
+          if (hasMatchSeat)
+            '$_room/members/$uid/o': false
+          else
+            '$_room/members/$uid': null,
           '$_room/emotes/$uid': null,
           '$_room/meta/onlineCount': const Increment(-1),
         });

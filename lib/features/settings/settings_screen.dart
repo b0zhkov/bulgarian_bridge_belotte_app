@@ -1,3 +1,4 @@
+import 'table_style_picker.dart';
 import '../game/difficulty_picker.dart';
 
 import 'package:flutter/material.dart';
@@ -219,6 +220,28 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ],
               ),
+              section(l.language),
+              Row(
+                children: [
+                  for (final (code, name) in [
+                    ('bg', l.languageBulgarian),
+                    ('en', l.languageEnglish),
+                  ]) ...[
+                    if (code != 'bg') const SizedBox(width: Gap.m),
+                    Expanded(
+                      child: PillButton(
+                        key: Key('lang-$code'),
+                        label: name,
+                        selected: ref.watch(appLocaleProvider) == code,
+                        onTap: () =>
+                            ref.read(appLocaleProvider.notifier).set(code),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              section(l.tableSection),
+              const TableStylePicker(),
               section(l.soundSection),
               switchTile(
                 key: const Key('sound-switch'),

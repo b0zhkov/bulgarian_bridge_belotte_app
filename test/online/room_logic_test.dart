@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:bulgarian_bridge_belotte_app/core/rules/rules.dart';
 import 'package:bulgarian_bridge_belotte_app/online/room_logic.dart';
 import 'package:bulgarian_bridge_belotte_app/online/room_models.dart';
@@ -166,22 +168,75 @@ void main() {
       expect(back[1].bot, isFalse);
     });
 
-    test(
-      'reconnect after the deal ended waits; takes the seat at deal end',
-      () {
-        final held = RoomLogic.applyPresence(
-          seats,
-          ms([m('a'), m('b', online: false)]),
-          3,
-        );
-        final members = ms([m('a'), m('b')]);
-        final later = RoomLogic.applyPresence(held, members, 4);
-        expect(later[1].bot, isTrue, reason: 'deal 4: no instant reclaim');
-        expect(RoomLogic.waiting(later, members).map((x) => x.uid), ['b']);
-        final assigned = RoomLogic.assignWaiting(later, members);
-        expect(assigned[1].uid, 'b', reason: 'own held seat first');
-      },
-    );
+    test('the seat stays reserved for the rest of the match', () {
+      final held = RoomLogic.applyPresence(
+        seats,
+        ms([m('a'), m('b', online: false)]),
+        3,
+      );
+      // Several deals later the reservation still holds...
+      final members = ms([m('a'), m('b', online: false)]);
+      var later = RoomLogic.applyPresence(held, members, 7);
+      later = RoomLogic.assignWaiting(later, members);
+      expect(later[1].heldFor, 'b');
+      // ...and the player takes it back the moment they are online.
+      final back = RoomLogic.applyPresence(later, ms([m('a'), m('b')]), 8);
+      expect(back[1], const Seat.human('b', 'Nb'));
+    });
+
+    test('newcomers never take a reserved seat, only free bot seats', () {
+      final held = [
+        const Seat.human('a', 'A'),
+        const Seat.bot(name: 'B', heldFor: 'b'),
+        const Seat.bot(),
+        const Seat.bot(name: 'D', heldFor: 'd'),
+      ];
+      final members = ms([
+        m('a'),
+        m('b', online: false),
+        m('x', team: 1, j: 5),
+        m('y', team: 1, j: 6),
+      ]);
+      expect(RoomLogic.openTeams(held), [0], reason: 'only seat 2 is free');
+      final assigned = RoomLogic.assignWaiting(held, members);
+      expect(assigned[2].uid, 'x', reason: 'team 1 reserved -> free seat');
+      expect(assigned[1].heldFor, 'b');
+      expect(assigned[3].heldFor, 'd');
+      expect(RoomLogic.waiting(assigned, members).map((e) => e.uid), ['y']);
+      expect(RoomLogic.openTeams(assigned), isEmpty);
+    });
+
+    test('hasSeat covers seated and reserved players', () {
+      final held = [
+        const Seat.human('a', 'A'),
+        const Seat.bot(name: 'B', heldFor: 'b'),
+        const Seat.bot(),
+        const Seat.bot(),
+      ];
+      expect(RoomLogic.hasSeat(held, 'a'), isTrue);
+      expect(RoomLogic.hasSeat(held, 'b'), isTrue);
+      expect(RoomLogic.hasSeat(held, 'c'), isFalse);
+      expect(RoomLogic.hasSeat(null, 'a'), isFalse);
+    });
+
+    test('quick seats: random places, absent players reserved', () {
+      final s = RoomLogic.quickSeats([
+        (uid: 'a', name: 'A', present: true),
+        (uid: 'b', name: 'B', present: false),
+      ], Random(3));
+      expect(s.where((x) => !x.bot).map((x) => x.uid), ['a']);
+      expect(s.where((x) => x.heldFor == 'b').length, 1);
+      expect(s.where((x) => x.bot && x.heldFor == null).length, 2);
+      // Over many seeds both teams get the first player.
+      final teams = {
+        for (var i = 0; i < 40; i++)
+          RoomLogic.quickSeats([
+                (uid: 'a', name: 'A', present: true),
+              ], Random(i)).indexWhere((x) => !x.bot) %
+              2,
+      };
+      expect(teams, {0, 1});
+    });
 
     test('waiting players take a bot seat in their chosen team', () {
       final members = ms([

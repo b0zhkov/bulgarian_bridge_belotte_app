@@ -161,7 +161,18 @@ class RoomMeta {
     this.onlineCount = 0,
     this.matchNo = 0,
     this.botLevel = BotLevel.medium,
+    this.quick = false,
+    this.createdAt = 0,
   });
+
+  /// A quick-match room (public matchmaking, no invite UI, rated).
+  final bool quick;
+
+  /// Server time the room was created (ms).
+  final int createdAt;
+
+  /// Identifies the current match of this room (for rating results).
+  String get matchId => 'm${matchNo}_$createdAt';
 
   final String host;
 
@@ -194,6 +205,8 @@ class RoomMeta {
       onlineCount: (v['onlineCount'] as num?)?.toInt() ?? 0,
       matchNo: (v['matchNo'] as num?)?.toInt() ?? 0,
       botLevel: BotLevel.parse(v['lvl'] as String?),
+      quick: v['qm'] == true,
+      createdAt: (v['createdAt'] as num?)?.toInt() ?? 0,
     );
   }
 }

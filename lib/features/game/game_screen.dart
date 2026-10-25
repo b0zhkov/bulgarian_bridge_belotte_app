@@ -54,7 +54,18 @@ class TableView extends ConsumerWidget {
     this.notice,
     this.onEmote,
     this.canEmote,
+    this.matchExtra,
+    this.onNewMatch,
+    this.secondaryLabel,
+    this.onSecondary,
   });
+
+  /// Match-over extras (quick match: rating change, "new quick match" and
+  /// "home" instead of going back to the lobby).
+  final Widget? matchExtra;
+  final VoidCallback? onNewMatch;
+  final String? secondaryLabel;
+  final VoidCallback? onSecondary;
 
   /// Online only: sends an emote (null hides the emote button).
   final void Function(Emote e)? onEmote;
@@ -134,6 +145,7 @@ class TableView extends ConsumerWidget {
           if (!didPop) _confirmLeave(context);
         },
         child: Scaffold(
+          backgroundColor: context.colors.table,
           body: SafeArea(
             child: Center(
               child: ConstrainedBox(
@@ -309,9 +321,15 @@ class TableView extends ConsumerWidget {
                               child: DealResultPanel(
                                 game: g,
                                 onNext: ctrl.nextDeal,
-                                onNewMatch: ctrl.newMatch,
+                                onNewMatch: onNewMatch ?? ctrl.newMatch,
                                 newMatchLabel: newMatchLabel,
-                                waiting: table.waitingReady,
+                                waiting:
+                                    table.waitingReady &&
+                                    !(onNewMatch != null &&
+                                        g.phase == GamePhase.matchOver),
+                                matchExtra: matchExtra,
+                                secondaryLabel: secondaryLabel,
+                                onSecondary: onSecondary,
                                 nameOf: nameOf,
                                 onRecapDone: (n) {
                                   if (n > recapDone.value) {
@@ -755,7 +773,11 @@ class _SelfStrip extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    bubble != null ? announcementText(l, bubble) : me.name,
+                    bubble != null
+                        ? announcementText(l, bubble)
+                        : me.tag == null
+                        ? me.name
+                        : '${me.name} · ${me.tag}',
                     key: const Key('self-name'),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

@@ -406,7 +406,8 @@ class AppLocalizationsBg extends AppLocalizations {
   String get leaveRoomTitle => 'Да напуснеш ли стаята?';
 
   @override
-  String get leaveRoomBody => 'Ако играта тече, бот ще играе на твоето място.';
+  String get leaveRoomBody =>
+      'Ако играта тече, бот ще играе на твоето място, а то остава запазено за теб до края на мача.';
 
   @override
   String get roomNotFound => 'Няма стая с този код';
@@ -477,7 +478,7 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get leaveOnlineGameBody =>
-      'Бот ще поеме мястото ти. Можеш да се върнеш със същия код до края на раздаването.';
+      'Бот ще поеме мястото ти, а то остава запазено за теб до края на мача. Можеш да се върнеш по всяко време.';
 
   @override
   String get botName0 => 'Иван';
@@ -815,4 +816,242 @@ class AppLocalizationsBg extends AppLocalizations {
   String upTo(String rank) {
     return 'до $rank';
   }
+
+  @override
+  String get quickTitle => 'Бърза игра';
+
+  @override
+  String get quickSubtitle => 'Случайни противници · рейтинг';
+
+  @override
+  String get quickSearching => 'Търсим играчи…';
+
+  @override
+  String quickFound(int n) {
+    return 'Намерени играчи: $n/4';
+  }
+
+  @override
+  String quickBotsHint(int s) {
+    return 'Ако няма достатъчно хора, след $s s започваме с ботове.';
+  }
+
+  @override
+  String get quickStarting => 'Започваме…';
+
+  @override
+  String get quickCancel => 'Откажи';
+
+  @override
+  String get quickFailed => 'Търсенето не успя. Провери връзката.';
+
+  @override
+  String get quickAgain => 'Нова бърза игра';
+
+  @override
+  String get goHome => 'Начало';
+
+  @override
+  String get quickWaitingStart => 'Подреждаме масата…';
+
+  @override
+  String get rating => 'Рейтинг';
+
+  @override
+  String get ratingNote => 'Рейтингът се променя само в бързи игри.';
+
+  @override
+  String ratingChange(int rating, String delta, String rank) {
+    return 'Рейтинг $rating ($delta) · $rank';
+  }
+
+  @override
+  String get ratingPending => 'Обновяваме рейтинга…';
+
+  @override
+  String ratingGames(int n) {
+    return 'Бързи игри: $n';
+  }
+
+  @override
+  String get rankNovice => 'Новак';
+
+  @override
+  String get rankBronze => 'Бронз';
+
+  @override
+  String get rankSilver => 'Сребро';
+
+  @override
+  String get rankGold => 'Злато';
+
+  @override
+  String get rankPlatinum => 'Платина';
+
+  @override
+  String get rankDiamond => 'Диамант';
+
+  @override
+  String get rankMaster => 'Майстор';
+
+  @override
+  String get achievements => 'Постижения';
+
+  @override
+  String achievementsCount(int n, int total) {
+    return '$n от $total';
+  }
+
+  @override
+  String get achievementUnlocked => 'Ново постижение';
+
+  @override
+  String get achLocked => 'Заключено';
+
+  @override
+  String get achFirstWin => 'Първа победа';
+
+  @override
+  String get achFirstWinDesc => 'Спечели мач.';
+
+  @override
+  String get achWins10 => '10 победи';
+
+  @override
+  String get achWins10Desc => 'Спечели 10 мача.';
+
+  @override
+  String get achWins50 => '50 победи';
+
+  @override
+  String get achWins50Desc => 'Спечели 50 мача.';
+
+  @override
+  String get achWins100 => '100 победи';
+
+  @override
+  String get achWins100Desc => 'Спечели 100 мача.';
+
+  @override
+  String get achCapot => 'Капо';
+
+  @override
+  String get achCapotDesc => 'Отборът ти взема всички взятки.';
+
+  @override
+  String get achBelot => 'Белот!';
+
+  @override
+  String get achBelotDesc => 'Обяви белот.';
+
+  @override
+  String get achSquare => 'Каре';
+
+  @override
+  String get achSquareDesc => 'Обяви каре, което се зачита.';
+
+  @override
+  String get achQuint => 'Квинта';
+
+  @override
+  String get achQuintDesc => 'Обяви квинта, която се зачита.';
+
+  @override
+  String get achNoTrump => 'Без коз';
+
+  @override
+  String get achNoTrumpDesc => 'Изкарай обявено от отбора ти Без коз.';
+
+  @override
+  String get achAllTrump => 'Всичко коз';
+
+  @override
+  String get achAllTrumpDesc => 'Изкарай обявено от отбора ти Всичко коз.';
+
+  @override
+  String get achContra => 'Контра на място';
+
+  @override
+  String get achContraDesc => 'Дай контра и вкарай противниците.';
+
+  @override
+  String get achRecontra => 'Реконтра';
+
+  @override
+  String get achRecontraDesc => 'Изкарай игра с реконтра.';
+
+  @override
+  String get achComeback => 'Обрат';
+
+  @override
+  String get achComebackDesc =>
+      'Спечели мач, след като си изоставал с 50+ точки.';
+
+  @override
+  String get achBeatHard => 'Срещу трудните';
+
+  @override
+  String get achBeatHardDesc => 'Победи трудните ботове.';
+
+  @override
+  String get achFirstQuick => 'Първа бърза игра';
+
+  @override
+  String get achFirstQuickDesc => 'Изиграй бърза игра докрай.';
+
+  @override
+  String get achRankGold => 'Златен ранг';
+
+  @override
+  String get achRankGoldDesc => 'Достигни рейтинг 1200 (Злато).';
+
+  @override
+  String get resumeTitle => 'Върни се в играта';
+
+  @override
+  String resumeBody(String code) {
+    return 'Мястото ти в стая $code те чака — ботът играе вместо теб.';
+  }
+
+  @override
+  String get resumeJoin => 'Върни се';
+
+  @override
+  String get resumeDismiss => 'Не сега';
+
+  @override
+  String get tableSection => 'Маса и карти';
+
+  @override
+  String get cardBack => 'Гръб на картите';
+
+  @override
+  String get tableColor => 'Цвят на масата';
+
+  @override
+  String get backClassic => 'Класически';
+
+  @override
+  String get backMidnight => 'Нощ';
+
+  @override
+  String get backForest => 'Гора';
+
+  @override
+  String get backMono => 'Минимал';
+
+  @override
+  String get tableClassic => 'Класическа';
+
+  @override
+  String get tableFelt => 'Сукно';
+
+  @override
+  String get tableWine => 'Бордо';
+
+  @override
+  String get tableSlate => 'Графит';
+
+  @override
+  String get languageEnglish => 'English';
 }

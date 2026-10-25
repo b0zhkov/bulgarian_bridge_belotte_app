@@ -1,3 +1,6 @@
+import '../../online/rating.dart';
+import '../quick/quick_labels.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -34,6 +37,7 @@ List<SeatInfo> seatInfosFor(
   RoomClient c,
   String myName, [
   String? myAvatar,
+  Map<String, int> ratings = const {},
 ]) {
   final mySeat = c.mySeat ?? 0;
   final seats = c.seats!;
@@ -44,9 +48,19 @@ List<SeatInfo> seatInfosFor(
         final abs = (v + mySeat) % 4;
         final s = seats[abs];
         if (v == 0) {
-          return SeatInfo(humanAvatar(myAvatar ?? kSelfAvatar), myName);
+          return SeatInfo(
+            humanAvatar(myAvatar ?? kSelfAvatar),
+            myName,
+            ratings[c.uid]?.toString(),
+          );
         }
-        if (!s.bot) return SeatInfo(roomAvatar(c, s.uid, abs), s.name ?? '?');
+        if (!s.bot) {
+          return SeatInfo(
+            roomAvatar(c, s.uid, abs),
+            s.name ?? '?',
+            ratings[s.uid]?.toString(),
+          );
+        }
         return SeatInfo(kBotAvatar, bots[abs]);
       }(),
   ];
@@ -86,6 +100,12 @@ class RoomScreen extends ConsumerWidget {
     }
     await ref.read(onlineControllerProvider.notifier).leave();
     if (context.mounted) Navigator.of(context).pop();
+  }
+
+  /// Quick match over: leave and queue again.
+  Future<void> _quickAgain(BuildContext context, WidgetRef ref) async {
+    await ref.read(onlineControllerProvider.notifier).leave();
+    if (context.mounted) Navigator.of(context).pushReplacementNamed('/quick');
   }
 
   @override
@@ -130,6 +150,7 @@ class RoomScreen extends ConsumerWidget {
         c.game != null) {
       final table = s.table;
       if (c.mySeat != null && table != null) {
+        final quick = meta.quick;
         return TableView(
           table: table.copyWith(
             seatInfos: seatInfosFor(
@@ -137,12 +158,20 @@ class RoomScreen extends ConsumerWidget {
               c,
               c.name,
               ref.watch(playerAvatarProvider),
+              s.ratings,
             ),
           ),
           actions: ctrl,
           onLeave: () => _leave(context, ref, confirm: false),
-          footer: RoomCodeChip(code: c.code),
-          newMatchLabel: l.backToLobby,
+          // Quick rooms are for strangers: no code / invite.
+          footer: quick ? null : RoomCodeChip(code: c.code),
+          newMatchLabel: quick ? l.quickAgain : l.backToLobby,
+          onNewMatch: quick ? () => _quickAgain(context, ref) : null,
+          secondaryLabel: quick ? l.goHome : null,
+          onSecondary: quick
+              ? () => _leave(context, ref, confirm: false)
+              : null,
+          matchExtra: quick ? RatingChangeLine(change: s.ratingChange) : null,
           leaveTitle: l.leaveOnlineGameTitle,
           leaveBody: l.leaveOnlineGameBody,
           notice: SeatNoticeToast(notice: s.notice),
@@ -151,6 +180,13 @@ class RoomScreen extends ConsumerWidget {
         );
       }
       return _WaitingView(client: c, onLeave: () => _leave(context, ref));
+    }
+    if (meta.quick) {
+      return _QuickRoomView(
+        over: meta.matchNo > 0,
+        onAgain: () => _quickAgain(context, ref),
+        onHome: () => _leave(context, ref, confirm: false),
+      );
     }
     return _LobbyView(client: c, onLeave: () => _leave(context, ref));
   }
@@ -734,6 +770,95 @@ class SeatNoticeToast extends StatelessWidget {
                       ),
                     ),
                   ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Quick match: "Rating 1012 (+12) · Silver" under the final score.
+class RatingChangeLine extends StatelessWidget {
+  const RatingChangeLine({super.key, this.change});
+  final RatingChange? change;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final c = context.colors;
+    final r = change;
+    final up = (r?.delta ?? 0) >= 0;
+    return Text(
+      r == null
+          ? l.ratingPending
+          : l.ratingChange(
+              r.after,
+              signed(r.delta),
+              rankName(l, RatingRank.of(r.after)),
+            ),
+      key: const Key('rating-change'),
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        color: r == null ? c.textSecondary : (up ? c.success : c.danger),
+        fontSize: AppText.body,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+}
+
+/// A quick room outside a match: setting up (before the first deal) or
+/// the end of the match ("new quick match" / home).
+class _QuickRoomView extends StatelessWidget {
+  const _QuickRoomView({
+    required this.over,
+    required this.onAgain,
+    required this.onHome,
+  });
+  final bool over;
+  final VoidCallback onAgain;
+  final VoidCallback onHome;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final c = context.colors;
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Padding(
+              padding: const EdgeInsets.all(Gap.page),
+              child: Column(
+                key: const Key('quick-room'),
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!over) ...[
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: Gap.l),
+                    Text(
+                      l.quickWaitingStart,
+                      style: TextStyle(color: c.textPrimary),
+                    ),
+                  ] else ...[
+                    PillButton(
+                      key: const Key('quick-again'),
+                      label: l.quickAgain,
+                      selected: true,
+                      onTap: onAgain,
+                    ),
+                    const SizedBox(height: Gap.s),
+                  ],
+                  const SizedBox(height: Gap.s),
+                  PillButton(
+                    key: const Key('quick-home'),
+                    label: l.goHome,
+                    onTap: onHome,
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),

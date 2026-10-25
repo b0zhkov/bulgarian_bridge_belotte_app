@@ -169,6 +169,61 @@ Flutter app for Android, iOS and web. Rules follow [belot.bg](https://belot.bg/b
   deal recap shows the same per-declaration lines and the rounding. Rounding display is recomputed by
   `DealScoreRounding` and tested against the engine on random deals.
 
+## Beta 11 — rejoin, quick match, rating, achievements, table styles
+
+* **Rejoin your seat.** When a player drops (or leaves during a match) a bot
+  takes over at once, but the seat stays *reserved* for their anonymous uid
+  until the match ends (`Seat.bot(heldFor: uid)`). Coming back by code, link
+  or the home-screen card "Върни се в играта" (offered on launch while a
+  reserved seat exists) gives the seat back immediately, mid-deal included; a
+  bot that is already thinking finishes its move. Newcomers only take free
+  (unreserved) bot seats at the end of a deal. Leaving asks for confirmation
+  and keeps the reservation (the member entry stays, offline). A room where
+  only absent players and bots remain closes as before; after the match the
+  reservations are gone and the normal lobby / quick-match flow applies.
+* **Бърза игра (quick match).** `queue/{uid}` entries with a server-time
+  heartbeat (5 s) and an onDisconnect delete; entries without a heartbeat in
+  the last 20 s are ignored. The oldest waiting player is the matchmaker: at
+  4 players, or when its 30 s are up, it creates a quick room (`meta/qm`),
+  claims itself and then each other player with an RTDB transaction on
+  `queue/{uid}/room` (a player can only be claimed once; rules only let the
+  host of a quick room claim). A player waiting 40 s takes over if the
+  matchmaker went silent. Claimed players join that room; seats are random
+  (random teams), missing places are bots, and a claimed player who has not
+  connected after 8 s gets a reserved seat. Quick rooms have no code/invite
+  UI; after the match: "Нова бърза игра" or "Начало".
+* **Rating (quick matches only).** Start 1000, team Elo with K = 32: team
+  rating = average of its two seats, **bots count as 1000**;
+  `E = 1/(1+10^((Ropp−Rteam)/400))`, `Δ = round(32·(S−E))`, the same Δ for both
+  partners. Only humans still seated and online at the end are rated — a
+  player who dropped and did not return is not changed (no penalty).
+  Ranks: Новак < 900 ≤ Бронз < 1050 ≤ Сребро < 1200 ≤ Злато < 1350 ≤ Платина
+  < 1500 ≤ Диамант < 1700 ≤ Майстор. The host writes
+  `qresults/{room}/{matchId}/{uid} = {b, d}` once; each player then writes
+  `ratings/{uid} = {r: b + d, g, c, x, t}` and deletes the used result.
+  Rules: results only from the host of a quick room that is ≥ 2 min old,
+  |d| ≤ 32, `b` = the player's stored rating, write-once; a rating must equal
+  `b + d` of an existing result for that uid, `t` is server time and at most
+  one update per 2 min; a rating can only be removed (reset to 1000) when it
+  is ≥ 1000. **Residual risk:** clients are trusted as hosts, so a player can
+  create their own quick room, wait 2 min and award themselves up to +32
+  every 2 minutes (or a malicious host can give others −32). A real fix
+  needs server-side scoring (Cloud Functions).
+* **16 achievements** (local, so they work offline; merged into
+  `ach/{uid}` when online): Първа победа, 10/50/100 победи, Капо, Белот!,
+  Каре, Квинта, Без коз, Всичко коз, Контра на място, Реконтра, Обрат (win
+  after trailing by 50+), Срещу трудните (beat hard bots), Първа бърза игра,
+  Златен ранг. Shown in the profile (locked/unlocked); an unlock shows a
+  small silent toast — no new sounds.
+* **Table and language.** Settings → card back (Класически, Нощ, Гора,
+  Минимал) and table colour (Класическа, Сукно, Бордо, Графит; each with a
+  dark and light variant that keeps blue = us / orange = them readable),
+  stored locally. Full English translation with a language switch; the app
+  always starts in Bulgarian (the device locale is ignored). Card ranks use
+  the same Latin letters (A K Q J 10 9 8 7) in both languages, as before.
+* Rules checks: `scripts/rules_check.py` (in the workspace) covers queue,
+  ratings, results and achievements too.
+
 ## Structure
 ```
 lib/

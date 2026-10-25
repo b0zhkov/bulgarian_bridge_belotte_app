@@ -6,12 +6,15 @@ import 'core/theme/app_theme.dart';
 import 'features/feedback/sound.dart';
 import 'features/game/game_controller.dart';
 import 'features/game/game_screen.dart';
+import 'features/game/labels.dart';
 import 'features/game/widgets/warm_up.dart';
 import 'features/home/home_screen.dart';
 import 'features/online/online_entry_screen.dart';
 import 'features/online/invite/web_bridge.dart';
 import 'features/online/room_code.dart';
 import 'features/online/room_screen.dart';
+import 'features/quick/quick_screen.dart';
+import 'features/achievements/achievement_toast.dart';
 import 'features/profile/name_screen.dart';
 import 'features/profile/profile_controller.dart';
 import 'features/profile/profile_screen.dart';
@@ -49,14 +52,19 @@ class BelotApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Load the sound pools now, not on the first sound mid-game.
     ref.read(soundPlayerProvider);
+    final tint = ref.watch(tableTintProvider);
+    final back = ref.watch(cardBackProvider);
+    final lang = ref.watch(appLocaleProvider);
+    setAppStringsLocale(lang);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       onGenerateTitle: (ctx) => AppLocalizations.of(ctx).appTitle,
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
+      theme: AppTheme.light(table: tint, back: back),
+      darkTheme: AppTheme.dark(table: tint, back: back),
       themeMode: ref.watch(themeModeProvider),
-      // Bulgarian first; English strings exist and can be enabled later.
-      locale: const Locale('bg'),
+      // Always Bulgarian unless English is picked in the settings (the
+      // phone's language is deliberately ignored).
+      locale: Locale(lang),
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       // Browsers only allow audio after a user gesture: unlock on the
@@ -69,6 +77,7 @@ class BelotApp extends ConsumerWidget {
           children: [
             const Positioned(left: 0, top: 0, child: TableWarmUp()),
             ?child,
+            const AchievementToastHost(),
           ],
         ),
       ),
@@ -78,6 +87,7 @@ class BelotApp extends ConsumerWidget {
         '/settings': (_) => const SettingsScreen(),
         '/profile': (_) => const ProfileScreen(),
         '/room': (_) => const _NameGate(child: RoomScreen()),
+        '/quick': (_) => const _NameGate(child: QuickMatchScreen()),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/online') {
@@ -127,12 +137,6 @@ class _NameGate extends ConsumerWidget {
       child: name == null ? const NameScreen() : child,
     );
   }
-}
-
-/// Arguments for `/online` opened from an invite link: join right away.
-class InviteArgs {
-  const InviteArgs(this.code);
-  final String code;
 }
 
 bool _inviteHandled = false;

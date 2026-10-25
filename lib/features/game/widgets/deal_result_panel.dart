@@ -22,8 +22,18 @@ class DealResultPanel extends StatefulWidget {
     this.waiting = false,
     this.nameOf,
     this.onRecapDone,
+    this.matchExtra,
+    this.secondaryLabel,
+    this.onSecondary,
   });
   final GameState game;
+
+  /// Match over: extra line under the final score (quick match: rating).
+  final Widget? matchExtra;
+
+  /// Match over: a second, plain button (quick match: back home).
+  final String? secondaryLabel;
+  final VoidCallback? onSecondary;
 
   /// Called with the number of deals once the recap has finished counting
   /// (or was skipped); at match end right away (the sheet is shown).
@@ -117,6 +127,10 @@ class _DealResultPanelState extends State<DealResultPanel> {
                       textAlign: TextAlign.center,
                       style: TextStyle(color: c.textSecondary),
                     ),
+                    if (widget.matchExtra != null) ...[
+                      const SizedBox(height: Gap.s),
+                      widget.matchExtra!,
+                    ],
                     const SizedBox(height: Gap.m),
                     Row(
                       children: [
@@ -171,6 +185,14 @@ class _DealResultPanelState extends State<DealResultPanel> {
                         ? null
                         : (over ? widget.onNewMatch : widget.onNext),
                   ),
+                  if (over && widget.secondaryLabel != null) ...[
+                    const SizedBox(height: Gap.s),
+                    PillButton(
+                      key: const Key('result-secondary'),
+                      label: widget.secondaryLabel!,
+                      onTap: widget.onSecondary,
+                    ),
+                  ],
                 ],
               ),
             ),

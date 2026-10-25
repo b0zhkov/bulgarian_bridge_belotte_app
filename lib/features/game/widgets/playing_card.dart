@@ -82,7 +82,9 @@ class PlayingCardView extends StatelessWidget {
         borderRadius: radius,
         child: show
             ? _Face(card: card!, width: width)
-            : CustomPaint(painter: CardBackPainter(c.cardBackLine)),
+            : CustomPaint(
+                painter: CardBackPainter(c.cardBackLine, c.backStyle),
+              ),
       ),
     );
   }
@@ -132,11 +134,79 @@ class _Face extends StatelessWidget {
 /// Red patterned back with concentric rings and a dashed centre, like the
 /// reference screenshots.
 class CardBackPainter extends CustomPainter {
-  CardBackPainter(this.line);
+  CardBackPainter(this.line, [this.style = CardBackStyle.classic]);
   final Color line;
+  final CardBackStyle style;
 
   @override
   void paint(Canvas canvas, Size size) {
+    switch (style) {
+      case CardBackStyle.classic:
+        _rings(canvas, size);
+      case CardBackStyle.midnight:
+        _lattice(canvas, size);
+      case CardBackStyle.forest:
+        _stripes(canvas, size);
+      case CardBackStyle.mono:
+        _mono(canvas, size);
+    }
+  }
+
+  /// Fine diagonal lattice with a small diamond in the middle.
+  void _lattice(Canvas canvas, Size size) {
+    final w = size.width, h = size.height;
+    final p = Paint()
+      ..color = line
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = w * 0.012;
+    final step = w * 0.16;
+    for (var x = -h; x < w + h; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x + h, h), p);
+      canvas.drawLine(Offset(x, h), Offset(x + h, 0), p);
+    }
+    _diamond(canvas, size.center(Offset.zero), w * 0.16, w);
+  }
+
+  /// Diagonal pinstripes with a diamond in the middle.
+  void _stripes(Canvas canvas, Size size) {
+    final w = size.width, h = size.height;
+    final p = Paint()
+      ..color = line
+      ..strokeWidth = w * 0.03;
+    for (var x = -h; x < w + h; x += w * 0.12) {
+      canvas.drawLine(Offset(x, 0), Offset(x + h * 0.6, h), p);
+    }
+    _diamond(canvas, size.center(Offset.zero), w * 0.12, w);
+  }
+
+  /// Minimal: an inset frame and one diamond.
+  void _mono(Canvas canvas, Size size) {
+    final w = size.width;
+    final p = Paint()
+      ..color = line
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = w * 0.015;
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        (Offset.zero & size).deflate(w * 0.1),
+        Radius.circular(w * 0.08),
+      ),
+      p,
+    );
+    _diamond(canvas, size.center(Offset.zero), w * 0.14, w);
+  }
+
+  void _diamond(Canvas canvas, Offset c, double r, double w) {
+    final path = Path()
+      ..moveTo(c.dx, c.dy - r * 1.3)
+      ..lineTo(c.dx + r, c.dy)
+      ..lineTo(c.dx, c.dy + r * 1.3)
+      ..lineTo(c.dx - r, c.dy)
+      ..close();
+    canvas.drawPath(path, Paint()..color = const Color(0xFFFFFFFF));
+  }
+
+  void _rings(Canvas canvas, Size size) {
     final p = Paint()
       ..color = line
       ..style = PaintingStyle.stroke
@@ -173,5 +243,6 @@ class CardBackPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(CardBackPainter old) => old.line != line;
+  bool shouldRepaint(CardBackPainter old) =>
+      old.line != line || old.style != style;
 }

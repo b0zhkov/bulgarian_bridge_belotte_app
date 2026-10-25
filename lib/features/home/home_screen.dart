@@ -14,6 +14,8 @@ import '../profile/profile_controller.dart';
 import '../pwa/pwa_banners.dart';
 import '../stats/stats_controller.dart';
 import '../profile/profile_screen.dart';
+import '../online/resume.dart';
+import '../online/room_code.dart' show InviteArgs;
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -78,6 +80,7 @@ class HomeScreen extends ConsumerWidget {
                   ),
                 ),
                 const PwaBanners(),
+                const _ResumeCard(),
                 const SizedBox(height: Gap.xl),
                 if (name != null)
                   Align(
@@ -114,13 +117,37 @@ class HomeScreen extends ConsumerWidget {
                   onTap: () => showOfflineStartSheet(context),
                 ),
                 const SizedBox(height: Gap.m),
-                _ModeCard(
-                  key: const Key('play-online'),
-                  title: l.homeOnlineTitle,
-                  subtitle: l.homeOnlineSubtitle,
-                  colors: const [Color(0xFFFFE3E0), Color(0xFFFFF1D6)],
-                  art: const Text('👥', style: TextStyle(fontSize: 44)),
-                  onTap: () => Navigator.of(context).pushNamed('/online'),
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: _ModeCard(
+                          key: const Key('play-quick'),
+                          compact: true,
+                          title: l.quickTitle,
+                          subtitle: l.quickSubtitle,
+                          colors: const [Color(0xFFFFF4C2), Color(0xFFE0F2FF)],
+                          art: const Text('⚡', style: TextStyle(fontSize: 34)),
+                          onTap: () =>
+                              Navigator.of(context).pushNamed('/quick'),
+                        ),
+                      ),
+                      const SizedBox(width: Gap.m),
+                      Expanded(
+                        child: _ModeCard(
+                          key: const Key('play-online'),
+                          compact: true,
+                          title: l.homeOnlineTitle,
+                          subtitle: l.homeOnlineSubtitle,
+                          colors: const [Color(0xFFFFE3E0), Color(0xFFFFF1D6)],
+                          art: const Text('👥', style: TextStyle(fontSize: 34)),
+                          onTap: () =>
+                              Navigator.of(context).pushNamed('/online'),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: Gap.m),
                 _StatsCard(stats: stats),
@@ -211,7 +238,9 @@ class _ModeCard extends StatelessWidget {
     required this.colors,
     required this.art,
     this.onTap,
+    this.compact = false,
   }) : badge = null;
+  final bool compact;
   final String title;
   final String subtitle;
   final List<Color> colors;
@@ -235,14 +264,14 @@ class _ModeCard extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.all(Gap.xl),
+            padding: EdgeInsets.all(compact ? Gap.l : Gap.xl),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: 76, child: art),
+                    SizedBox(height: compact ? 44 : 76, child: art),
                     const Spacer(),
                     if (badge != null)
                       Container(
@@ -265,21 +294,21 @@ class _ModeCard extends StatelessWidget {
                       ),
                   ],
                 ),
-                const SizedBox(height: Gap.l),
+                SizedBox(height: compact ? Gap.s : Gap.l),
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: Color(0xFF111111),
-                    fontSize: 22,
+                  style: TextStyle(
+                    color: const Color(0xFF111111),
+                    fontSize: compact ? 17 : 22,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: Gap.xs),
                 Text(
                   subtitle,
-                  style: const TextStyle(
-                    color: Color(0xFF444444),
-                    fontSize: AppText.label,
+                  style: TextStyle(
+                    color: const Color(0xFF444444),
+                    fontSize: compact ? AppText.caption : AppText.label,
                     height: 1.35,
                   ),
                 ),
@@ -369,6 +398,77 @@ class _OfflineStartSheet extends ConsumerWidget {
                 Navigator.of(context).pop();
                 Navigator.of(context).pushNamed('/game');
               },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// "Върни се в играта": a running match still holds this player's seat.
+class _ResumeCard extends ConsumerWidget {
+  const _ResumeCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final code = ref.watch(resumeOfferProvider).value;
+    final dismissed = ref.watch(resumeDismissedProvider);
+    if (code == null || dismissed == code) return const SizedBox.shrink();
+    final l = AppLocalizations.of(context);
+    final c = context.colors;
+    return Padding(
+      padding: const EdgeInsets.only(top: Gap.m),
+      child: Container(
+        key: const Key('resume-card'),
+        padding: const EdgeInsets.all(Gap.l),
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: c.teamUs, width: 1.5),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l.resumeTitle,
+              style: TextStyle(
+                color: c.textPrimary,
+                fontSize: AppText.title,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: Gap.xs),
+            Text(
+              l.resumeBody(code),
+              style: TextStyle(color: c.textSecondary, fontSize: AppText.label),
+            ),
+            const SizedBox(height: Gap.m),
+            Row(
+              children: [
+                Expanded(
+                  child: PillButton(
+                    key: const Key('resume-join'),
+                    label: l.resumeJoin,
+                    selected: true,
+                    height: 44,
+                    onTap: () =>
+                        Navigator.of(context)
+                            .pushNamed('/online', arguments: InviteArgs(code)),
+                  ),
+                ),
+                const SizedBox(width: Gap.s),
+                Expanded(
+                  child: PillButton(
+                    key: const Key('resume-dismiss'),
+                    label: l.resumeDismiss,
+                    height: 44,
+                    onTap: () => ref
+                        .read(resumeDismissedProvider.notifier)
+                        .dismiss(code),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

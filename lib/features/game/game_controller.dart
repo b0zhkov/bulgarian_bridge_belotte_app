@@ -1,3 +1,5 @@
+import '../achievements/achievements.dart';
+
 import 'dart:async';
 import 'dart:math';
 
@@ -301,8 +303,18 @@ class GameController extends Notifier<TableState> implements TableActions {
     final stats = ref.read(statsProvider.notifier);
     final mode = PlayMode.offline(_agents[1]!.level);
     stats.recordDeal(after.lastDeal!, mode);
+    final ach = ref.read(achievementsProvider.notifier);
+    ach.unlock(AchievementRules.forDeal(after.lastDeal!, belots: after.belots));
     if (after.phase == GamePhase.matchOver) {
       stats.recordMatch(mode, won: after.winnerTeam == 0);
+      ach.unlock(
+        AchievementRules.forMatch(
+          won: after.winnerTeam == 0,
+          wins: ref.read(statsProvider).all.matchesWon,
+          history: after.history,
+          offlineLevel: _agents[1]!.level,
+        ),
+      );
       final infos = offlineSeatInfos(
         appStrings(),
         ref.read(playerNameProvider),

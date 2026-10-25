@@ -282,3 +282,10 @@ class RoomCodeChip extends StatelessWidget {
     );
   }
 }
+
+/// Arguments for `/online` opened from an invite link or the "back to your
+/// game" card: join right away.
+class InviteArgs {
+  const InviteArgs(this.code);
+  final String code;
+}

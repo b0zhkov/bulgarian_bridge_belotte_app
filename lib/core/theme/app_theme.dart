@@ -1,5 +1,41 @@
 import 'package:flutter/material.dart';
 
+/// Card back designs (Settings → card back).
+enum CardBackStyle { classic, midnight, forest, mono }
+
+/// Table colours (Settings → table). Each has a dark and a light variant
+/// that keeps the team colours (blue = us, orange = them) readable.
+enum TableTint {
+  classic(Color(0xFF000000), Color(0xFFF4F4F6)),
+  felt(Color(0xFF0B2218), Color(0xFFE3EFE6)),
+  wine(Color(0xFF220E14), Color(0xFFF3E6E9)),
+  slate(Color(0xFF10161F), Color(0xFFE4E9F0));
+
+  const TableTint(this.dark, this.light);
+  final Color dark;
+  final Color light;
+
+  static TableTint parse(String? v) =>
+      values.where((t) => t.name == v).firstOrNull ?? classic;
+}
+
+extension CardBackStyleX on CardBackStyle {
+  static CardBackStyle parse(String? v) =>
+      CardBackStyle.values.where((t) => t.name == v).firstOrNull ??
+      CardBackStyle.classic;
+
+  /// Base colour of the back and its line colour.
+  (Color, Color) get colors => switch (this) {
+    CardBackStyle.classic => (const Color(0xFFF2554A), const Color(0x66FFFFFF)),
+    CardBackStyle.midnight => (
+      const Color(0xFF22305A),
+      const Color(0x59FFFFFF),
+    ),
+    CardBackStyle.forest => (const Color(0xFF2E7D5B), const Color(0x59FFFFFF)),
+    CardBackStyle.mono => (const Color(0xFF2B2B2E), const Color(0x80FFFFFF)),
+  };
+}
+
 /// Design tokens inspired by Offsuit: pure black canvas, white cards,
 /// dark-grey pill buttons, Comfortaa typography (bundled, Cyrillic).
 @immutable
@@ -23,7 +59,42 @@ class BelotColors extends ThemeExtension<BelotColors> {
     required this.danger,
     required this.teamUs,
     required this.teamThem,
-  });
+    Color? table,
+    this.backStyle = CardBackStyle.classic,
+  }) : table = table ?? background;
+
+  /// Background of the game table (Settings → table colour).
+  final Color table;
+
+  /// Pattern painted on card backs.
+  final CardBackStyle backStyle;
+
+  /// This palette with the player's table colour and card back.
+  BelotColors customized(TableTint tint, CardBackStyle back, bool dark) {
+    final (b, line) = back.colors;
+    return BelotColors(
+      background: background,
+      surface: surface,
+      surfaceHigh: surfaceHigh,
+      outline: outline,
+      textPrimary: textPrimary,
+      textSecondary: textSecondary,
+      cardFace: cardFace,
+      cardInk: cardInk,
+      cardRed: cardRed,
+      cardBack: b,
+      cardBackLine: line,
+      accent: accent,
+      chip: chip,
+      chipText: chipText,
+      success: success,
+      danger: danger,
+      teamUs: teamUs,
+      teamThem: teamThem,
+      table: dark ? tint.dark : tint.light,
+      backStyle: back,
+    );
+  }
 
   final Color background;
   final Color surface;
@@ -114,6 +185,8 @@ class BelotColors extends ThemeExtension<BelotColors> {
       danger: l(danger, other.danger),
       teamUs: l(teamUs, other.teamUs),
       teamThem: l(teamThem, other.teamThem),
+      table: l(table, other.table),
+      backStyle: t < 0.5 ? backStyle : other.backStyle,
     );
   }
 }
@@ -123,8 +196,17 @@ extension BelotThemeX on BuildContext {
 }
 
 class AppTheme {
-  static ThemeData dark() => _build(Brightness.dark, BelotColors.dark);
-  static ThemeData light() => _build(Brightness.light, BelotColors.light);
+  static ThemeData dark({
+    TableTint table = TableTint.classic,
+    CardBackStyle back = CardBackStyle.classic,
+  }) => _build(Brightness.dark, BelotColors.dark.customized(table, back, true));
+  static ThemeData light({
+    TableTint table = TableTint.classic,
+    CardBackStyle back = CardBackStyle.classic,
+  }) => _build(
+    Brightness.light,
+    BelotColors.light.customized(table, back, false),
+  );
 
   static ThemeData _build(Brightness b, BelotColors c) {
     final base = ThemeData(
@@ -133,7 +215,7 @@ class AppTheme {
       fontFamily: 'Comfortaa',
       scaffoldBackgroundColor: c.background,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: c.cardBack,
+        seedColor: const Color(0xFFF2554A),
         brightness: b,
         surface: c.background,
       ),

@@ -12,6 +12,7 @@ import '../stats/stats_controller.dart';
 import 'match_history.dart';
 import 'name_form.dart';
 import 'profile_controller.dart';
+import 'rating_achievements.dart';
 
 String percent(double v) => '${(v * 100).round()}%';
 
@@ -407,6 +408,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: Gap.l),
+              const RatingCard(),
               const SizedBox(height: Gap.xl),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -493,6 +496,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     onTap: () => showHistorySheet(context, r),
                   ),
                 ),
+              const SizedBox(height: Gap.xl),
+              const AchievementsSection(),
               const SizedBox(height: Gap.xl),
               PillButton(
                 label: l.statsReset,

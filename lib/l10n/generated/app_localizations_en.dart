@@ -407,7 +407,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leaveRoomTitle => 'Leave the room?';
 
   @override
-  String get leaveRoomBody => 'If a game is running, a bot will play for you.';
+  String get leaveRoomBody =>
+      'If a game is running, a bot plays for you and your seat stays reserved until the match ends.';
 
   @override
   String get roomNotFound => 'No room with this code';
@@ -478,7 +479,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get leaveOnlineGameBody =>
-      'A bot will take your seat. You can come back with the same code until the deal ends.';
+      'A bot will take your seat, which stays reserved for you until the match ends. You can come back any time.';
 
   @override
   String get botName0 => 'Ivan';
@@ -816,4 +817,241 @@ class AppLocalizationsEn extends AppLocalizations {
   String upTo(String rank) {
     return 'to $rank';
   }
+
+  @override
+  String get quickTitle => 'Quick match';
+
+  @override
+  String get quickSubtitle => 'Random opponents · rated';
+
+  @override
+  String get quickSearching => 'Looking for players…';
+
+  @override
+  String quickFound(int n) {
+    return 'Players found: $n/4';
+  }
+
+  @override
+  String quickBotsHint(int s) {
+    return 'If not enough people join, bots fill in after $s s.';
+  }
+
+  @override
+  String get quickStarting => 'Starting…';
+
+  @override
+  String get quickCancel => 'Cancel';
+
+  @override
+  String get quickFailed => 'Matchmaking failed. Check your connection.';
+
+  @override
+  String get quickAgain => 'New quick match';
+
+  @override
+  String get goHome => 'Home';
+
+  @override
+  String get quickWaitingStart => 'Setting up the table…';
+
+  @override
+  String get rating => 'Rating';
+
+  @override
+  String get ratingNote => 'Only quick matches change your rating.';
+
+  @override
+  String ratingChange(int rating, String delta, String rank) {
+    return 'Rating $rating ($delta) · $rank';
+  }
+
+  @override
+  String get ratingPending => 'Updating rating…';
+
+  @override
+  String ratingGames(int n) {
+    return 'Quick matches: $n';
+  }
+
+  @override
+  String get rankNovice => 'Novice';
+
+  @override
+  String get rankBronze => 'Bronze';
+
+  @override
+  String get rankSilver => 'Silver';
+
+  @override
+  String get rankGold => 'Gold';
+
+  @override
+  String get rankPlatinum => 'Platinum';
+
+  @override
+  String get rankDiamond => 'Diamond';
+
+  @override
+  String get rankMaster => 'Master';
+
+  @override
+  String get achievements => 'Achievements';
+
+  @override
+  String achievementsCount(int n, int total) {
+    return '$n of $total';
+  }
+
+  @override
+  String get achievementUnlocked => 'Achievement unlocked';
+
+  @override
+  String get achLocked => 'Locked';
+
+  @override
+  String get achFirstWin => 'First win';
+
+  @override
+  String get achFirstWinDesc => 'Win a match.';
+
+  @override
+  String get achWins10 => '10 wins';
+
+  @override
+  String get achWins10Desc => 'Win 10 matches.';
+
+  @override
+  String get achWins50 => '50 wins';
+
+  @override
+  String get achWins50Desc => 'Win 50 matches.';
+
+  @override
+  String get achWins100 => '100 wins';
+
+  @override
+  String get achWins100Desc => 'Win 100 matches.';
+
+  @override
+  String get achCapot => 'Capot';
+
+  @override
+  String get achCapotDesc => 'Your team takes every trick.';
+
+  @override
+  String get achBelot => 'Belot!';
+
+  @override
+  String get achBelotDesc => 'Announce a belot.';
+
+  @override
+  String get achSquare => 'Four of a kind';
+
+  @override
+  String get achSquareDesc => 'Declare a square that scores.';
+
+  @override
+  String get achQuint => 'Quint';
+
+  @override
+  String get achQuintDesc => 'Declare a quint that scores.';
+
+  @override
+  String get achNoTrump => 'No trumps';
+
+  @override
+  String get achNoTrumpDesc => 'Make a no-trump contract your team called.';
+
+  @override
+  String get achAllTrump => 'All trumps';
+
+  @override
+  String get achAllTrumpDesc => 'Make an all-trump contract your team called.';
+
+  @override
+  String get achContra => 'Well doubled';
+
+  @override
+  String get achContraDesc => 'Double the opponents and beat their contract.';
+
+  @override
+  String get achRecontra => 'Redoubled';
+
+  @override
+  String get achRecontraDesc => 'Make a redoubled contract.';
+
+  @override
+  String get achComeback => 'Comeback';
+
+  @override
+  String get achComebackDesc => 'Win a match after trailing by 50+ points.';
+
+  @override
+  String get achBeatHard => 'Beat the best';
+
+  @override
+  String get achBeatHardDesc => 'Beat the hard bots.';
+
+  @override
+  String get achFirstQuick => 'First quick match';
+
+  @override
+  String get achFirstQuickDesc => 'Finish a quick match.';
+
+  @override
+  String get achRankGold => 'Gold rank';
+
+  @override
+  String get achRankGoldDesc => 'Reach a 1200 rating (Gold).';
+
+  @override
+  String get resumeTitle => 'Back to your game';
+
+  @override
+  String resumeBody(String code) {
+    return 'Your seat in room $code is waiting — a bot is playing for you.';
+  }
+
+  @override
+  String get resumeJoin => 'Rejoin';
+
+  @override
+  String get resumeDismiss => 'Not now';
+
+  @override
+  String get tableSection => 'Table & cards';
+
+  @override
+  String get cardBack => 'Card back';
+
+  @override
+  String get tableColor => 'Table colour';
+
+  @override
+  String get backClassic => 'Classic';
+
+  @override
+  String get backMidnight => 'Midnight';
+
+  @override
+  String get backForest => 'Forest';
+
+  @override
+  String get backMono => 'Minimal';
+
+  @override
+  String get tableClassic => 'Classic';
+
+  @override
+  String get tableFelt => 'Felt';
+
+  @override
+  String get tableWine => 'Burgundy';
+
+  @override
+  String get tableSlate => 'Slate';
+
+  @override
+  String get languageEnglish => 'English';
 }

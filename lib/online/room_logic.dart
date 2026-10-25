@@ -100,10 +100,10 @@ class RoomLogic {
   }
 
   /// Bot takeover and seat reclaim:
-  /// * a seated human who is offline or gone is replaced by a bot holding
-  ///   the seat for them during [dealNumber];
-  /// * a held seat goes back to its player when they are online again
-  ///   within the same deal.
+  /// * a seated human who is offline or gone is replaced by a bot that
+  ///   keeps the seat reserved for them (by uid) until the match ends;
+  /// * a reserved seat goes back to its player as soon as they are online
+  ///   again, at any point of the match.
   static List<Seat> applyPresence(
     List<Seat> seats,
     Map<String, Member> members,
@@ -115,7 +115,6 @@ class RoomLogic {
           Seat.bot(name: s.name, heldFor: s.uid, heldDeal: dealNumber)
         else if (s.bot &&
             s.heldFor != null &&
-            s.heldDeal == dealNumber &&
             members[s.heldFor]?.online == true)
           Seat.human(s.heldFor!, members[s.heldFor]!.name)
         else
@@ -139,15 +138,19 @@ class RoomLogic {
     return l;
   }
 
-  /// Teams that currently have a bot-held seat a waiting player can take.
+  /// A bot seat that is not reserved for an absent player.
+  static bool isFree(Seat s) => s.bot && s.heldFor == null;
+
+  /// Teams that currently have a free bot seat a waiting player can take.
   static List<int> openTeams(List<Seat> seats) => [
     for (final t in [0, 1])
-      if (seats[t].bot || seats[t + 2].bot) t,
+      if (isFree(seats[t]) || isFree(seats[t + 2])) t,
   ];
 
-  /// At the end of a deal, waiting players take bot seats: their own held
-  /// seat first, then a bot seat in their chosen team, then any bot seat.
-  /// Remaining bots stop holding seats for anyone.
+  /// At the end of a deal, waiting players take bot seats: their own
+  /// reserved seat first, then a free bot seat in their chosen team, then
+  /// any free bot seat. Seats reserved for absent players are never given
+  /// away and stay reserved until the match ends.
   static List<Seat> assignWaiting(
     List<Seat> seats,
     Map<String, Member> members,
@@ -160,15 +163,37 @@ class RoomLogic {
       }
       if (m.team != null) {
         for (final i in [m.team!, m.team! + 2]) {
-          if (pick == null && out[i].bot) pick = i;
+          if (pick == null && isFree(out[i])) pick = i;
         }
       }
       for (var i = 0; i < 4 && pick == null; i++) {
-        if (out[i].bot) pick = i;
+        if (isFree(out[i])) pick = i;
       }
       if (pick != null) out[pick] = Seat.human(m.uid, m.name);
     }
-    return [for (final s in out) s.bot ? Seat.bot(name: s.name) : s];
+    return out;
+  }
+
+  /// Whether [uid] holds a seat (in person or reserved) in [seats].
+  static bool hasSeat(List<Seat>? seats, String uid) =>
+      seats != null &&
+      seats.any((s) => (!s.bot && s.uid == uid) || s.heldFor == uid);
+
+  /// Quick-match seating: [humans] (in queue order) are placed on random
+  /// seats, so teams are random; [absent] players get a reserved bot seat.
+  static List<Seat> quickSeats(
+    List<({String uid, String name, bool present})> humans,
+    Random rng,
+  ) {
+    final order = [0, 1, 2, 3]..shuffle(rng);
+    final seats = List<Seat>.filled(4, const Seat.bot());
+    for (var i = 0; i < humans.length && i < 4; i++) {
+      final h = humans[i];
+      seats[order[i]] = h.present
+          ? Seat.human(h.uid, h.name)
+          : Seat.bot(name: h.name, heldFor: h.uid);
+    }
+    return seats;
   }
 
   /// Validates and applies a bid/play intent from [seat]. Returns null when

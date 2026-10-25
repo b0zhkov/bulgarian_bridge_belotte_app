@@ -863,7 +863,7 @@ abstract class AppLocalizations {
   /// No description provided for @leaveRoomBody.
   ///
   /// In bg, this message translates to:
-  /// **'Ако играта тече, бот ще играе на твоето място.'**
+  /// **'Ако играта тече, бот ще играе на твоето място, а то остава запазено за теб до края на мача.'**
   String get leaveRoomBody;
 
   /// No description provided for @roomNotFound.
@@ -971,7 +971,7 @@ abstract class AppLocalizations {
   /// No description provided for @leaveOnlineGameBody.
   ///
   /// In bg, this message translates to:
-  /// **'Бот ще поеме мястото ти. Можеш да се върнеш със същия код до края на раздаването.'**
+  /// **'Бот ще поеме мястото ти, а то остава запазено за теб до края на мача. Можеш да се върнеш по всяко време.'**
   String get leaveOnlineGameBody;
 
   /// No description provided for @botName0.
@@ -1560,6 +1560,456 @@ abstract class AppLocalizations {
   /// In bg, this message translates to:
   /// **'до {rank}'**
   String upTo(String rank);
+
+  /// No description provided for @quickTitle.
+  ///
+  /// In bg, this message translates to:
+  /// **'Бърза игра'**
+  String get quickTitle;
+
+  /// No description provided for @quickSubtitle.
+  ///
+  /// In bg, this message translates to:
+  /// **'Случайни противници · рейтинг'**
+  String get quickSubtitle;
+
+  /// No description provided for @quickSearching.
+  ///
+  /// In bg, this message translates to:
+  /// **'Търсим играчи…'**
+  String get quickSearching;
+
+  /// No description provided for @quickFound.
+  ///
+  /// In bg, this message translates to:
+  /// **'Намерени играчи: {n}/4'**
+  String quickFound(int n);
+
+  /// No description provided for @quickBotsHint.
+  ///
+  /// In bg, this message translates to:
+  /// **'Ако няма достатъчно хора, след {s} s започваме с ботове.'**
+  String quickBotsHint(int s);
+
+  /// No description provided for @quickStarting.
+  ///
+  /// In bg, this message translates to:
+  /// **'Започваме…'**
+  String get quickStarting;
+
+  /// No description provided for @quickCancel.
+  ///
+  /// In bg, this message translates to:
+  /// **'Откажи'**
+  String get quickCancel;
+
+  /// No description provided for @quickFailed.
+  ///
+  /// In bg, this message translates to:
+  /// **'Търсенето не успя. Провери връзката.'**
+  String get quickFailed;
+
+  /// No description provided for @quickAgain.
+  ///
+  /// In bg, this message translates to:
+  /// **'Нова бърза игра'**
+  String get quickAgain;
+
+  /// No description provided for @goHome.
+  ///
+  /// In bg, this message translates to:
+  /// **'Начало'**
+  String get goHome;
+
+  /// No description provided for @quickWaitingStart.
+  ///
+  /// In bg, this message translates to:
+  /// **'Подреждаме масата…'**
+  String get quickWaitingStart;
+
+  /// No description provided for @rating.
+  ///
+  /// In bg, this message translates to:
+  /// **'Рейтинг'**
+  String get rating;
+
+  /// No description provided for @ratingNote.
+  ///
+  /// In bg, this message translates to:
+  /// **'Рейтингът се променя само в бързи игри.'**
+  String get ratingNote;
+
+  /// No description provided for @ratingChange.
+  ///
+  /// In bg, this message translates to:
+  /// **'Рейтинг {rating} ({delta}) · {rank}'**
+  String ratingChange(int rating, String delta, String rank);
+
+  /// No description provided for @ratingPending.
+  ///
+  /// In bg, this message translates to:
+  /// **'Обновяваме рейтинга…'**
+  String get ratingPending;
+
+  /// No description provided for @ratingGames.
+  ///
+  /// In bg, this message translates to:
+  /// **'Бързи игри: {n}'**
+  String ratingGames(int n);
+
+  /// No description provided for @rankNovice.
+  ///
+  /// In bg, this message translates to:
+  /// **'Новак'**
+  String get rankNovice;
+
+  /// No description provided for @rankBronze.
+  ///
+  /// In bg, this message translates to:
+  /// **'Бронз'**
+  String get rankBronze;
+
+  /// No description provided for @rankSilver.
+  ///
+  /// In bg, this message translates to:
+  /// **'Сребро'**
+  String get rankSilver;
+
+  /// No description provided for @rankGold.
+  ///
+  /// In bg, this message translates to:
+  /// **'Злато'**
+  String get rankGold;
+
+  /// No description provided for @rankPlatinum.
+  ///
+  /// In bg, this message translates to:
+  /// **'Платина'**
+  String get rankPlatinum;
+
+  /// No description provided for @rankDiamond.
+  ///
+  /// In bg, this message translates to:
+  /// **'Диамант'**
+  String get rankDiamond;
+
+  /// No description provided for @rankMaster.
+  ///
+  /// In bg, this message translates to:
+  /// **'Майстор'**
+  String get rankMaster;
+
+  /// No description provided for @achievements.
+  ///
+  /// In bg, this message translates to:
+  /// **'Постижения'**
+  String get achievements;
+
+  /// No description provided for @achievementsCount.
+  ///
+  /// In bg, this message translates to:
+  /// **'{n} от {total}'**
+  String achievementsCount(int n, int total);
+
+  /// No description provided for @achievementUnlocked.
+  ///
+  /// In bg, this message translates to:
+  /// **'Ново постижение'**
+  String get achievementUnlocked;
+
+  /// No description provided for @achLocked.
+  ///
+  /// In bg, this message translates to:
+  /// **'Заключено'**
+  String get achLocked;
+
+  /// No description provided for @achFirstWin.
+  ///
+  /// In bg, this message translates to:
+  /// **'Първа победа'**
+  String get achFirstWin;
+
+  /// No description provided for @achFirstWinDesc.
+  ///
+  /// In bg, this message translates to:
+  /// **'Спечели мач.'**
+  String get achFirstWinDesc;
+
+  /// No description provided for @achWins10.
+  ///
+  /// In bg, this message translates to:
+  /// **'10 победи'**
+  String get achWins10;
+
+  /// No description provided for @achWins10Desc.
+  ///
+  /// In bg, this message translates to:
+  /// **'Спечели 10 мача.'**
+  String get achWins10Desc;
+
+  /// No description provided for @achWins50.
+  ///
+  /// In bg, this message translates to:
+  /// **'50 победи'**
+  String get achWins50;
+
+  /// No description provided for @achWins50Desc.
+  ///
+  /// In bg, this message translates to:
+  /// **'Спечели 50 мача.'**
+  String get achWins50Desc;
+
+  /// No description provided for @achWins100.
+  ///
+  /// In bg, this message translates to:
+  /// **'100 победи'**
+  String get achWins100;
+
+  /// No description provided for @achWins100Desc.
+  ///
+  /// In bg, this message translates to:
+  /// **'Спечели 100 мача.'**
+  String get achWins100Desc;
+
+  /// No description provided for @achCapot.
+  ///
+  /// In bg, this message translates to:
+  /// **'Капо'**
+  String get achCapot;
+
+  /// No description provided for @achCapotDesc.
+  ///
+  /// In bg, this message translates to:
+  /// **'Отборът ти взема всички взятки.'**
+  String get achCapotDesc;
+
+  /// No description provided for @achBelot.
+  ///
+  /// In bg, this message translates to:
+  /// **'Белот!'**
+  String get achBelot;
+
+  /// No description provided for @achBelotDesc.
+  ///
+  /// In bg, this message translates to:
+  /// **'Обяви белот.'**
+  String get achBelotDesc;
+
+  /// No description provided for @achSquare.
+  ///
+  /// In bg, this message translates to:
+  /// **'Каре'**
+  String get achSquare;
+
+  /// No description provided for @achSquareDesc.
+  ///
+  /// In bg, this message translates to:
+  /// **'Обяви каре, което се зачита.'**
+  String get achSquareDesc;
+
+  /// No description provided for @achQuint.
+  ///
+  /// In bg, this message translates to:
+  /// **'Квинта'**
+  String get achQuint;
+
+  /// No description provided for @achQuintDesc.
+  ///
+  /// In bg, this message translates to:
+  /// **'Обяви квинта, която се зачита.'**
+  String get achQuintDesc;
+
+  /// No description provided for @achNoTrump.
+  ///
+  /// In bg, this message translates to:
+  /// **'Без коз'**
+  String get achNoTrump;
+
+  /// No description provided for @achNoTrumpDesc.
+  ///
+  /// In bg, this message translates to:
+  /// **'Изкарай обявено от отбора ти Без коз.'**
+  String get achNoTrumpDesc;
+
+  /// No description provided for @achAllTrump.
+  ///
+  /// In bg, this message translates to:
+  /// **'Всичко коз'**
+  String get achAllTrump;
+
+  /// No description provided for @achAllTrumpDesc.
+  ///
+  /// In bg, this message translates to:
+  /// **'Изкарай обявено от отбора ти Всичко коз.'**
+  String get achAllTrumpDesc;
+
+  /// No description provided for @achContra.
+  ///
+  /// In bg, this message translates to:
+  /// **'Контра на място'**
+  String get achContra;
+
+  /// No description provided for @achContraDesc.
+  ///
+  /// In bg, this message translates to:
+  /// **'Дай контра и вкарай противниците.'**
+  String get achContraDesc;
+
+  /// No description provided for @achRecontra.
+  ///
+  /// In bg, this message translates to:
+  /// **'Реконтра'**
+  String get achRecontra;
+
+  /// No description provided for @achRecontraDesc.
+  ///
+  /// In bg, this message translates to:
+  /// **'Изкарай игра с реконтра.'**
+  String get achRecontraDesc;
+
+  /// No description provided for @achComeback.
+  ///
+  /// In bg, this message translates to:
+  /// **'Обрат'**
+  String get achComeback;
+
+  /// No description provided for @achComebackDesc.
+  ///
+  /// In bg, this message translates to:
+  /// **'Спечели мач, след като си изоставал с 50+ точки.'**
+  String get achComebackDesc;
+
+  /// No description provided for @achBeatHard.
+  ///
+  /// In bg, this message translates to:
+  /// **'Срещу трудните'**
+  String get achBeatHard;
+
+  /// No description provided for @achBeatHardDesc.
+  ///
+  /// In bg, this message translates to:
+  /// **'Победи трудните ботове.'**
+  String get achBeatHardDesc;
+
+  /// No description provided for @achFirstQuick.
+  ///
+  /// In bg, this message translates to:
+  /// **'Първа бърза игра'**
+  String get achFirstQuick;
+
+  /// No description provided for @achFirstQuickDesc.
+  ///
+  /// In bg, this message translates to:
+  /// **'Изиграй бърза игра докрай.'**
+  String get achFirstQuickDesc;
+
+  /// No description provided for @achRankGold.
+  ///
+  /// In bg, this message translates to:
+  /// **'Златен ранг'**
+  String get achRankGold;
+
+  /// No description provided for @achRankGoldDesc.
+  ///
+  /// In bg, this message translates to:
+  /// **'Достигни рейтинг 1200 (Злато).'**
+  String get achRankGoldDesc;
+
+  /// No description provided for @resumeTitle.
+  ///
+  /// In bg, this message translates to:
+  /// **'Върни се в играта'**
+  String get resumeTitle;
+
+  /// No description provided for @resumeBody.
+  ///
+  /// In bg, this message translates to:
+  /// **'Мястото ти в стая {code} те чака — ботът играе вместо теб.'**
+  String resumeBody(String code);
+
+  /// No description provided for @resumeJoin.
+  ///
+  /// In bg, this message translates to:
+  /// **'Върни се'**
+  String get resumeJoin;
+
+  /// No description provided for @resumeDismiss.
+  ///
+  /// In bg, this message translates to:
+  /// **'Не сега'**
+  String get resumeDismiss;
+
+  /// No description provided for @tableSection.
+  ///
+  /// In bg, this message translates to:
+  /// **'Маса и карти'**
+  String get tableSection;
+
+  /// No description provided for @cardBack.
+  ///
+  /// In bg, this message translates to:
+  /// **'Гръб на картите'**
+  String get cardBack;
+
+  /// No description provided for @tableColor.
+  ///
+  /// In bg, this message translates to:
+  /// **'Цвят на масата'**
+  String get tableColor;
+
+  /// No description provided for @backClassic.
+  ///
+  /// In bg, this message translates to:
+  /// **'Класически'**
+  String get backClassic;
+
+  /// No description provided for @backMidnight.
+  ///
+  /// In bg, this message translates to:
+  /// **'Нощ'**
+  String get backMidnight;
+
+  /// No description provided for @backForest.
+  ///
+  /// In bg, this message translates to:
+  /// **'Гора'**
+  String get backForest;
+
+  /// No description provided for @backMono.
+  ///
+  /// In bg, this message translates to:
+  /// **'Минимал'**
+  String get backMono;
+
+  /// No description provided for @tableClassic.
+  ///
+  /// In bg, this message translates to:
+  /// **'Класическа'**
+  String get tableClassic;
+
+  /// No description provided for @tableFelt.
+  ///
+  /// In bg, this message translates to:
+  /// **'Сукно'**
+  String get tableFelt;
+
+  /// No description provided for @tableWine.
+  ///
+  /// In bg, this message translates to:
+  /// **'Бордо'**
+  String get tableWine;
+
+  /// No description provided for @tableSlate.
+  ///
+  /// In bg, this message translates to:
+  /// **'Графит'**
+  String get tableSlate;
+
+  /// No description provided for @languageEnglish.
+  ///
+  /// In bg, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
 }
 
 class _AppLocalizationsDelegate

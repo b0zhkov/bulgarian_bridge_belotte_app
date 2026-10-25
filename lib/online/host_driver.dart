@@ -12,6 +12,7 @@ import '../core/agents/hint.dart';
 import '../core/agents/player_agent.dart';
 import '../core/rules/rules.dart';
 import 'db.dart';
+import 'rating.dart';
 import 'room_logic.dart';
 import 'room_models.dart';
 
@@ -94,6 +95,8 @@ class HostDriver {
     _intentSub = db.watch('$_room/intents').listen(_onIntents);
     if (game != null && seats != null) {
       _reconcilePresence(force: true);
+      // A previous host may have crashed before writing the result.
+      if (game!.phase == GamePhase.matchOver) _writeRatingResults();
     }
   }
 
@@ -163,7 +166,28 @@ class HostDriver {
   Future<bool> startMatch() async {
     final m = meta;
     if (m == null || !RoomLogic.canStart(members, m.bots)) return false;
-    seats = RoomLogic.seatsFromTeams(members);
+    return _begin(RoomLogic.seatsFromTeams(members));
+  }
+
+  /// Quick match: [players] in queue order (the host first) get random
+  /// seats; players who have not connected yet get a reserved bot seat
+  /// and take it over as soon as they arrive.
+  Future<bool> startQuick(List<({String uid, String name})> players) {
+    return _begin(
+      RoomLogic.quickSeats([
+        for (final p in players)
+          (
+            uid: p.uid,
+            name: members[p.uid]?.name ?? p.name,
+            present: members[p.uid]?.online == true,
+          ),
+      ], _rnd),
+    );
+  }
+
+  Future<bool> _begin(List<Seat> s) async {
+    seats = s;
+    _ratedMatch = null;
     game = BelotEngine.newMatch(
       seed: _rnd.nextInt(1 << 31),
       firstDealer: _rnd.nextInt(4),
@@ -213,10 +237,37 @@ class HostDriver {
 
   bool get _holding => _holdUntil != null && clock.now().isBefore(_holdUntil!);
 
+  String? _ratedMatch;
+
+  /// Quick rooms: the host writes every rated player's Elo change once
+  /// the match is over (humans seated and online at the end).
+  void _writeRatingResults() {
+    final m = meta;
+    final g = game;
+    final s = seats;
+    if (m == null || !m.quick || g == null || s == null) return;
+    if (g.phase != GamePhase.matchOver || g.winnerTeam == null) return;
+    final id = m.matchId;
+    if (_ratedMatch == id) return;
+    _ratedMatch = id;
+    final uids = [
+      for (final x in s)
+        !x.bot && members[x.uid]?.online == true ? x.uid : null,
+    ];
+    final winner = g.winnerTeam!;
+    _queue = _queue.then((_) async {
+      if (_disposed) return;
+      try {
+        await RatingService(db).writeResults(code, id, uids, winner);
+      } catch (_) {}
+    });
+  }
+
   void _apply(GameState next) {
     final before = game!;
     game = next;
     version++;
+
     if (next.tricks.length > before.tricks.length) {
       _holdUntil = clock.now().add(trickPause);
     } else if (before.phase == GamePhase.bidding &&
@@ -225,6 +276,10 @@ class HostDriver {
       _holdUntil = clock.now().add(DealTiming.hold(12));
     }
     _publish();
+    if (next.phase == GamePhase.matchOver &&
+        before.phase != GamePhase.matchOver) {
+      _writeRatingResults();
+    }
     _schedule();
   }
 

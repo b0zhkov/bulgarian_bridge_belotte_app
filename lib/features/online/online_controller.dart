@@ -10,6 +10,10 @@ import '../../online/firebase_db.dart';
 import '../../online/room_client.dart';
 import '../../online/room_logic.dart';
 import '../emotes/emotes.dart';
+import '../achievements/achievements.dart';
+import '../../online/rating.dart';
+import '../quick/rating_controller.dart';
+import '../settings/settings_controller.dart';
 import '../../online/room_models.dart';
 import '../game/game_controller.dart';
 import '../game/labels.dart';
@@ -48,7 +52,15 @@ class OnlineState {
     this.table,
     this.revision = 0,
     this.notice,
+    this.ratingChange,
+    this.ratings = const {},
   });
+
+  /// Quick match: this player's rating change after the match.
+  final RatingChange? ratingChange;
+
+  /// Quick match: ratings of the seated humans (uid → rating).
+  final Map<String, int> ratings;
 
   /// Latest seat change toast (cleared after [OnlineController.noticeTime]).
   final SeatNotice? notice;
@@ -92,6 +104,14 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
   int _countedDeals = -1;
   String? _recordedMatch;
 
+  RatingChange? _ratingChange;
+  String? _ratedMatch;
+  final Map<String, int> _ratings = {};
+  final Set<String> _ratingsLoading = {};
+
+  /// Key of the room with a reserved seat to come back to.
+  static const activeRoomKey = 'active_room';
+
   @override
   OnlineState build() {
     ref.onDispose(() {
@@ -124,6 +144,12 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
     ),
   );
 
+  /// Takes over a room client created elsewhere (quick match host).
+  Future<bool> adopt(RoomClient c) => _open((db, name) async {
+    c.onChange = _changed;
+    return c;
+  });
+
   Future<bool> _open(
     Future<RoomClient> Function(Db db, String name) open,
   ) async {
@@ -147,6 +173,7 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
       _active = c;
       state = OnlineState(client: c);
       _changed();
+      ref.read(achievementsProvider.notifier).sync(db);
       return true;
     } catch (_) {
       state = const OnlineState(error: OnlineError.connection);
@@ -169,6 +196,9 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
     _noticeTimer?.cancel();
     _emotes.clear();
     _countedDeals = -1;
+    _ratingChange = null;
+    _ratings.clear();
+    _ratingsLoading.clear();
   }
 
   Future<void> leave() async {
@@ -176,8 +206,33 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
     _reset();
     _active = null;
     if (c != null) {
+      // The seat stays reserved until the match ends: remember the room so
+      // the home screen can offer to go back.
+      if (!c.hasMatchSeat) _setActiveRoom(null);
       state = const OnlineState();
       await c.leave();
+    }
+  }
+
+  void _setActiveRoom(String? code) {
+    final prefs = ref.read(sharedPrefsProvider);
+    if (prefs.getString(activeRoomKey) == code) return;
+    if (code == null) {
+      prefs.remove(activeRoomKey);
+    } else {
+      prefs.setString(activeRoomKey, code);
+    }
+  }
+
+  void _trackActiveRoom(RoomClient c) {
+    if (c.connection == RoomConnection.closed ||
+        c.connection == RoomConnection.notFound) {
+      _setActiveRoom(null);
+    } else if (c.hasMatchSeat) {
+      _setActiveRoom(c.code);
+    } else if (c.meta?.status == RoomStatus.lobby &&
+        ref.read(sharedPrefsProvider).getString(activeRoomKey) == c.code) {
+      _setActiveRoom(null);
     }
   }
 
@@ -232,8 +287,18 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
     }
     const mode = PlayMode.online();
     final stats = ref.read(statsProvider.notifier);
+    final ach = ref.read(achievementsProvider.notifier);
+    final scoredNow =
+        view.phase == GamePhase.dealScored || view.phase == GamePhase.matchOver;
     while (_countedDeals < n) {
-      stats.recordDeal(view.history[_countedDeals], mode);
+      final d = view.history[_countedDeals];
+      stats.recordDeal(d, mode);
+      ach.unlock(
+        AchievementRules.forDeal(
+          d,
+          belots: _countedDeals == n - 1 && scoredNow ? view.belots : null,
+        ),
+      );
       _countedDeals++;
     }
     if (view.phase != GamePhase.matchOver) return;
@@ -241,6 +306,16 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
     if (_recordedMatch == key) return;
     _recordedMatch = key;
     stats.recordMatch(mode, won: view.winnerTeam == 0);
+    final quick = c.meta?.quick == true;
+    ach.unlock(
+      AchievementRules.forMatch(
+        won: view.winnerTeam == 0,
+        wins: ref.read(statsProvider).all.matchesWon,
+        history: view.history,
+        quick: quick,
+      ),
+    );
+    if (quick) _applyRating(c);
     final infos = seatInfosFor(
       appStrings(),
       c,
@@ -260,17 +335,55 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
         );
   }
 
+  // --------------------------------------------------------------- rating
+
+  void _applyRating(RoomClient c) {
+    final id = c.meta?.matchId;
+    if (id == null || _ratedMatch == '${c.code}/$id') return;
+    _ratedMatch = '${c.code}/$id';
+    RatingService(c.db).apply(c.code, id).then((r) {
+      if (r == null || _active != c) return;
+      _ratingChange = r;
+      _ratings[c.uid] = r.after;
+      ref.read(myRatingProvider.notifier).recordChange(r);
+      ref
+          .read(achievementsProvider.notifier)
+          .unlock(AchievementRules.forRating(r.after));
+      _changed();
+    });
+  }
+
+  /// Quick rooms show every seated human's rating.
+  void _loadRatings(RoomClient c) {
+    if (c.meta?.quick != true) return;
+    for (final s in c.seats ?? const <Seat>[]) {
+      final u = s.bot ? null : s.uid;
+      if (u == null || _ratings.containsKey(u) || !_ratingsLoading.add(u)) {
+        continue;
+      }
+      RatingService(c.db).load(u).then((r) {
+        if (_active != c) return;
+        _ratings.putIfAbsent(u, () => r.value);
+        _changed();
+      });
+    }
+  }
+
   // ---------------------------------------------------------------- view
 
   void _changed() {
     final c = state.client;
     if (c == null) return;
     _detectSeatChanges(c);
+    _trackActiveRoom(c);
+    _loadRatings(c);
     state = OnlineState(
       client: c,
       table: _buildTable(c),
       revision: state.revision + 1,
       notice: _notice,
+      ratingChange: _ratingChange,
+      ratings: Map.unmodifiable(_ratings),
     );
   }
 

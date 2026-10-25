@@ -167,9 +167,22 @@ class PlayerAvatar extends StatelessWidget {
             // Crossfade when a bot takes over a seat or a player returns.
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 450),
-              child: Text(
-                info.name,
-                key: ValueKey(info.name),
+              child: Text.rich(
+                TextSpan(
+                  text: info.name,
+                  children: [
+                    if (info.tag != null)
+                      TextSpan(
+                        text: ' ${info.tag}',
+                        style: TextStyle(
+                          color: c.textSecondary,
+                          fontSize: AppText.caption,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                  ],
+                ),
+                key: ValueKey('${info.name}/${info.tag}'),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
