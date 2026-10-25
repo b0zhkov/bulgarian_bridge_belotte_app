@@ -1,5 +1,14 @@
 import '../rules/rules.dart';
+import 'card_memory.dart';
+import 'play_heuristics.dart';
 
+/// Suggests a sensible legal card for [seat]: the Medium bot's choice
+/// (heuristics + card memory). Pure and deterministic; used for the hint
+/// shown when the player takes long.
+Card suggestCard(GameState s, int seat) =>
+    heuristicPlay(s, seat, CardMemory.of(s, seat));
+
+/// The previous simple heuristic (kept for reference/tests):
 /// Suggests a sensible legal card for [seat]. Pure and deterministic; used
 /// for the hint shown when the player takes long, and a building block for
 /// future bots.
@@ -12,7 +21,7 @@ import '../rules/rules.dart';
 ///   cheapest card.
 /// * Opponent winning: win as cheaply as possible; if impossible, throw the
 ///   cheapest card.
-Card suggestCard(GameState s, int seat) {
+Card simpleSuggestCard(GameState s, int seat) {
   final legal = BelotEngine.getLegalMoves(s, seat);
   if (legal.isEmpty) {
     throw StateError('No legal moves for seat $seat');

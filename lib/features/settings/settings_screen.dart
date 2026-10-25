@@ -1,3 +1,5 @@
+import '../game/difficulty_picker.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -194,6 +196,19 @@ class SettingsScreen extends ConsumerWidget {
                 value: autoPlay,
                 onChanged: (v) =>
                     ref.read(autoPlayEnabledProvider.notifier).set(v),
+              ),
+              section(l.botLevel),
+              Text(
+                l.botLevelDescription,
+                style: TextStyle(
+                  color: c.textSecondary,
+                  fontSize: AppText.caption,
+                ),
+              ),
+              const SizedBox(height: Gap.s),
+              DifficultyPicker(
+                value: ref.watch(botLevelProvider),
+                onChanged: (v) => ref.read(botLevelProvider.notifier).set(v),
               ),
               section(l.language),
               tile(

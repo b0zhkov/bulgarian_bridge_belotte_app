@@ -1,3 +1,4 @@
+import 'package:bulgarian_bridge_belotte_app/core/agents/bot_agent.dart';
 import 'package:bulgarian_bridge_belotte_app/core/rules/rules.dart';
 import 'package:bulgarian_bridge_belotte_app/features/game/game_screen.dart';
 import 'package:bulgarian_bridge_belotte_app/features/online/online_controller.dart';
@@ -139,6 +140,14 @@ void main() {
       reason: 'team 2 has a free slot',
     );
 
+    // Host picks the bots' difficulty; everybody sees it.
+    await t.ensureVisible(find.byKey(const Key('level-hard')));
+    await t.tap(find.byKey(const Key('level-hard')));
+    await settle(t, 20);
+    expect(b.meta!.botLevel, BotLevel.hard);
+    await t.tap(find.byKey(const Key('level-medium')));
+    await settle(t, 20);
+    expect(b.meta!.botLevel, BotLevel.medium);
     await t.ensureVisible(find.byKey(const Key('add-bots')));
     await t.tap(find.byKey(const Key('add-bots')));
     await settle(t);
@@ -162,6 +171,13 @@ void main() {
     String notice() =>
         t.widget<Text>(find.byKey(const Key('seat-notice'))).data!;
     expect(notice(), 'Иванка напусна, бот пое мястото');
+    // The toast sits between the table and the player's own cards and never
+    // covers an avatar.
+    final toast = t.getRect(find.byKey(const Key('seat-notice')));
+    for (final k in ['seat-1', 'seat-2', 'seat-3']) {
+      final r = t.getRect(find.byKey(Key(k)));
+      expect(r.overlaps(toast), isFalse, reason: '$k vs toast');
+    }
     expect(find.text('Ники'), findsOneWidget);
     expect(find.text('🤖'), findsNWidgets(3));
     // The name/avatar crossfade out leaves no trace of the human.
@@ -290,5 +306,11 @@ void main() {
     expect(container.read(autoPlayEnabledProvider), isTrue);
     expect(container.read(hintsEnabledProvider), isTrue);
     expect(container.read(themeModeProvider), isNotNull);
+    // Default bot difficulty.
+    expect(container.read(botLevelProvider), BotLevel.medium);
+    await t.ensureVisible(find.byKey(const Key('level-easy')));
+    await t.tap(find.byKey(const Key('level-easy')));
+    await t.pumpAndSettle();
+    expect(container.read(botLevelProvider), BotLevel.easy);
   });
 }

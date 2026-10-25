@@ -1,3 +1,5 @@
+import '../core/agents/bot_agent.dart';
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -289,6 +291,8 @@ class RoomClient {
   });
 
   Future<void> addBots() async => host?.addBots();
+
+  Future<void> setBotLevel(BotLevel level) async => host?.setBotLevel(level);
 
   Future<bool> startMatch() async => await host?.startMatch() ?? false;
 

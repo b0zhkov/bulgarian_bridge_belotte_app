@@ -72,9 +72,12 @@ void main() {
   });
 
   test('cannot win: throws the cheapest card', () {
-    // seat 0 leads 7H, seat 1 KH; seat 2 has 10H 9H -> 10H wins in NT; check cheapest-win instead
+    // seat 0 leads 7H, seat 1 KH; seat 2 has 10H 9H. 10H would win now but
+    // the unseen AH may sit with seat 3 and only 4 points are at stake, so
+    // the (Medium) hint keeps the 10 and plays 9H.
     final s = playing(hands, ContractType.noTrump, plays: ['7H', 'KH']);
-    expect(suggestCard(s, 2), c('10H'));
+    expect(suggestCard(s, 2), c('9H'));
+    expect(simpleSuggestCard(s, 2), c('10H'));
     // seat 3 after 10H: has JH 8H, cannot beat 10H, partner? seat 3 is opponent of seat 2 -> cheapest
     final s2 = BelotEngine.applyPlay(s, 2, c('10H'));
     expect(suggestCard(s2, 3), c('8H'));

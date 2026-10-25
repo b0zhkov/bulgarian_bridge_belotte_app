@@ -1,3 +1,4 @@
+import 'package:bulgarian_bridge_belotte_app/core/agents/bot_agent.dart';
 import 'package:bulgarian_bridge_belotte_app/core/rules/rules.dart';
 import 'package:bulgarian_bridge_belotte_app/features/game/game_controller.dart';
 import 'package:bulgarian_bridge_belotte_app/features/profile/profile_controller.dart';
@@ -210,11 +211,29 @@ void main() {
     expect(container.read(themeModeProvider), ThemeMode.dark);
   });
 
+  testWidgets('offline start: pick bot difficulty, bots use it', (t) async {
+    final container = await pumpApp(t);
+    await t.tap(find.byKey(const Key('play-offline')));
+    await t.pumpAndSettle();
+    expect(find.byKey(const Key('offline-sheet')), findsOneWidget);
+    expect(find.text('Средно'), findsOneWidget);
+    await t.tap(find.byKey(const Key('level-easy')));
+    await t.pumpAndSettle();
+    expect(container.read(botLevelProvider), BotLevel.easy);
+    expect(find.text('Играят простичко и понякога грешат'), findsOneWidget);
+    await t.tap(find.byKey(const Key('start-offline')));
+    for (var i = 0; i < 20; i++) {
+      await t.pump(const Duration(milliseconds: 50));
+    }
+    expect(find.byKey(const Key('seat-1')), findsOneWidget);
+    await leave(t);
+  });
+
   testWidgets('table shows partner opposite and opponents on the sides', (
     t,
   ) async {
     await pumpApp(t);
-    await t.tap(find.byKey(const Key('play-offline')));
+    await startOffline(t);
     for (var i = 0; i < 20; i++) {
       await t.pump(const Duration(milliseconds: 50));
     }
@@ -233,7 +252,7 @@ void main() {
     t,
   ) async {
     final container = await pumpApp(t);
-    await t.tap(find.byKey(const Key('play-offline')));
+    await startOffline(t);
     await t.pump(const Duration(milliseconds: 50));
     var bidMade = false;
     var cardsPlayed = 0;
@@ -278,7 +297,7 @@ void main() {
       t,
       prefs: prefs ?? const {'player_name': 'Георги'},
     );
-    await t.tap(find.byKey(const Key('play-offline')));
+    await startOffline(t);
     await t.pump(const Duration(milliseconds: 50));
     var bidMade = false;
     for (var i = 0; i < 3000; i++) {
@@ -382,7 +401,7 @@ void main() {
           expect(t.takeException(), isNull);
           await t.tap(find.byIcon(Icons.arrow_back_rounded));
           await t.pumpAndSettle();
-          await t.tap(find.byKey(const Key('play-offline')));
+          await startOffline(t);
           for (var i = 0; i < 200; i++) {
             await t.pump(const Duration(milliseconds: 40));
           }
@@ -408,7 +427,7 @@ void main() {
         'trick cross and hand at ${size.width.toInt()}x${size.height.toInt()}',
         (t) async {
           final container = await pumpApp(t, size: size);
-          await t.tap(find.byKey(const Key('play-offline')));
+          await startOffline(t);
           await t.pump(const Duration(milliseconds: 50));
           var bidMade = false;
           var checkedFull = false;
@@ -501,3 +520,10 @@ void main() {
 
 String _json(PlayerStats s) =>
     '{${s.toJson().entries.map((e) => '"${e.key}":${e.value}').join(',')}}';
+
+/// Home → offline card → difficulty sheet → Играй.
+Future<void> startOffline(WidgetTester t) async {
+  await t.tap(find.byKey(const Key('play-offline')));
+  await t.pumpAndSettle();
+  await t.tap(find.byKey(const Key('start-offline')));
+}

@@ -1,3 +1,5 @@
+import '../../core/agents/bot_agent.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../settings/settings_controller.dart';
@@ -70,4 +72,23 @@ class AutoPlayController extends Notifier<bool> {
 
 final autoPlayEnabledProvider = NotifierProvider<AutoPlayController, bool>(
   AutoPlayController.new,
+);
+
+/// Default bot difficulty for offline games (also preselected when a new
+/// offline game starts).
+class BotLevelController extends Notifier<BotLevel> {
+  static const _key = 'bot_level';
+
+  @override
+  BotLevel build() =>
+      BotLevel.parse(ref.read(sharedPrefsProvider).getString(_key));
+
+  void set(BotLevel v) {
+    state = v;
+    ref.read(sharedPrefsProvider).setString(_key, v.name);
+  }
+}
+
+final botLevelProvider = NotifierProvider<BotLevelController, BotLevel>(
+  BotLevelController.new,
 );

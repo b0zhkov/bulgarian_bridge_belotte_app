@@ -481,4 +481,37 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get botName0 => 'Иван';
+
+  @override
+  String get botLevel => 'Трудност на ботовете';
+
+  @override
+  String get botLevelDescription => 'По подразбиране за офлайн игра';
+
+  @override
+  String get levelEasy => 'Лесно';
+
+  @override
+  String get levelMedium => 'Средно';
+
+  @override
+  String get levelHard => 'Трудно';
+
+  @override
+  String get levelEasyHint => 'Играят простичко и понякога грешат';
+
+  @override
+  String get levelMediumHint => 'Помнят картите и играят с партньора';
+
+  @override
+  String get levelHardHint => 'Пресмятат възможните ръце';
+
+  @override
+  String get chooseDifficulty => 'Избери трудност';
+
+  @override
+  String get play => 'Играй';
+
+  @override
+  String get lobbyBotLevel => 'Ботове';
 }

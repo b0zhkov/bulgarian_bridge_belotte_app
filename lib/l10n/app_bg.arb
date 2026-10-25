@@ -222,5 +222,16 @@
   },
   "leaveOnlineGameTitle": "Да напуснеш ли играта?",
   "leaveOnlineGameBody": "Бот ще поеме мястото ти. Можеш да се върнеш със същия код до края на раздаването.",
-  "botName0": "Иван"
+  "botName0": "Иван",
+  "botLevel": "Трудност на ботовете",
+  "botLevelDescription": "По подразбиране за офлайн игра",
+  "levelEasy": "Лесно",
+  "levelMedium": "Средно",
+  "levelHard": "Трудно",
+  "levelEasyHint": "Играят простичко и понякога грешат",
+  "levelMediumHint": "Помнят картите и играят с партньора",
+  "levelHardHint": "Пресмятат възможните ръце",
+  "chooseDifficulty": "Избери трудност",
+  "play": "Играй",
+  "lobbyBotLevel": "Ботове"
 }

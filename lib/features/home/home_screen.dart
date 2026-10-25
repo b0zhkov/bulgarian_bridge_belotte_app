@@ -1,3 +1,6 @@
+import '../../core/widgets/pill_button.dart';
+import '../game/difficulty_picker.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -90,7 +93,7 @@ class HomeScreen extends ConsumerWidget {
                   subtitle: l.homeOfflineSubtitle,
                   colors: const [Color(0xFFE4E9FF), Color(0xFFDDF0D8)],
                   art: const _FannedCards(),
-                  onTap: () => Navigator.of(context).pushNamed('/game'),
+                  onTap: () => showOfflineStartSheet(context),
                 ),
                 const SizedBox(height: Gap.m),
                 _ModeCard(
@@ -297,6 +300,61 @@ class _FannedCards extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// Bottom sheet shown before an offline game: pick the bots' difficulty
+/// (preselected with the default from Settings, which it also updates).
+Future<void> showOfflineStartSheet(BuildContext context) =>
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => const _OfflineStartSheet(),
+    );
+
+class _OfflineStartSheet extends ConsumerWidget {
+  const _OfflineStartSheet();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
+    final c = context.colors;
+    final level = ref.watch(botLevelProvider);
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(Gap.page, 0, Gap.page, Gap.l),
+        child: Column(
+          key: const Key('offline-sheet'),
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l.chooseDifficulty,
+              style: TextStyle(
+                color: c.textPrimary,
+                fontSize: AppText.title,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: Gap.l),
+            DifficultyPicker(
+              value: level,
+              onChanged: (v) => ref.read(botLevelProvider.notifier).set(v),
+            ),
+            const SizedBox(height: Gap.xl),
+            PillButton(
+              key: const Key('start-offline'),
+              label: l.play,
+              selected: true,
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pushNamed('/game');
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

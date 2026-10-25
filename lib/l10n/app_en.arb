@@ -146,5 +146,16 @@
   "seatJoined": "{name} took the bot's seat",
   "leaveOnlineGameTitle": "Leave the game?",
   "leaveOnlineGameBody": "A bot will take your seat. You can come back with the same code until the deal ends.",
-  "botName0": "Ivan"
+  "botName0": "Ivan",
+  "botLevel": "Bot difficulty",
+  "botLevelDescription": "Default for offline games",
+  "levelEasy": "Easy",
+  "levelMedium": "Medium",
+  "levelHard": "Hard",
+  "levelEasyHint": "Simple play, sometimes wrong",
+  "levelMediumHint": "Remember cards, play with partner",
+  "levelHardHint": "Calculate the possible hands",
+  "chooseDifficulty": "Choose difficulty",
+  "play": "Play",
+  "lobbyBotLevel": "Bots"
 }

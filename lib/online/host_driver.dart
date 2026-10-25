@@ -1,3 +1,6 @@
+import '../core/agents/bot_agent.dart';
+import '../core/agents/bot_runner.dart';
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
@@ -26,16 +29,19 @@ class HostDriver {
     this.code, {
     PlayerAgent Function(int seat)? agent,
     Random? rnd,
-  }) : _agentFactory = agent ?? ((s) => RandomAgent()),
+  }) : _agentFactory = agent,
        _rnd = rnd ?? Random();
 
   final Db db;
   final String code;
-  final PlayerAgent Function(int seat) _agentFactory;
+
+  /// Overrides the bots (tests); default: [BotAgent] at the room's level.
+  final PlayerAgent Function(int seat)? _agentFactory;
   final Random _rnd;
   final Map<int, PlayerAgent> _agents = {};
 
-  static Duration botDelay = const Duration(milliseconds: 900);
+  /// Bots pause between [botDelay] and twice that (0.6–1.2 s) before acting.
+  static Duration botDelay = const Duration(milliseconds: 600);
   static Duration trickPause = const Duration(milliseconds: 1400);
   static Duration redealPause = const Duration(milliseconds: 1800);
   static Duration dealEndTimeout = const Duration(seconds: 20);
@@ -134,6 +140,18 @@ class HostDriver {
 
   // ----------------------------------------------------------- lobby
 
+  PlayerAgent _agentFor(int seat) => _agents[seat] ??=
+      _agentFactory?.call(seat) ??
+      BotAgent(
+        meta?.botLevel ?? BotLevel.medium,
+        seed: (game?.seed ?? 0) + seat,
+      );
+
+  Future<void> setBotLevel(BotLevel level) {
+    _agents.clear();
+    return _write({'$_room/meta/lvl': level.name});
+  }
+
   Future<void> addBots() => _write({
     '$_room/meta/bots': {
       '0': RoomLogic.fillBots(members)[0],
@@ -231,7 +249,18 @@ class HostDriver {
         final seat = g.currentSeat;
         final token = version;
         if (seats![seat].bot) {
-          _timer = Timer(botDelay + _holdLeft, () => _autoAct(token, seat));
+          final agent = _agentFor(seat);
+          // Hard bots think (off the UI thread) during the pause.
+          final pending =
+              g.phase == GamePhase.playing &&
+                  agent is BotAgent &&
+                  agent.level == BotLevel.hard
+              ? chooseBotPlay(agent, g, seat)
+              : null;
+          _timer = Timer(
+            botDelay * (1 + _rnd.nextDouble()) + _holdLeft,
+            () => _autoAct(token, seat, pending),
+          );
         } else {
           _timer = Timer(turnTimeout + _holdLeft, () => _autoAct(token, seat));
         }
@@ -250,8 +279,8 @@ class HostDriver {
     }
   }
 
-  void _autoAct(int token, int seat) {
-    final g = game;
+  Future<void> _autoAct(int token, int seat, [Future<Card>? pending]) async {
+    var g = game;
     if (_disposed || g == null || version != token || g.currentSeat != seat) {
       return;
     }
@@ -259,7 +288,19 @@ class HostDriver {
       _schedule();
       return;
     }
-    final agent = _agents[seat] ??= _agentFactory(seat);
+    if (pending != null) {
+      final card = await pending;
+      g = game;
+      if (_disposed || g == null || version != token) return;
+      if (!seats![seat].bot) {
+        // The player came back while the bot was thinking.
+        _schedule();
+        return;
+      }
+      _apply(BelotEngine.applyPlay(g, seat, card));
+      return;
+    }
+    final agent = _agentFor(seat);
     final GameState next;
     if (g.phase == GamePhase.bidding) {
       next = BelotEngine.applyBid(

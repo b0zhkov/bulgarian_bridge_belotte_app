@@ -42,6 +42,18 @@ Flutter app for Android, iOS and web. Rules follow [belot.bg](https://belot.bg/b
 - Anonymous sign-in does not need the hosting domain in Auth → Settings → Authorized domains
   (that list only matters for OAuth popup/redirect providers).
 
+## Beta 4 — real bots
+- `lib/core/agents/` (pure Dart, deterministic per seed): `BotAgent` behind `PlayerAgent` with three levels:
+  **Лесно** (heuristics, noisy bidding, ~30% random cards), **Средно** (heuristics + `CardMemory`: played cards,
+  voids and "no higher card" limits inferred from follow/trump/raise duties, cards shown in declarations/belot),
+  **Трудно** (Средно + determinized Monte Carlo: samples unseen hands consistent with that knowledge and plays
+  each candidate out; ≤250 ms per move in a background isolate on mobile, 150 ms inline on web).
+- Bidding (`bidding.dart`): per-contract hand evaluation (trump J/9, aces/10s, length, belot, sequences/squares,
+  partner's bids), overcall margins, contra/recontra only with strong hands; legality from the engine.
+- Offline: choose the difficulty when starting (default in Settings). Online: the host picks it in the lobby
+  (`rooms/{code}/meta/lvl`). Bots pause 0.6–1.2 s. The hint uses the Средно bot's choice.
+- Benchmark: `dart run tool/bench.dart 100 <easy|medium|me|he|hm>` (seeded matches, sides swapped).
+
 ## Structure
 ```
 lib/

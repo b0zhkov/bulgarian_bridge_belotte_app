@@ -979,6 +979,72 @@ abstract class AppLocalizations {
   /// In bg, this message translates to:
   /// **'Иван'**
   String get botName0;
+
+  /// No description provided for @botLevel.
+  ///
+  /// In bg, this message translates to:
+  /// **'Трудност на ботовете'**
+  String get botLevel;
+
+  /// No description provided for @botLevelDescription.
+  ///
+  /// In bg, this message translates to:
+  /// **'По подразбиране за офлайн игра'**
+  String get botLevelDescription;
+
+  /// No description provided for @levelEasy.
+  ///
+  /// In bg, this message translates to:
+  /// **'Лесно'**
+  String get levelEasy;
+
+  /// No description provided for @levelMedium.
+  ///
+  /// In bg, this message translates to:
+  /// **'Средно'**
+  String get levelMedium;
+
+  /// No description provided for @levelHard.
+  ///
+  /// In bg, this message translates to:
+  /// **'Трудно'**
+  String get levelHard;
+
+  /// No description provided for @levelEasyHint.
+  ///
+  /// In bg, this message translates to:
+  /// **'Играят простичко и понякога грешат'**
+  String get levelEasyHint;
+
+  /// No description provided for @levelMediumHint.
+  ///
+  /// In bg, this message translates to:
+  /// **'Помнят картите и играят с партньора'**
+  String get levelMediumHint;
+
+  /// No description provided for @levelHardHint.
+  ///
+  /// In bg, this message translates to:
+  /// **'Пресмятат възможните ръце'**
+  String get levelHardHint;
+
+  /// No description provided for @chooseDifficulty.
+  ///
+  /// In bg, this message translates to:
+  /// **'Избери трудност'**
+  String get chooseDifficulty;
+
+  /// No description provided for @play.
+  ///
+  /// In bg, this message translates to:
+  /// **'Играй'**
+  String get play;
+
+  /// No description provided for @lobbyBotLevel.
+  ///
+  /// In bg, this message translates to:
+  /// **'Ботове'**
+  String get lobbyBotLevel;
 }
 
 class _AppLocalizationsDelegate

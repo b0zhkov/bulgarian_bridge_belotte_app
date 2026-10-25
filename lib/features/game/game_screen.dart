@@ -39,7 +39,12 @@ class TableView extends ConsumerWidget {
     this.newMatchLabel,
     this.leaveTitle,
     this.leaveBody,
+    this.notice,
   });
+
+  /// Short-lived message shown over the status line, between the trick area
+  /// and the player's own cards (never over an avatar).
+  final Widget? notice;
 
   /// Leave-confirmation copy (defaults to the offline wording).
   final String? leaveTitle;
@@ -158,9 +163,16 @@ class TableView extends ConsumerWidget {
                               ],
                             ),
                           ),
-                          _StatusLine(
-                            table: table,
-                            hintShown: hintsOn && table.hint != null,
+                          Stack(
+                            alignment: Alignment.center,
+                            clipBehavior: Clip.none,
+                            children: [
+                              _StatusLine(
+                                table: table,
+                                hintShown: hintsOn && table.hint != null,
+                              ),
+                              ?notice,
+                            ],
                           ),
                           const SizedBox(height: Gap.s),
                           if (g.phase == GamePhase.bidding)

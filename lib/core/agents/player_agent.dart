@@ -2,15 +2,15 @@ import 'dart:math';
 
 import '../rules/rules.dart';
 
-/// Decision-maker for a seat. Real bots will implement this later; the UI
-/// and match loop only depend on this interface.
+/// Decision-maker for a seat (see `BotAgent` for the real bots); the UI and
+/// match loop only depend on this interface.
 abstract class PlayerAgent {
   Bid chooseBid(GameState state, int seat);
   Card choosePlay(GameState state, int seat);
 }
 
-/// Placeholder agent: picks random legal actions purely so the game is
-/// testable. Passes most of the time and occasionally bids a contract.
+/// Baseline agent: picks random legal actions (used in tests and as the
+/// benchmark floor). Passes most of the time and occasionally bids a contract.
 class RandomAgent implements PlayerAgent {
   RandomAgent([int? seed]) : _rnd = Random(seed);
   final Random _rnd;

@@ -8,6 +8,7 @@ import '../../l10n/generated/app_localizations.dart';
 import '../../online/room_client.dart';
 import '../../online/room_logic.dart';
 import '../../online/room_models.dart';
+import '../game/difficulty_picker.dart';
 import '../game/game_screen.dart';
 import '../game/labels.dart';
 import 'online_controller.dart';
@@ -109,19 +110,15 @@ class RoomScreen extends ConsumerWidget {
         c.game != null) {
       final table = s.table;
       if (c.mySeat != null && table != null) {
-        return Stack(
-          children: [
-            TableView(
-              table: table.copyWith(seatInfos: seatInfosFor(l, c, c.name)),
-              actions: ctrl,
-              onLeave: () => _leave(context, ref, confirm: false),
-              footer: RoomCodeChip(code: c.code),
-              newMatchLabel: l.backToLobby,
-              leaveTitle: l.leaveOnlineGameTitle,
-              leaveBody: l.leaveOnlineGameBody,
-            ),
-            SeatNoticeToast(notice: s.notice),
-          ],
+        return TableView(
+          table: table.copyWith(seatInfos: seatInfosFor(l, c, c.name)),
+          actions: ctrl,
+          onLeave: () => _leave(context, ref, confirm: false),
+          footer: RoomCodeChip(code: c.code),
+          newMatchLabel: l.backToLobby,
+          leaveTitle: l.leaveOnlineGameTitle,
+          leaveBody: l.leaveOnlineGameBody,
+          notice: SeatNoticeToast(notice: s.notice),
         );
       }
       return _WaitingView(client: c, onLeave: () => _leave(context, ref));
@@ -417,6 +414,30 @@ class _LobbyView extends ConsumerWidget {
                       ),
                     ),
                   ],
+                  const SizedBox(height: Gap.l),
+                  Row(
+                    key: const Key('lobby-bot-level'),
+                    children: [
+                      Text(
+                        '${l.lobbyBotLevel} $kBotAvatar',
+                        style: TextStyle(
+                          color: c.textSecondary,
+                          fontSize: AppText.label,
+                        ),
+                      ),
+                      const SizedBox(width: Gap.m),
+                      Expanded(
+                        child: DifficultyPicker(
+                          value: client.meta!.botLevel,
+                          height: 38,
+                          showHint: false,
+                          onChanged: client.isHost
+                              ? (v) => ctrl.setBotLevel(v)
+                              : null,
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: Gap.xl),
                   if (client.isHost) ...[
                     if (!canStart)
@@ -627,8 +648,9 @@ String seatNoticeText(AppLocalizations l, SeatNotice n) => switch (n.kind) {
   SeatNoticeKind.joined => l.seatJoined(n.name),
 };
 
-/// Small pill near the top of the table that fades in and out when a seat
-/// changes hands. Ignores touches so it never blocks the game.
+/// Small pill shown just above the player's own cards (over the status
+/// line) that fades in and out when a seat changes hands. Ignores touches so
+/// it never blocks the game.
 class SeatNoticeToast extends StatelessWidget {
   const SeatNoticeToast({super.key, required this.notice});
   final SeatNotice? notice;
@@ -638,10 +660,8 @@ class SeatNoticeToast extends StatelessWidget {
     final l = AppLocalizations.of(context);
     final c = context.colors;
     final n = notice;
-    return Positioned(
-      left: Gap.page,
-      right: Gap.page,
-      top: MediaQuery.paddingOf(context).top + 64,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: Gap.page),
       child: IgnorePointer(
         child: Center(
           child: AnimatedSwitcher(

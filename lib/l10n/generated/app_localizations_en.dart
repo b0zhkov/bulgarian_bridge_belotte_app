@@ -482,4 +482,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get botName0 => 'Ivan';
+
+  @override
+  String get botLevel => 'Bot difficulty';
+
+  @override
+  String get botLevelDescription => 'Default for offline games';
+
+  @override
+  String get levelEasy => 'Easy';
+
+  @override
+  String get levelMedium => 'Medium';
+
+  @override
+  String get levelHard => 'Hard';
+
+  @override
+  String get levelEasyHint => 'Simple play, sometimes wrong';
+
+  @override
+  String get levelMediumHint => 'Remember cards, play with partner';
+
+  @override
+  String get levelHardHint => 'Calculate the possible hands';
+
+  @override
+  String get chooseDifficulty => 'Choose difficulty';
+
+  @override
+  String get play => 'Play';
+
+  @override
+  String get lobbyBotLevel => 'Bots';
 }

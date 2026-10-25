@@ -1,3 +1,5 @@
+import '../core/agents/bot_agent.dart';
+
 import 'dart:convert';
 import 'dart:math';
 
@@ -152,9 +154,13 @@ class RoomMeta {
     this.bots = const [0, 0],
     this.onlineCount = 0,
     this.matchNo = 0,
+    this.botLevel = BotLevel.medium,
   });
 
   final String host;
+
+  /// Difficulty of the bots in this room (chosen by the host).
+  final BotLevel botLevel;
   final RoomStatus status;
 
   /// Bots added in the lobby per team.
@@ -181,6 +187,7 @@ class RoomMeta {
           : const [0, 0],
       onlineCount: (v['onlineCount'] as num?)?.toInt() ?? 0,
       matchNo: (v['matchNo'] as num?)?.toInt() ?? 0,
+      botLevel: BotLevel.parse(v['lvl'] as String?),
     );
   }
 }

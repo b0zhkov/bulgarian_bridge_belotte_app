@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/agents/bot_agent.dart';
 import '../../core/agents/hint.dart';
 import '../../core/rules/rules.dart';
 import '../../online/db.dart';
@@ -335,6 +336,8 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
   Future<void> chooseWaitingTeam(int team) async =>
       client?.chooseWaitingTeam(team);
   Future<void> addBots() async => client?.addBots();
+
+  Future<void> setBotLevel(BotLevel level) async => client?.setBotLevel(level);
   Future<void> startMatch() async => client?.startMatch();
 }
 

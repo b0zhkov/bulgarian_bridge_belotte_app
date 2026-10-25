@@ -5,7 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/agents/hint.dart';
-import '../../core/agents/player_agent.dart';
+import '../../core/agents/bot_agent.dart';
+import '../../core/agents/bot_runner.dart';
 import '../../core/rules/rules.dart';
 import '../profile/profile_controller.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -127,13 +128,18 @@ class TurnTimers {
   }
 }
 
-/// Drives a local match: the human plays seat 0, placeholder agents play
-/// the other seats (to be replaced by real bots behind [PlayerAgent]).
+/// Drives a local match: the human plays seat 0, [BotAgent]s of the chosen
+/// difficulty play the other seats.
 class GameController extends Notifier<TableState> implements TableActions {
   final List<Timer> _timers = [];
-  late Map<int, PlayerAgent> _agents;
+  late Map<int, BotAgent> _agents;
+  Random _rnd = Random();
 
-  static Duration botDelay = const Duration(milliseconds: 650);
+  /// A natural pause before a bot acts: [botDelay] to twice that
+  /// (0.6–1.2 s by default).
+  Duration get _botPause => botDelay * (1 + _rnd.nextDouble());
+
+  static Duration botDelay = const Duration(milliseconds: 600);
   static Duration trickPause = const Duration(milliseconds: 1100);
   static Duration redealPause = const Duration(milliseconds: 1600);
   static Duration get hintDelay => TurnTimers.hintDelay;
@@ -151,9 +157,11 @@ class GameController extends Notifier<TableState> implements TableActions {
 
   TableState _start() {
     final seed = fixedSeed ?? Random().nextInt(1 << 31);
+    final level = ref.read(botLevelProvider);
     _agents = {
-      for (final s in [1, 2, 3]) s: RandomAgent(seed + s),
+      for (final s in [1, 2, 3]) s: BotAgent(level, seed: seed + s),
     };
+    _rnd = Random(seed);
     final initial = TableState(game: BelotEngine.newMatch(seed: seed));
     Future.microtask(_schedule);
     return initial;
@@ -184,7 +192,7 @@ class GameController extends Notifier<TableState> implements TableActions {
       case GamePhase.bidding:
         if (g.currentSeat == kHumanSeat) _startTurnTimers();
         if (g.currentSeat != kHumanSeat) {
-          _after(botDelay, () {
+          _after(_botPause, () {
             final seat = state.game.currentSeat;
             if (state.game.phase != GamePhase.bidding || seat == kHumanSeat) {
               return;
@@ -195,14 +203,24 @@ class GameController extends Notifier<TableState> implements TableActions {
       case GamePhase.playing:
         if (g.currentSeat == kHumanSeat) _startTurnTimers();
         if (g.currentSeat != kHumanSeat) {
-          _after(botDelay, () {
+          // Hard bots think in the background while the pause runs.
+          final seat0 = g.currentSeat;
+          final pending = _agents[seat0]!.level == BotLevel.hard
+              ? chooseBotPlay(_agents[seat0]!, g, seat0)
+              : null;
+          _after(_botPause, () async {
             final seat = state.game.currentSeat;
             if (state.game.phase != GamePhase.playing ||
                 seat == kHumanSeat ||
                 state.holding) {
               return;
             }
-            _play(seat, _agents[seat]!.choosePlay(state.game, seat));
+            final before = state.game;
+            final card = pending != null && seat == seat0
+                ? await pending
+                : _agents[seat]!.choosePlay(before, seat);
+            if (!identical(state.game, before)) return;
+            _play(seat, card);
           });
         }
       case GamePhase.allPassed:
