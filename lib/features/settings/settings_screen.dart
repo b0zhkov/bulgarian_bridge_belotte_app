@@ -154,6 +154,43 @@ class SettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
+              const SizedBox(height: Gap.s),
+              tile(
+                key: const Key('settings-open-profile'),
+                onTap: () => Navigator.of(context).pushNamed('/profile'),
+                child: Row(
+                  children: [
+                    Text(
+                      ref.watch(playerAvatarProvider),
+                      style: const TextStyle(fontSize: 24),
+                    ),
+                    const SizedBox(width: Gap.m),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l.profileAndStats,
+                            style: TextStyle(
+                              color: c.textPrimary,
+                              fontSize: AppText.body,
+                            ),
+                          ),
+                          const SizedBox(height: Gap.xs),
+                          Text(
+                            l.profileAndStatsDescription,
+                            style: TextStyle(
+                              color: c.textSecondary,
+                              fontSize: AppText.caption,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.chevron_right_rounded, color: c.textSecondary),
+                  ],
+                ),
+              ),
               section(l.theme),
               Row(
                 children: [

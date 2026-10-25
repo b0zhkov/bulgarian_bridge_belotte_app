@@ -11,23 +11,43 @@ import '../../online/room_models.dart';
 import '../game/difficulty_picker.dart';
 import '../game/game_screen.dart';
 import '../game/labels.dart';
+import '../profile/profile_controller.dart';
 import 'online_controller.dart';
 import 'room_code.dart';
 
+/// Names of the humans in the room (members and players holding seats);
+/// bots never get one of these.
+List<String> roomHumanNames(RoomClient c) => [
+  for (final m in c.members.values) m.name,
+  for (final s in c.seats ?? const <Seat>[])
+    if (!s.bot && s.name != null) s.name!,
+  c.name,
+];
+
+/// Avatar of a human at absolute seat [abs] (picked one or seat default).
+String roomAvatar(RoomClient c, String? uid, int abs) =>
+    c.members[uid]?.avatar ?? humanAvatar(kHumanAvatars[abs % 4]);
+
 /// Names/emojis for the four view seats (0 = this player).
-List<SeatInfo> seatInfosFor(AppLocalizations l, RoomClient c, String myName) {
+List<SeatInfo> seatInfosFor(
+  AppLocalizations l,
+  RoomClient c,
+  String myName, [
+  String? myAvatar,
+]) {
   final mySeat = c.mySeat ?? 0;
   final seats = c.seats!;
+  final bots = botNames(l, roomHumanNames(c));
   return [
     for (var v = 0; v < 4; v++)
       () {
         final abs = (v + mySeat) % 4;
         final s = seats[abs];
-        if (v == 0) return SeatInfo(kSelfAvatar, myName);
-        if (!s.bot) {
-          return SeatInfo(humanAvatar(kHumanAvatars[abs]), s.name ?? '?');
+        if (v == 0) {
+          return SeatInfo(humanAvatar(myAvatar ?? kSelfAvatar), myName);
         }
-        return botSeatInfo(l, abs);
+        if (!s.bot) return SeatInfo(roomAvatar(c, s.uid, abs), s.name ?? '?');
+        return SeatInfo(kBotAvatar, bots[abs]);
       }(),
   ];
 }
@@ -111,7 +131,14 @@ class RoomScreen extends ConsumerWidget {
       final table = s.table;
       if (c.mySeat != null && table != null) {
         return TableView(
-          table: table.copyWith(seatInfos: seatInfosFor(l, c, c.name)),
+          table: table.copyWith(
+            seatInfos: seatInfosFor(
+              l,
+              c,
+              c.name,
+              ref.watch(playerAvatarProvider),
+            ),
+          ),
           actions: ctrl,
           onLeave: () => _leave(context, ref, confirm: false),
           footer: RoomCodeChip(code: c.code),
@@ -255,7 +282,9 @@ class _TeamBox extends StatelessWidget {
       for (final m in humans)
         slot(
           Text(
-            m.name.isEmpty ? '?' : m.name.characters.first.toUpperCase(),
+            m.avatar ??
+                (m.name.isEmpty ? '?' : m.name.characters.first.toUpperCase()),
+            key: Key('lobby-avatar-${m.uid}'),
             style: TextStyle(color: c.textPrimary, fontWeight: FontWeight.w700),
           ),
           m.uid == client.uid ? '${m.name} (${l.youLabel})' : m.name,
@@ -266,7 +295,11 @@ class _TeamBox extends StatelessWidget {
         slot(
           const Text(kBotAvatar),
           // The seat this bot will get when the match starts.
-          botSeatInfo(l, team + 2 * (humans.length + i)).name,
+          botSeatInfo(
+            l,
+            team + 2 * (humans.length + i),
+            roomHumanNames(client),
+          ).name,
           muted: true,
         ),
     ];
@@ -506,7 +539,7 @@ class _WaitingView extends ConsumerWidget {
         for (final i in [t, t + 2])
           seats[i].bot
               ? () {
-                  final b = botSeatInfo(l, i);
+                  final b = botSeatInfo(l, i, roomHumanNames(client));
                   return '${b.emoji} ${b.name}';
                 }()
               : (seats[i].name ?? '?'),

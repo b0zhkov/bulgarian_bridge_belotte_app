@@ -1,4 +1,5 @@
 import '../../core/agents/bot_agent.dart';
+import '../../core/agents/bot_names.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -38,6 +39,30 @@ class PlayerNameController extends Notifier<String?> {
 
 final playerNameProvider = NotifierProvider<PlayerNameController, String?>(
   PlayerNameController.new,
+);
+
+/// The local player's avatar (an emoji from [kHumanAvatars]; never the
+/// robot, which marks bots).
+class PlayerAvatarController extends Notifier<String> {
+  static const _key = 'player_avatar';
+
+  @override
+  String build() =>
+      sanitizeAvatar(ref.read(sharedPrefsProvider).getString(_key)) ??
+      kSelfAvatar;
+
+  /// Ignores anything outside the picker (e.g. the robot).
+  bool set(String emoji) {
+    final a = sanitizeAvatar(emoji);
+    if (a == null) return false;
+    state = a;
+    ref.read(sharedPrefsProvider).setString(_key, a);
+    return true;
+  }
+}
+
+final playerAvatarProvider = NotifierProvider<PlayerAvatarController, String>(
+  PlayerAvatarController.new,
 );
 
 /// Whether card hints are enabled (default on).

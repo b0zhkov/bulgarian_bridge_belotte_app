@@ -11,7 +11,7 @@ import '../../l10n/generated/app_localizations.dart';
 import '../game/widgets/playing_card.dart';
 import '../profile/profile_controller.dart';
 import '../stats/stats_controller.dart';
-import '../stats/stats_screen.dart';
+import '../profile/profile_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -21,7 +21,8 @@ class HomeScreen extends ConsumerWidget {
     final l = AppLocalizations.of(context);
     final c = context.colors;
     final name = ref.watch(playerNameProvider);
-    final stats = ref.watch(statsProvider);
+    final stats = ref.watch(statsProvider).all;
+    final avatar = ref.watch(playerAvatarProvider);
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -54,6 +55,14 @@ class HomeScreen extends ConsumerWidget {
                           ),
                         ),
                       const Spacer(),
+                      InkWell(
+                        key: const Key('open-profile'),
+                        customBorder: const CircleBorder(),
+                        onTap: () =>
+                            Navigator.of(context).pushNamed('/profile'),
+                        child: AvatarCircle(emoji: avatar, size: 40),
+                      ),
+                      const SizedBox(width: Gap.xs),
                       IconButton(
                         key: const Key('open-settings'),
                         icon: Icon(
@@ -68,12 +77,18 @@ class HomeScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: Gap.xl),
                 if (name != null)
-                  Text(
-                    l.greeting(name),
-                    key: const Key('greeting'),
-                    style: TextStyle(
-                      color: c.textSecondary,
-                      fontSize: AppText.body,
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(context).pushNamed('/profile'),
+                      child: Text(
+                        l.greeting(name),
+                        key: const Key('greeting'),
+                        style: TextStyle(
+                          color: c.textSecondary,
+                          fontSize: AppText.body,
+                        ),
+                      ),
                     ),
                   ),
                 const SizedBox(height: Gap.xs),
@@ -129,9 +144,7 @@ class _StatsCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         key: const Key('open-stats'),
-        onTap: () =>
-            Navigator.of(context)
-                .push(MaterialPageRoute(builder: (_) => const StatsScreen())),
+        onTap: () => Navigator.of(context).pushNamed('/profile'),
         child: Container(
           padding: const EdgeInsets.fromLTRB(Gap.xl, Gap.page, Gap.l, Gap.xl),
           decoration: BoxDecoration(

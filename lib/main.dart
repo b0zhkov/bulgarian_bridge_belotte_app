@@ -11,6 +11,7 @@ import 'features/online/online_entry_screen.dart';
 import 'features/online/room_screen.dart';
 import 'features/profile/name_screen.dart';
 import 'features/profile/profile_controller.dart';
+import 'features/profile/profile_screen.dart';
 import 'features/settings/settings_screen.dart';
 import 'features/settings/settings_controller.dart';
 import 'l10n/generated/app_localizations.dart';
@@ -64,6 +65,7 @@ class BelotApp extends ConsumerWidget {
         '/': (_) => const _RootGate(),
         '/game': (_) => const _NameGate(child: GameScreen()),
         '/settings': (_) => const SettingsScreen(),
+        '/profile': (_) => const ProfileScreen(),
         '/room': (_) => const _NameGate(child: RoomScreen()),
       },
       onGenerateRoute: (settings) {

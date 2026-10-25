@@ -40,6 +40,19 @@ Future<ProviderContainer> pumpApp(
   return container;
 }
 
+/// A provider container over mock prefs (no widgets).
+Future<ProviderContainer> containerForTest([
+  Map<String, Object> prefs = const {},
+]) async {
+  SharedPreferences.setMockInitialValues(prefs);
+  final sp = await SharedPreferences.getInstance();
+  final c = ProviderContainer(
+    overrides: [sharedPrefsProvider.overrideWithValue(sp)],
+  );
+  addTearDown(c.dispose);
+  return c;
+}
+
 Future<void> leave(WidgetTester t) async {
   await t.pumpWidget(const SizedBox());
   await t.pump(const Duration(seconds: 45));
@@ -133,7 +146,9 @@ void main() {
   });
 
   group('stats', () {
-    testWidgets('home card and stats screen show persisted stats', (t) async {
+    testWidgets('home card and profile show persisted (legacy) stats', (
+      t,
+    ) async {
       final stored = const PlayerStats(
         matchesPlayed: 4,
         matchesWon: 3,
@@ -151,7 +166,7 @@ void main() {
       expect(find.text('75%'), findsOneWidget);
       await t.tap(find.byKey(const Key('open-stats')));
       await t.pumpAndSettle();
-      expect(find.byKey(const Key('stats-screen')), findsOneWidget);
+      expect(find.byKey(const Key('profile-screen')), findsOneWidget);
       expect(
         find.descendant(
           of: find.byKey(const Key('stat-matches')),
@@ -180,7 +195,6 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(find.text('10.0'), findsOneWidget); // avg points per deal
       expect(find.text('7/10'), findsOneWidget);
     });
 
@@ -292,7 +306,7 @@ void main() {
     }
     expect(find.byKey(const Key('result-continue')), findsOneWidget);
     expect(cardsPlayed, 8);
-    expect(container.read(statsProvider).dealsPlayed, 1);
+    expect(container.read(statsProvider).all.dealsPlayed, 1);
     await t.tap(find.byKey(const Key('result-continue')));
     await t.pump(const Duration(milliseconds: 50));
     expect(

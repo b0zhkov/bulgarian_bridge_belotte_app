@@ -10,6 +10,7 @@ import '../../core/agents/bot_agent.dart';
 import '../../core/agents/bot_runner.dart';
 import '../../core/rules/rules.dart';
 import '../emotes/emotes.dart';
+import '../profile/match_history.dart';
 import '../profile/profile_controller.dart';
 import '../../l10n/generated/app_localizations.dart';
 import 'labels.dart';
@@ -298,9 +299,25 @@ class GameController extends Notifier<TableState> implements TableActions {
       return;
     }
     final stats = ref.read(statsProvider.notifier);
-    stats.recordDeal(after.lastDeal!);
+    final mode = PlayMode.offline(_agents[1]!.level);
+    stats.recordDeal(after.lastDeal!, mode);
     if (after.phase == GamePhase.matchOver) {
-      stats.recordMatch(won: after.winnerTeam == 0);
+      stats.recordMatch(mode, won: after.winnerTeam == 0);
+      final infos = offlineSeatInfos(
+        appStrings(),
+        ref.read(playerNameProvider),
+        null,
+      );
+      ref
+          .read(matchHistoryProvider.notifier)
+          .add(
+            MatchRecord.of(
+              after,
+              mode: mode,
+              us: [infos[0].name, infos[2].name],
+              them: [infos[1].name, infos[3].name],
+            ),
+          );
     }
   }
 

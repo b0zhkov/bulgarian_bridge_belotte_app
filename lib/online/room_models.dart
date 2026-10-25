@@ -1,3 +1,4 @@
+import '../core/agents/bot_names.dart';
 import '../core/agents/bot_agent.dart';
 
 import 'dart:convert';
@@ -36,10 +37,14 @@ class Member {
     this.team,
     this.teamAt = 0,
     this.online = true,
+    this.avatar,
   });
 
   final String uid;
   final String name;
+
+  /// The avatar the player picked (never the robot); null = seat default.
+  final String? avatar;
   final int joinedAt;
 
   /// 0 or 1; null when the player has not picked a team.
@@ -60,6 +65,7 @@ class Member {
     },
     teamAt: (m['ta'] as num?)?.toInt() ?? 0,
     online: m['o'] == true,
+    avatar: sanitizeAvatar(m['a']),
   );
 
   static Map<String, Member> parseAll(Object? v) {

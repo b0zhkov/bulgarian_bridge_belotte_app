@@ -12,7 +12,11 @@ import '../../online/room_logic.dart';
 import '../emotes/emotes.dart';
 import '../../online/room_models.dart';
 import '../game/game_controller.dart';
+import '../game/labels.dart';
+import '../profile/match_history.dart';
 import '../profile/profile_controller.dart';
+import '../stats/stats_controller.dart';
+import 'room_screen.dart' show seatInfosFor;
 
 /// How to reach the backend; tests override it with a `MemoryDb`.
 final dbConnectorProvider = Provider<Future<Db> Function()>(
@@ -83,6 +87,11 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
   int _emoteNonce = 0;
   final EmoteLimiter _emoteLimiter = EmoteLimiter();
 
+  /// Deals of the current match already counted in the stats (-1 = not
+  /// seen yet) and the last match recorded in the history.
+  int _countedDeals = -1;
+  String? _recordedMatch;
+
   @override
   OnlineState build() {
     ref.onDispose(() {
@@ -97,11 +106,22 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
   RoomClient? get client => state.client;
 
   Future<bool> create() => _open(
-    (db, name) => RoomClient.create(db, name: name, onChange: _changed),
+    (db, name) => RoomClient.create(
+      db,
+      name: name,
+      avatar: ref.read(playerAvatarProvider),
+      onChange: _changed,
+    ),
   );
 
   Future<bool> join(String code) => _open(
-    (db, name) => RoomClient.join(db, code, name: name, onChange: _changed),
+    (db, name) => RoomClient.join(
+      db,
+      code,
+      name: name,
+      avatar: ref.read(playerAvatarProvider),
+      onChange: _changed,
+    ),
   );
 
   Future<bool> _open(
@@ -148,6 +168,7 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
     _notice = null;
     _noticeTimer?.cancel();
     _emotes.clear();
+    _countedDeals = -1;
   }
 
   Future<void> leave() async {
@@ -196,6 +217,47 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
       }
     });
     _changed();
+  }
+
+  // ------------------------------------------------------- stats/history
+
+  /// Counts deals scored while this player is seated (team 0 = mine in
+  /// [view]) and records the finished match once in the history.
+  void _recordProgress(RoomClient c, GameState view) {
+    final n = view.history.length;
+    if (_countedDeals < 0 || n < _countedDeals) {
+      // First look at this match (or a new one): earlier deals were not
+      // played by us here.
+      _countedDeals = n;
+    }
+    const mode = PlayMode.online();
+    final stats = ref.read(statsProvider.notifier);
+    while (_countedDeals < n) {
+      stats.recordDeal(view.history[_countedDeals], mode);
+      _countedDeals++;
+    }
+    if (view.phase != GamePhase.matchOver) return;
+    final key = '${c.code}/${c.meta?.matchNo}/${view.seed}';
+    if (_recordedMatch == key) return;
+    _recordedMatch = key;
+    stats.recordMatch(mode, won: view.winnerTeam == 0);
+    final infos = seatInfosFor(
+      appStrings(),
+      c,
+      c.name,
+      ref.read(playerAvatarProvider),
+    );
+    ref
+        .read(matchHistoryProvider.notifier)
+        .add(
+          MatchRecord.of(
+            view,
+            mode: mode,
+            room: c.code,
+            us: [infos[0].name, infos[2].name],
+            them: [infos[1].name, infos[3].name],
+          ),
+        );
   }
 
   // ---------------------------------------------------------------- view
@@ -251,6 +313,7 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
       return null;
     }
     final view = rotateState(g, seat);
+    _recordProgress(c, view);
     if (view.dealNumber != _lastDeal) {
       _lastDeal = view.dealNumber;
       _lastTricks = view.tricks.length;

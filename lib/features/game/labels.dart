@@ -11,22 +11,46 @@ class SeatInfo {
   final String name;
 }
 
+/// Strings outside a widget tree (controllers): the app's locale is fixed
+/// to Bulgarian (see `main.dart`).
+AppLocalizations appStrings() => lookupAppLocalizations(const Locale('bg'));
+
+/// Bot names for the four absolute seats, avoiding [humans]' names.
+List<String> botNames(
+  AppLocalizations l, [
+  Iterable<String> humans = const [],
+]) => pickBotNames(
+  [l.botName0, l.botName1, l.botName2, l.botName3],
+  l.botNamePool.split(','),
+  humans,
+);
+
 /// THE single place that decides what a bot is called and how it looks
 /// (offline opponents, lobby bots, bots holding an online seat), by
-/// absolute [seat]: plain names, unique per seat, always the robot avatar.
-SeatInfo botSeatInfo(AppLocalizations l, int seat) =>
-    SeatInfo(kBotAvatar, switch (seat % 4) {
-      0 => l.botName0,
-      1 => l.botName1,
-      2 => l.botName2,
-      _ => l.botName3,
-    });
+/// absolute [seat]: plain names, unique per seat and never a human's name
+/// in the room ([humans]), always the robot avatar.
+SeatInfo botSeatInfo(
+  AppLocalizations l,
+  int seat, [
+  Iterable<String> humans = const [],
+]) => SeatInfo(kBotAvatar, botNames(l, humans)[seat % 4]);
 
-SeatInfo seatInfo(AppLocalizations l, int seat, [String? myName]) =>
-    switch (seat) {
-      0 => SeatInfo(kSelfAvatar, myName ?? l.you),
-      _ => botSeatInfo(l, seat),
-    };
+SeatInfo seatInfo(
+  AppLocalizations l,
+  int seat, [
+  String? myName,
+  String? myAvatar,
+]) => switch (seat) {
+  0 => SeatInfo(humanAvatar(myAvatar ?? kSelfAvatar), myName ?? l.you),
+  _ => botSeatInfo(l, seat, [?myName]),
+};
+
+/// Offline table: me at seat 0, bots elsewhere.
+List<SeatInfo> offlineSeatInfos(
+  AppLocalizations l,
+  String? myName,
+  String? myAvatar,
+) => [for (var s = 0; s < 4; s++) seatInfo(l, s, myName, myAvatar)];
 
 String contractName(AppLocalizations l, ContractType t) => switch (t) {
   ContractType.clubs => l.clubs,

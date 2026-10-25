@@ -23,8 +23,17 @@ class GameScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context);
     return TableView(
-      table: ref.watch(gameControllerProvider),
+      table: ref
+          .watch(gameControllerProvider)
+          .copyWith(
+            seatInfos: offlineSeatInfos(
+              l,
+              ref.watch(playerNameProvider),
+              ref.watch(playerAvatarProvider),
+            ),
+          ),
       actions: ref.read(gameControllerProvider.notifier),
       onLeave: () => Navigator.of(context).pop(),
     );

@@ -317,5 +317,42 @@
   "phraseBravo": "Браво!",
   "phraseHayde": "Хайде!",
   "phraseOops": "Упс!",
-  "phraseGg": "Добра игра"
+  "phraseGg": "Добра игра",
+  "botNamePool": "Стефан,Елена,Димитър,Виктория,Калоян,Ива,Тодор,Габи,Христо,Вяра",
+  "profile": "Профил",
+  "chooseAvatar": "Избери аватар",
+  "avatarReserved": "🤖 е запазен за ботовете",
+  "editName": "Промени името",
+  "filterAll": "Всички",
+  "filterOffline": "Офлайн",
+  "filterOnline": "Онлайн",
+  "allLevels": "Всички нива",
+  "statsStreak": "Серия победи",
+  "statsBestStreak": "Най-добра серия",
+  "statsContractsPct": "Изкарани обяви",
+  "matchHistory": "Последни мачове",
+  "historyEmpty": "Още няма завършени мачове.",
+  "historyWin": "Победа",
+  "historyLoss": "Загуба",
+  "historyOffline": "Офлайн · {level}",
+  "historyOnline": "Онлайн · стая {code}",
+  "profileAndStats": "Профил и статистика",
+  "profileAndStatsDescription": "Аватар, име, статистика и история",
+  "@historyOffline": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "@historyOnline": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "@botNamePool": {
+    "description": "Comma-separated plain first names used for bots when a default bot name equals a human player's name."
+  }
 }

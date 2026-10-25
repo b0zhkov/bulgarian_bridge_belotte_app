@@ -1261,6 +1261,126 @@ abstract class AppLocalizations {
   /// In bg, this message translates to:
   /// **'Добра игра'**
   String get phraseGg;
+
+  /// Comma-separated plain first names used for bots when a default bot name equals a human player's name.
+  ///
+  /// In bg, this message translates to:
+  /// **'Стефан,Елена,Димитър,Виктория,Калоян,Ива,Тодор,Габи,Христо,Вяра'**
+  String get botNamePool;
+
+  /// No description provided for @profile.
+  ///
+  /// In bg, this message translates to:
+  /// **'Профил'**
+  String get profile;
+
+  /// No description provided for @chooseAvatar.
+  ///
+  /// In bg, this message translates to:
+  /// **'Избери аватар'**
+  String get chooseAvatar;
+
+  /// No description provided for @avatarReserved.
+  ///
+  /// In bg, this message translates to:
+  /// **'🤖 е запазен за ботовете'**
+  String get avatarReserved;
+
+  /// No description provided for @editName.
+  ///
+  /// In bg, this message translates to:
+  /// **'Промени името'**
+  String get editName;
+
+  /// No description provided for @filterAll.
+  ///
+  /// In bg, this message translates to:
+  /// **'Всички'**
+  String get filterAll;
+
+  /// No description provided for @filterOffline.
+  ///
+  /// In bg, this message translates to:
+  /// **'Офлайн'**
+  String get filterOffline;
+
+  /// No description provided for @filterOnline.
+  ///
+  /// In bg, this message translates to:
+  /// **'Онлайн'**
+  String get filterOnline;
+
+  /// No description provided for @allLevels.
+  ///
+  /// In bg, this message translates to:
+  /// **'Всички нива'**
+  String get allLevels;
+
+  /// No description provided for @statsStreak.
+  ///
+  /// In bg, this message translates to:
+  /// **'Серия победи'**
+  String get statsStreak;
+
+  /// No description provided for @statsBestStreak.
+  ///
+  /// In bg, this message translates to:
+  /// **'Най-добра серия'**
+  String get statsBestStreak;
+
+  /// No description provided for @statsContractsPct.
+  ///
+  /// In bg, this message translates to:
+  /// **'Изкарани обяви'**
+  String get statsContractsPct;
+
+  /// No description provided for @matchHistory.
+  ///
+  /// In bg, this message translates to:
+  /// **'Последни мачове'**
+  String get matchHistory;
+
+  /// No description provided for @historyEmpty.
+  ///
+  /// In bg, this message translates to:
+  /// **'Още няма завършени мачове.'**
+  String get historyEmpty;
+
+  /// No description provided for @historyWin.
+  ///
+  /// In bg, this message translates to:
+  /// **'Победа'**
+  String get historyWin;
+
+  /// No description provided for @historyLoss.
+  ///
+  /// In bg, this message translates to:
+  /// **'Загуба'**
+  String get historyLoss;
+
+  /// No description provided for @historyOffline.
+  ///
+  /// In bg, this message translates to:
+  /// **'Офлайн · {level}'**
+  String historyOffline(String level);
+
+  /// No description provided for @historyOnline.
+  ///
+  /// In bg, this message translates to:
+  /// **'Онлайн · стая {code}'**
+  String historyOnline(String code);
+
+  /// No description provided for @profileAndStats.
+  ///
+  /// In bg, this message translates to:
+  /// **'Профил и статистика'**
+  String get profileAndStats;
+
+  /// No description provided for @profileAndStatsDescription.
+  ///
+  /// In bg, this message translates to:
+  /// **'Аватар, име, статистика и история'**
+  String get profileAndStatsDescription;
 }
 
 class _AppLocalizationsDelegate

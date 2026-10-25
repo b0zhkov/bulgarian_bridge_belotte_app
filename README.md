@@ -99,6 +99,26 @@ Flutter app for Android, iOS and web. Rules follow [belot.bg](https://belot.bg/b
   licensed **CC BY 4.0**. They are bundled offline as 96 px animated WebP (`tool/make_emotes.py`); see
   `assets/emotes/LICENSE.md`.
 
+## Beta 8 — profile
+- Bot names never match a human at the table (trimmed, case-insensitive), online and offline. Each seat keeps its
+  usual name (Иван, Ники, Мария, Петър) unless a human has it; then the bot takes the next free plain name from
+  `botNamePool` (Стефан, Елена, Димитър…). Every client computes the same names (`pickBotNames` in
+  `core/agents/bot_names.dart`).
+- Profile (`lib/features/profile/profile_screen.dart`). Open it from the avatar or greeting on home, the stats
+  card, or Settings → Профил и статистика. It shows:
+  - a large avatar with an edit pencil and the name below it, editable with the same validation as the name prompt;
+  - stat tiles for games, wins, win rate, current and best win streak, deals, contracts made % and valats;
+  - filters: all, offline (all levels or a single difficulty), online.
+- Avatars: 24 emoji in the same style as the table avatars. 🤖 is never offered and is rejected everywhere
+  (`sanitizeAvatar`). The chosen avatar is stored locally, shown at the table and in lobbies, and synced as
+  `rooms/$code/members/$uid/a`. The database rules require a short string without 🤖.
+- Stats are kept per bucket (all / offline / offline per difficulty / online) in `player_stats_v2`, so streaks are
+  exact for each split. Old offline stats are migrated. Online deals count from the moment you sit down.
+- Match history: the last 50 finished matches, newest first, stored in shared preferences (`match_history_v1`,
+  one JSON string). Each entry has the date and time (device local time), mode (offline difficulty or online
+  room), names on both teams, final score, win or loss, and the per-deal rows, so tapping it reopens that match's
+  Ние/Вие score sheet.
+
 ## Structure
 ```
 lib/

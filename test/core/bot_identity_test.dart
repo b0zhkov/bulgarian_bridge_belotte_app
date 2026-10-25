@@ -32,4 +32,50 @@ void main() {
     );
     expect(seatInfo(bg, 0, 'Аз').emoji, isNot(kBotAvatar));
   });
+
+  test('bot names never match a human in the room (trimmed, any case)', () {
+    final bg = lookupAppLocalizations(const Locale('bg'));
+    expect(botNames(bg), ['Иван', 'Ники', 'Мария', 'Петър']);
+    final names = botNames(bg, ['  мАрИя ', 'Петър']);
+    expect(names, hasLength(4));
+    expect(names.toSet(), hasLength(4));
+    expect(names[0], 'Иван');
+    expect(names[1], 'Ники');
+    expect(names.map(normalizeName), isNot(contains('мария')));
+    expect(names.map(normalizeName), isNot(contains('петър')));
+    // Plain names from the pool, never "Бот …".
+    for (final n in [...names, ...bg.botNamePool.split(',')]) {
+      expect(n.toLowerCase(), isNot(contains('бот')));
+      expect(n.trim(), n);
+    }
+    // Every default taken: still four distinct non-human names.
+    final all = botNames(bg, ['Иван', 'ники', 'МАРИЯ', 'Петър', 'Стефан']);
+    expect(all.toSet(), hasLength(4));
+    expect(
+      all.map(normalizeName).toSet().intersection({
+        'иван',
+        'ники',
+        'мария',
+        'петър',
+        'стефан',
+      }),
+      isEmpty,
+    );
+    // Offline: the player's own name is avoided too.
+    expect(seatInfo(bg, 2, 'мария').name, isNot('Мария'));
+    expect({
+      for (var s = 0; s < 4; s++) seatInfo(bg, s, 'Ники').name,
+    }, hasLength(4));
+    // Every client computes the same names.
+    expect(botNames(bg, ['Мария', 'Иван']), botNames(bg, ['Иван', 'Мария']));
+  });
+
+  test('the avatar pool: 24 picks, no robot, sanitized input', () {
+    expect(kHumanAvatars.toSet(), hasLength(kHumanAvatars.length));
+    expect(kHumanAvatars.length, greaterThanOrEqualTo(16));
+    expect(sanitizeAvatar('🦊'), '🦊');
+    expect(sanitizeAvatar(kBotAvatar), isNull);
+    expect(sanitizeAvatar('x'), isNull);
+    expect(sanitizeAvatar(5), isNull);
+  });
 }

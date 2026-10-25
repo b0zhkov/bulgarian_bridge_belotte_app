@@ -19,6 +19,10 @@ import 'package:bulgarian_bridge_belotte_app/core/constants/deal_timing.dart';
 
 import 'package:bulgarian_bridge_belotte_app/features/emotes/emotes.dart';
 
+import 'package:bulgarian_bridge_belotte_app/core/agents/bot_names.dart';
+import 'package:bulgarian_bridge_belotte_app/features/profile/match_history.dart';
+import 'package:bulgarian_bridge_belotte_app/features/stats/stats_controller.dart';
+
 import 'fakes.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -45,6 +49,7 @@ void main() {
     String uid = 'me',
     String name = 'Георги',
     Size size = const Size(390, 844),
+    Map<String, Object> prefs = const {},
   }) async {
     t.view.physicalSize = size;
     t.view.devicePixelRatio = 1;
@@ -52,6 +57,7 @@ void main() {
     SharedPreferences.setMockInitialValues({
       'player_name': name,
       'autoplay_enabled': false,
+      ...prefs,
     });
     final sp = await SharedPreferences.getInstance();
     final container = ProviderContainer(
@@ -82,12 +88,14 @@ void main() {
     String name, {
     String? code,
     bool create = false,
+    String? avatar,
   }) async {
     late RoomClient c;
     if (create) {
       c = await RoomClient.create(
         server.client(uid),
         name: name,
+        avatar: avatar,
         codeGen: () => 'HJKMN',
       );
     } else {
@@ -549,5 +557,109 @@ void main() {
     // Leaving removes my emote node.
     await finish(t, container);
     expect(await server.client('h').get('rooms/HJKMN/emotes/me'), isNull);
+  });
+
+  testWidgets('online: avatars sync, bots avoid human names, match history', (
+    t,
+  ) async {
+    HostDriver.botDelay = const Duration(milliseconds: 5);
+    HostDriver.trickPause = const Duration(milliseconds: 5);
+    HostDriver.redealPause = const Duration(milliseconds: 5);
+    final h = await other(t, 'h', 'ники', create: true, avatar: '🐼');
+    final container = await pumpOnline(
+      t,
+      uid: 'me',
+      name: 'Мария',
+      prefs: const {'player_avatar': '🦊'},
+    );
+    await t.tap(find.byKey(const Key('play-online')));
+    await t.pumpAndSettle();
+    await t.enterText(find.byKey(const Key('code-field')), 'HJKMN');
+    await t.tap(find.byKey(const Key('join-room')));
+    await settle(t);
+    // Lobby: both picked avatars, synced through the member nodes.
+    expect(t.widget<Text>(find.byKey(const Key('lobby-avatar-h'))).data, '🐼');
+    expect(h.members['me']!.avatar, '🦊');
+    await t.tap(find.byKey(const Key('join-team-1')));
+    await settle(t);
+    expect(t.widget<Text>(find.byKey(const Key('lobby-avatar-me'))).data, '🦊');
+    await h.addBots();
+    await settle(t, 3);
+    expect(await h.startMatch(), isTrue);
+    await settle(t, 5);
+    final view = t.widget<TableView>(find.byType(TableView)).table;
+    final infos = view.seatInfos!;
+    expect(infos[0].emoji, '🦊');
+    final hostView =
+        (h.mySeat! - container.read(onlineControllerProvider).client!.mySeat!) %
+        4;
+    expect(infos[hostView].emoji, '🐼');
+    expect(infos[hostView].name, 'ники');
+    final bots = [
+      for (final i in infos)
+        if (i.emoji == kBotAvatar) i.name,
+    ];
+    expect(bots, hasLength(2));
+    for (final b in bots) {
+      expect(b.toLowerCase(), isNot('мария'));
+      expect(b.toLowerCase(), isNot('ники'));
+    }
+
+    // Play the whole match (host and I bid/pass and play the first card).
+    final ctrl = container.read(onlineControllerProvider.notifier);
+    for (var i = 0; i < 30000; i++) {
+      await settle(t, 1);
+      final g = h.game;
+      if (g == null) continue;
+      if (g.phase == GamePhase.matchOver) break;
+      final seat = h.mySeat;
+      if (g.phase == GamePhase.dealScored) {
+        await h.markReady();
+        ctrl.nextDeal();
+        continue;
+      }
+      if (seat != null && g.currentSeat == seat && h.handInSync) {
+        if (g.phase == GamePhase.bidding) {
+          final bids = BelotEngine.validBids(g, seat);
+          final at = bids.where((b) => b.type == ContractType.allTrump);
+          await h.bid(
+            g.contract == null && at.isNotEmpty ? at.first : Bid.pass,
+          );
+        } else if (g.phase == GamePhase.playing) {
+          await h.play(BelotEngine.getLegalMoves(g, seat).first);
+        }
+      }
+      final table = container.read(onlineControllerProvider).table;
+      if (table != null && table.isHumanTurn) {
+        if (table.game.phase == GamePhase.bidding) {
+          ctrl.humanBid(Bid.pass);
+        } else if (table.game.phase == GamePhase.playing) {
+          ctrl.humanPlay(ctrl.humanLegalCards().first);
+        }
+      }
+    }
+    await settle(t, 4);
+    final end = h.game!;
+    expect(end.phase, GamePhase.matchOver);
+    final history = container.read(matchHistoryProvider);
+    expect(history, hasLength(1));
+    final r = history.first;
+    expect(r.mode.online, isTrue);
+    expect(r.room, 'HJKMN');
+    // I sit on team 1 at the host's table: "Ние" is team 1.
+    expect(r.scores, [end.scores[1], end.scores[0]]);
+    expect(r.won, end.winnerTeam == 1);
+    expect(r.deals, hasLength(end.history.length));
+    expect(r.us.first, 'Мария');
+    expect(r.them, contains('ники'));
+    final book = container.read(statsProvider);
+    expect(book[StatsBucket.online].matchesPlayed, 1);
+    expect(book[StatsBucket.online].dealsPlayed, end.history.length);
+    expect(book[StatsBucket.offline].matchesPlayed, 0);
+    expect(book.all.matchesPlayed, 1);
+    // The same state arriving again does not record twice.
+    await settle(t, 6);
+    expect(container.read(matchHistoryProvider), hasLength(1));
+    await finish(t, container);
   });
 }

@@ -636,4 +636,69 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get phraseGg => 'Good game';
+
+  @override
+  String get botNamePool =>
+      'Stefan,Elena,Dimitar,Victoria,Kaloyan,Iva,Todor,Gabi,Hristo,Vera';
+
+  @override
+  String get profile => 'Profile';
+
+  @override
+  String get chooseAvatar => 'Choose avatar';
+
+  @override
+  String get avatarReserved => '🤖 is reserved for bots';
+
+  @override
+  String get editName => 'Edit name';
+
+  @override
+  String get filterAll => 'All';
+
+  @override
+  String get filterOffline => 'Offline';
+
+  @override
+  String get filterOnline => 'Online';
+
+  @override
+  String get allLevels => 'All levels';
+
+  @override
+  String get statsStreak => 'Win streak';
+
+  @override
+  String get statsBestStreak => 'Best streak';
+
+  @override
+  String get statsContractsPct => 'Contracts made';
+
+  @override
+  String get matchHistory => 'Recent matches';
+
+  @override
+  String get historyEmpty => 'No finished matches yet.';
+
+  @override
+  String get historyWin => 'Win';
+
+  @override
+  String get historyLoss => 'Loss';
+
+  @override
+  String historyOffline(String level) {
+    return 'Offline · $level';
+  }
+
+  @override
+  String historyOnline(String code) {
+    return 'Online · room $code';
+  }
+
+  @override
+  String get profileAndStats => 'Profile and stats';
+
+  @override
+  String get profileAndStatsDescription => 'Avatar, name, stats and history';
 }

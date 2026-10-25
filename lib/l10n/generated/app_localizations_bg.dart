@@ -635,4 +635,69 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get phraseGg => 'Добра игра';
+
+  @override
+  String get botNamePool =>
+      'Стефан,Елена,Димитър,Виктория,Калоян,Ива,Тодор,Габи,Христо,Вяра';
+
+  @override
+  String get profile => 'Профил';
+
+  @override
+  String get chooseAvatar => 'Избери аватар';
+
+  @override
+  String get avatarReserved => '🤖 е запазен за ботовете';
+
+  @override
+  String get editName => 'Промени името';
+
+  @override
+  String get filterAll => 'Всички';
+
+  @override
+  String get filterOffline => 'Офлайн';
+
+  @override
+  String get filterOnline => 'Онлайн';
+
+  @override
+  String get allLevels => 'Всички нива';
+
+  @override
+  String get statsStreak => 'Серия победи';
+
+  @override
+  String get statsBestStreak => 'Най-добра серия';
+
+  @override
+  String get statsContractsPct => 'Изкарани обяви';
+
+  @override
+  String get matchHistory => 'Последни мачове';
+
+  @override
+  String get historyEmpty => 'Още няма завършени мачове.';
+
+  @override
+  String get historyWin => 'Победа';
+
+  @override
+  String get historyLoss => 'Загуба';
+
+  @override
+  String historyOffline(String level) {
+    return 'Офлайн · $level';
+  }
+
+  @override
+  String historyOnline(String code) {
+    return 'Онлайн · стая $code';
+  }
+
+  @override
+  String get profileAndStats => 'Профил и статистика';
+
+  @override
+  String get profileAndStatsDescription => 'Аватар, име, статистика и история';
 }

@@ -1,3 +1,4 @@
+import '../core/agents/bot_names.dart';
 import '../core/agents/bot_agent.dart';
 
 import 'dart:async';
@@ -65,6 +66,7 @@ class RoomClient {
   static Future<RoomClient> create(
     Db db, {
     required String name,
+    String? avatar,
     String Function()? codeGen,
     void Function()? onChange,
   }) async {
@@ -91,6 +93,7 @@ class RoomClient {
             'o': false,
             't': 0,
             'ta': const ServerTimestamp(),
+            'a': ?sanitizeAvatar(avatar),
           },
         },
       });
@@ -108,9 +111,11 @@ class RoomClient {
     Db db,
     String code, {
     required String name,
+    String? avatar,
     void Function()? onChange,
   }) async {
     final c = RoomClient(db, code, name: name, onChange: onChange);
+    final a = sanitizeAvatar(avatar);
     final meta = RoomMeta.fromMap(await db.get('rooms/$code/meta'));
     if (meta == null) {
       c.connection = RoomConnection.notFound;
@@ -123,13 +128,17 @@ class RoomClient {
     }
     final mine = await db.get('rooms/$code/members/${db.uid}');
     if (mine is Map) {
-      await db.update({'rooms/$code/members/${db.uid}/n': name});
+      await db.update({
+        'rooms/$code/members/${db.uid}/n': name,
+        'rooms/$code/members/${db.uid}/a': a,
+      });
     } else {
       await db.set('rooms/$code/members/${db.uid}', {
         'n': name,
         'j': const ServerTimestamp(),
         'o': false,
         't': -1,
+        'a': ?a,
       });
     }
     await c._connect();
