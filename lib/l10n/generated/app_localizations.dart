@@ -1381,6 +1381,72 @@ abstract class AppLocalizations {
   /// In bg, this message translates to:
   /// **'Аватар, име, статистика и история'**
   String get profileAndStatsDescription;
+
+  /// Web app install / update (installTitle).
+  ///
+  /// In bg, this message translates to:
+  /// **'Инсталирай Белот'**
+  String get installTitle;
+
+  /// Web app install / update (installSubtitle).
+  ///
+  /// In bg, this message translates to:
+  /// **'На цял екран, бързо и без интернет.'**
+  String get installSubtitle;
+
+  /// Web app install / update (installButton).
+  ///
+  /// In bg, this message translates to:
+  /// **'Инсталирай'**
+  String get installButton;
+
+  /// Web app install / update (installHow).
+  ///
+  /// In bg, this message translates to:
+  /// **'Как?'**
+  String get installHow;
+
+  /// Web app install / update (installIosTitle).
+  ///
+  /// In bg, this message translates to:
+  /// **'Добави Белот на началния екран'**
+  String get installIosTitle;
+
+  /// Web app install / update (installIosStep1).
+  ///
+  /// In bg, this message translates to:
+  /// **'Натисни „Сподели“ в лентата на Safari.'**
+  String get installIosStep1;
+
+  /// Web app install / update (installIosStep2).
+  ///
+  /// In bg, this message translates to:
+  /// **'Избери „Добави към началния екран“.'**
+  String get installIosStep2;
+
+  /// Web app install / update (installIosStep3).
+  ///
+  /// In bg, this message translates to:
+  /// **'Натисни „Добави“ — готово.'**
+  String get installIosStep3;
+
+  /// Web app install / update (installDismiss).
+  ///
+  /// In bg, this message translates to:
+  /// **'Скрий'**
+  String get installDismiss;
+
+  /// Web app install / update (updateAvailable).
+  ///
+  /// In bg, this message translates to:
+  /// **'Има нова версия'**
+  String get updateAvailable;
+
+  /// Web app install / update (updateNow).
+  ///
+  /// In bg, this message translates to:
+  /// **'Обнови'**
+  String get updateNow;
 }
 
 class _AppLocalizationsDelegate

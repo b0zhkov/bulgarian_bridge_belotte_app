@@ -56,10 +56,18 @@ Future<void> playDeal(WidgetTester t, ProviderContainer c) async {
           .first;
       final f = find.byKey(Key('hand-${card.code}'));
       if (f.evaluate().isEmpty) continue;
+      final swooshes = app.sound.played.where((s) => s == Sfx.swoosh).length;
       await t.tapAt(t.getTopLeft(f) + const Offset(8, 40));
       await t.pump();
       if (!c.read(gameControllerProvider).game.hands[0].contains(card)) {
         plays++;
+        // The swoosh starts on the frame the card starts flying.
+        if (c.read(soundEnabledProvider)) {
+          expect(
+            app.sound.played.where((s) => s == Sfx.swoosh).length,
+            swooshes + 1,
+          );
+        }
       }
     }
   }
@@ -106,26 +114,30 @@ void main() {
   ) async {
     final c = await app.pumpApp(t);
     await app.startOffline(t);
-    await t.pump(); // post-frame start
-    await t.pump(const Duration(milliseconds: 400));
+    // The deal starts once the page transition is over, then advances
+    // frame by frame.
+    for (var i = 0; i < 40; i++) {
+      await t.pump(const Duration(milliseconds: 16));
+    }
     expect(backsFlying(), greaterThan(0));
     expect(handShown(), lessThan(5));
     // Bots wait for the animation: nobody has bid yet.
     expect(c.read(gameControllerProvider).game.bids, isEmpty);
-    await t.pump(DealTiming.total(20));
-    await t.pump(const Duration(milliseconds: 300));
+    for (var i = 0; i < 120; i++) {
+      await t.pump(const Duration(milliseconds: 16));
+    }
     expect(backsFlying(), 0);
     expect(handShown(), 5);
-    expect(app.sound.played.where((s) => s == Sfx.deal).length, 20);
+    // Dealing is silent now (only card plays swoosh).
+    expect(app.sound.played, isEmpty);
 
     await playDeal(t, c);
     await t.pump(const Duration(seconds: 1));
     final played = app.sound.played;
-    expect(played.where((s) => s == Sfx.deal).length, 32); // + the last 12
-    expect(played.where((s) => s == Sfx.play).length, 32);
-    expect(played.where((s) => s == Sfx.collect).length, greaterThan(6));
-    expect(played, contains(Sfx.turn));
-    expect(played.any((s) => s == Sfx.dealMade || s == Sfx.dealFailed), isTrue);
+    // One swoosh per played card (all four seats), then the result.
+    expect(played.where((s) => s == Sfx.swoosh).length, 32);
+    expect(played.last, anyOf(Sfx.dealMade, Sfx.dealFailed));
+    expect(played.toSet(), {Sfx.swoosh, played.last});
     expect(t.takeException(), isNull);
     await app.leave(t);
   });
@@ -147,8 +159,7 @@ void main() {
         const FakeAccessibilityFeatures(disableAnimations: true);
     addTearDown(t.platformDispatcher.clearAccessibilityFeaturesTestValue);
     await app.startOffline(t);
-    await t.pump();
-    await t.pump(const Duration(milliseconds: 100));
+    await t.pumpAndSettle();
     expect(backsFlying(), 0);
     expect(handShown(), 5);
     await playDeal(t, c);

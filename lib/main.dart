@@ -6,6 +6,7 @@ import 'core/theme/app_theme.dart';
 import 'features/feedback/sound.dart';
 import 'features/game/game_controller.dart';
 import 'features/game/game_screen.dart';
+import 'features/game/widgets/warm_up.dart';
 import 'features/home/home_screen.dart';
 import 'features/online/online_entry_screen.dart';
 import 'features/online/room_screen.dart';
@@ -44,6 +45,8 @@ class BelotApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Load the sound pools now, not on the first sound mid-game.
+    ref.read(soundPlayerProvider);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       onGenerateTitle: (ctx) => AppLocalizations.of(ctx).appTitle,
@@ -59,7 +62,13 @@ class BelotApp extends ConsumerWidget {
       builder: (context, child) => Listener(
         behavior: HitTestBehavior.translucent,
         onPointerDown: (_) => ref.read(soundPlayerProvider).unlock(),
-        child: child,
+        // The warm-up paints underneath the (opaque) screens.
+        child: Stack(
+          children: [
+            const Positioned(left: 0, top: 0, child: TableWarmUp()),
+            ?child,
+          ],
+        ),
       ),
       routes: {
         '/': (_) => const _RootGate(),

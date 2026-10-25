@@ -384,7 +384,7 @@ void main() {
     await settle(t);
     await t.ensureVisible(find.byKey(const Key('start-game')));
     await t.tap(find.byKey(const Key('start-game')));
-    await settle(t, 4);
+    await settle(t, 10); // page transition, then the deal starts
     int backs() => find
         .byWidgetPredicate((w) => w is PlayingCardView && !w.faceUp)
         .evaluate()
@@ -394,7 +394,7 @@ void main() {
     expect(game.bids, isEmpty, reason: 'bots hold during the deal');
     await settle(t, 40);
     expect(backs(), 0);
-    expect(sound.played.where((s) => s == Sfx.deal).length, 20);
+    expect(sound.played, isEmpty, reason: 'dealing is silent');
     await finish(t, container);
   });
 

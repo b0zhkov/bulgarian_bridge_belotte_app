@@ -1,46 +1,133 @@
 <!DOCTYPE html>
-<html>
+<html lang="bg">
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
+  <!-- Replaced by `flutter build web --base-href …`. -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="Белот — Bulgarian Bridge Belote">
+  <meta name="description" content="Български белот: офлайн срещу ботове или онлайн с приятели.">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
 
-  <!-- iOS meta tags & icons -->
+  <!-- Installable app (Android / desktop via the manifest, iOS via these). -->
   <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="bulgarian_bridge_belotte_app">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
-
-  <!-- Favicon -->
+  <meta name="apple-mobile-web-app-title" content="Белот">
+  <meta name="application-name" content="Белот">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
   <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="manifest" href="manifest.json">
 
   <title>Белот</title>
-  <link rel="manifest" href="manifest.json">
+  <style>
+    /* Launch colours: black like the app, also behind the iOS status bar. */
+    html, body { margin: 0; height: 100%; background: #000; }
+  </style>
+  <script>
+    // PWA glue used by the app (lib/features/pwa): install prompt, update
+    // detection, standalone check. Works without Flutter running yet.
+    (function () {
+      const listeners = [];
+      const state = { installEvent: null, waiting: null, installed: false };
+      const notify = () => listeners.slice().forEach((f) => { try { f(); } catch (e) {} });
+      const standalone = () =>
+        window.matchMedia('(display-mode: standalone)').matches ||
+        window.matchMedia('(display-mode: fullscreen)').matches ||
+        window.navigator.standalone === true;
+      const ua = navigator.userAgent || '';
+      const ios = /iPad|iPhone|iPod/.test(ua) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault(); // shown from the app's own button instead
+        state.installEvent = e;
+        notify();
+      });
+      window.addEventListener('appinstalled', () => {
+        state.installEvent = null;
+        state.installed = true;
+        notify();
+      });
+      window.matchMedia('(display-mode: standalone)').addEventListener?.('change', notify);
+
+      window.belotPwa = {
+        isStandalone: standalone,
+        isIos: () => ios,
+        // iOS Safari has no install prompt; the user adds it via Share.
+        isIosSafari: () => ios && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//.test(ua),
+        canPrompt: () => !!state.installEvent,
+        wasInstalled: () => state.installed,
+        promptInstall: async () => {
+          const e = state.installEvent;
+          if (!e) return 'unavailable';
+          state.installEvent = null;
+          e.prompt();
+          const choice = await e.userChoice;
+          notify();
+          return choice.outcome;
+        },
+        updateReady: () => !!state.waiting,
+        applyUpdate: () => {
+          if (state.waiting) state.waiting.postMessage({ type: 'SKIP_WAITING' });
+        },
+        onChange: (f) => listeners.push(f),
+      };
+
+      if (!('serviceWorker' in navigator)) return;
+      const hadController = !!navigator.serviceWorker.controller;
+      let reloading = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        // First install takes control silently; an update reloads once.
+        if (!hadController || reloading) return;
+        reloading = true;
+        window.location.reload();
+      });
+      window.addEventListener('load', async () => {
+        try {
+          const reg = await navigator.serviceWorker.register('sw.js', { scope: './' });
+          const track = (w) => {
+            if (!w) return;
+            const ready = () => {
+              if (w.state === 'installed' && navigator.serviceWorker.controller) {
+                state.waiting = w;
+                notify();
+              }
+            };
+            ready();
+            w.addEventListener('statechange', ready);
+          };
+          if (reg.waiting && navigator.serviceWorker.controller) {
+            // A new version finished downloading last time: apply it now,
+            // at launch, before anything is on screen.
+            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+            return;
+          }
+          track(reg.waiting);
+          track(reg.installing);
+          reg.addEventListener('updatefound', () => track(reg.installing));
+          // Look for a new version when the app comes back to the foreground.
+          document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') reg.update().catch(() => {});
+          });
+          // Let the worker cache what this first visit loaded before it
+          // was in control (engine, fonts), for offline play.
+          const sw = await navigator.serviceWorker.ready;
+          const urls = performance.getEntriesByType('resource').map((r) => r.name);
+          (sw.active || reg.active)?.postMessage({ type: 'CACHE_URLS', urls: [location.href, ...urls] });
+          setTimeout(() => {
+            const later = performance.getEntriesByType('resource').map((r) => r.name);
+            navigator.serviceWorker.controller?.postMessage({ type: 'CACHE_URLS', urls: later });
+          }, 8000);
+        } catch (e) {
+          console.warn('Service worker registration failed:', e);
+        }
+      });
+    })();
+  </script>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
-
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

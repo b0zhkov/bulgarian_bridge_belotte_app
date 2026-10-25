@@ -119,6 +119,34 @@ Flutter app for Android, iOS and web. Rules follow [belot.bg](https://belot.bg/b
   room), names on both teams, final score, win or loss, and the per-deal rows, so tapping it reopens that match's
   Ние/Вие score sheet.
 
+## Beta 9 — installable web app, smooth deal, swoosh
+- **Install (PWA)** from https://b0zhkov.github.io/bulgarian_bridge_belotte_app/ on Android (Chrome: *Инсталирай*
+  on home, the browser's own dialog) and iOS (Safari: *Как?* → Сподели → Добави към началния екран). Never shown
+  when running installed (display-mode standalone / `navigator.standalone`); dismissal is remembered.
+  `web/manifest.json` (Белот, standalone, portrait, black theme/background, scope and start_url
+  `/bulgarian_bridge_belotte_app/`), icons drawn by `tool/make_icons.py` (any, maskable, apple-touch-icon,
+  favicon), iOS meta tags in `web/index.html`.
+- **Service worker** `web/sw.js`, filled in after the web build by `tool/make_sw.py` (CI does this): a version
+  hash of the build and the app-shell precache. Cache-first per version, so loads are instant and offline play
+  works; CanvasKit/fonts are cached on first use. A new release installs a new worker: the home screen shows
+  *Има нова версия — Обнови*, otherwise it is applied on the next launch; old caches are deleted. The app checks
+  for updates whenever it returns to the foreground. JS glue is `window.belotPwa` (index.html), Dart side in
+  `lib/features/pwa/`.
+- **Deal lag fixed.** Cause: the deal started on the very first frame of the table page, while the page was still
+  transitioning in, and those first frames were very slow to paint (first use of card shaders, text, emoji
+  font). The animation clock ran on wall time, so the pile sat frozen during the stall and the cards then
+  jumped. Now (a) `TableWarmUp` paints the table's cards, emoji and fonts once at app start under the home
+  screen; (b) the deal waits for the page transition to finish; (c) the deal clock advances at most 50 ms per
+  frame, so a slow frame never makes cards jump. Measured in headless Chrome (software GL), tap → deal:
+  before, the first card moved 435 ms after the deal start and had already skipped 350 ms of flight (frame gaps
+  343/178/159/209 ms). After, every flight starts from 0 (first step 33 ms); worst frame during the deal
+  is about 110 ms; the route-in frames happen before the deal. Build with `--dart-define=PERF_LOG=true` to log
+  frame timings (`core/perf/perf_log.dart`).
+- **Sound**: a swoosh when any seat plays a card, started by the card's flight to the table
+  (`widgets/trick_area.dart`; plays that arrive together online fly 110 ms apart, each with its swoosh). The deal
+  and match result sounds are kept; all other effects were removed. The player is created and its pools
+  preloaded at app start, and on the web every voice is unlocked by the first tap. Haptics are unchanged.
+
 ## Structure
 ```
 lib/
@@ -146,7 +174,7 @@ lib/
 flutter pub get
 flutter test             # engine + widget tests
 flutter run -d chrome    # or an Android device
-flutter build web        # build/web
+flutter build web        # build/web (then: python3 tool/make_sw.py)
 flutter build apk        # build/app/outputs/flutter-apk/app-release.apk
 ```
 The table can be opened directly at `/#/game` on web.

@@ -154,8 +154,8 @@ class GameController extends Notifier<TableState> implements TableActions {
 
   /// Bots wait while the cards are being dealt on screen.
   DateTime? _dealHoldUntil;
-  void _holdForDeal(int cards) =>
-      _dealHoldUntil = clock.now().add(DealTiming.hold(cards));
+  void _holdForDeal(int cards, {Duration extra = Duration.zero}) =>
+      _dealHoldUntil = clock.now().add(DealTiming.hold(cards) + extra);
 
   static Duration botDelay = const Duration(milliseconds: 600);
   static Duration trickPause = const Duration(milliseconds: 1100);
@@ -180,7 +180,7 @@ class GameController extends Notifier<TableState> implements TableActions {
       for (final s in [1, 2, 3]) s: BotAgent(level, seed: seed + s),
     };
     _rnd = Random(seed);
-    _holdForDeal(20);
+    _holdForDeal(20, extra: DealTiming.pageIn);
     final initial = TableState(game: BelotEngine.newMatch(seed: seed));
     Future.microtask(_schedule);
     return initial;

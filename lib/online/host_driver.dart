@@ -170,7 +170,7 @@ class HostDriver {
     );
     version++;
     ready.clear();
-    _holdUntil = clock.now().add(DealTiming.hold(20));
+    _holdUntil = clock.now().add(DealTiming.hold(20) + DealTiming.pageIn);
     _agents.clear();
     _publish(extra: {'$_room/meta/status': 'playing'});
     _schedule();

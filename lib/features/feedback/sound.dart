@@ -4,16 +4,13 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Sound effects (assets/sounds/*.wav, synthesized, CC0).
+import '../profile/profile_controller.dart';
+
+/// Sound effects (assets/sounds/*.wav, synthesized, CC0). Deliberately few:
+/// a swoosh when any card is played (started together with its flight to
+/// the table) and the deal / match result.
 enum Sfx {
-  deal('deal', 6, 0.5),
-  play('play', 4, 0.8),
-  collect('collect', 2, 0.7),
-  turn('turn', 1, 0.6),
-  announce('announce', 2, 0.8),
-  belot('belot', 2, 0.8),
-  contra('contra', 1, 0.9),
-  recontra('recontra', 1, 0.9),
+  swoosh('swoosh', 4, 0.8),
   dealMade('deal_made', 1, 0.8),
   dealFailed('deal_failed', 1, 0.8),
   matchWon('match_won', 1, 0.9),
@@ -22,7 +19,7 @@ enum Sfx {
   const Sfx(this.file, this.voices, this.volume);
   final String file;
 
-  /// Simultaneous voices in the pool (cards are played in quick bursts).
+  /// Simultaneous voices in the pool (several cards can land together).
   final int voices;
   final double volume;
 }
@@ -35,9 +32,10 @@ abstract class SoundPlayer {
   void unlock();
 }
 
-/// audioplayers-based player with a small pool per effect so rapid sounds
-/// (dealing, card plays) overlap cleanly instead of cutting each other off.
-/// Mixes with other apps' audio and respects the iOS silent switch.
+/// audioplayers-based player with a small preloaded pool per effect, so a
+/// sound starts the moment it is asked for. Created at app start (see
+/// `main.dart`), not on the first sound. Mixes with other apps' audio and
+/// respects the iOS silent switch.
 class PooledSoundPlayer implements SoundPlayer {
   PooledSoundPlayer() {
     unawaited(_init());
@@ -62,11 +60,13 @@ class PooledSoundPlayer implements SoundPlayer {
         ).build(),
       );
       for (final s in Sfx.values) {
+        // Every voice preloaded: no source loading when a card is played
+        // (and on web every element can be unlocked by the first tap).
         _pools[s] = await AudioPool.create(
           source: AssetSource('${s.file}.wav'),
           audioCache: cache,
           maxPlayers: s.voices,
-          minPlayers: 1,
+          minPlayers: s.voices,
           playerMode: _lowLatency
               ? PlayerMode.lowLatency
               : PlayerMode.mediaPlayer,
@@ -79,11 +79,19 @@ class PooledSoundPlayer implements SoundPlayer {
 
   @override
   void unlock() {
-    if (_unlocked) return;
+    // Before the pools exist there is nothing to unlock: the next tap
+    // tries again.
+    if (_unlocked || _pools.length < Sfx.values.length) return;
     _unlocked = true;
-    // Touch every pool once inside the gesture (Safari needs it per element).
-    for (final p in _pools.values) {
-      unawaited(p.start(volume: 0).then((stop) => stop()).catchError((_) {}));
+    // Touch every voice once inside the gesture (Safari unlocks per
+    // element).
+    for (final s in Sfx.values) {
+      final pool = _pools[s]!;
+      for (var i = 0; i < s.voices; i++) {
+        unawaited(
+          pool.start(volume: 0).then((stop) => stop()).catchError((_) {}),
+        );
+      }
     }
   }
 
@@ -112,3 +120,9 @@ class SilentSoundPlayer implements SoundPlayer {
 }
 
 final soundPlayerProvider = Provider<SoundPlayer>((ref) => PooledSoundPlayer());
+
+/// Plays [s] if sounds are enabled in the settings.
+void playSfx(WidgetRef ref, Sfx s) {
+  if (!ref.read(soundEnabledProvider)) return;
+  ref.read(soundPlayerProvider).play(s);
+}

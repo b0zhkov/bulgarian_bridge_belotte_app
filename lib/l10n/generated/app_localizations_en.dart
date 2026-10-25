@@ -701,4 +701,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileAndStatsDescription => 'Avatar, name, stats and history';
+
+  @override
+  String get installTitle => 'Install Belot';
+
+  @override
+  String get installSubtitle => 'Full screen, fast and offline.';
+
+  @override
+  String get installButton => 'Install';
+
+  @override
+  String get installHow => 'How?';
+
+  @override
+  String get installIosTitle => 'Add Belot to your Home Screen';
+
+  @override
+  String get installIosStep1 => 'Tap “Share” in Safari\'s toolbar.';
+
+  @override
+  String get installIosStep2 => 'Choose “Add to Home Screen”.';
+
+  @override
+  String get installIosStep3 => 'Tap “Add” — done.';
+
+  @override
+  String get installDismiss => 'Hide';
+
+  @override
+  String get updateAvailable => 'A new version is available';
+
+  @override
+  String get updateNow => 'Update';
 }

@@ -7,6 +7,7 @@ import 'package:bulgarian_bridge_belotte_app/features/stats/stats_controller.dar
 import 'package:bulgarian_bridge_belotte_app/main.dart';
 import 'package:flutter/material.dart' hide Card;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bulgarian_bridge_belotte_app/features/feedback/sound.dart';
 import 'package:bulgarian_bridge_belotte_app/core/constants/deal_timing.dart';
@@ -20,6 +21,7 @@ Future<ProviderContainer> pumpApp(
   WidgetTester t, {
   Map<String, Object> prefs = const {'player_name': 'Георги'},
   Size size = const Size(390, 844),
+  List<Override> overrides = const [],
 }) async {
   t.view.physicalSize = size;
   t.view.devicePixelRatio = 1;
@@ -30,6 +32,7 @@ Future<ProviderContainer> pumpApp(
     overrides: [
       sharedPrefsProvider.overrideWithValue(sp),
       soundPlayerProvider.overrideWithValue(sound),
+      ...overrides,
     ],
   );
   addTearDown(container.dispose);

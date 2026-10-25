@@ -1,28 +1,48 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart' hide Card;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/rules/rules.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../feedback/sound.dart';
 import '../game_controller.dart';
 import '../labels.dart';
 import 'playing_card.dart';
 
 /// Centre of the table: the four cards of the current trick arranged in a
 /// cross (you at the bottom, partner at the top). Cards fly in from their
-/// owner's side; a won trick slides off toward the winner's seat.
-class TrickArea extends StatefulWidget {
+/// owner's side (with a swoosh as each one starts to move, whoever played
+/// it); a won trick slides off toward the winner's seat.
+class TrickArea extends ConsumerStatefulWidget {
   const TrickArea({super.key, required this.table});
   final TableState table;
 
+  /// Gap between cards that arrive in one state update (online updates can
+  /// coalesce several plays), so each flies and swooshes on its own.
+  static const coalescedGap = Duration(milliseconds: 110);
+
   @override
-  State<TrickArea> createState() => _TrickAreaState();
+  ConsumerState<TrickArea> createState() => _TrickAreaState();
 }
 
-class _TrickAreaState extends State<TrickArea>
+class _TrickAreaState extends ConsumerState<TrickArea>
     with SingleTickerProviderStateMixin {
   TableState get table => widget.table;
+
+  /// Cards already on the table when this view appeared (e.g. rejoining
+  /// mid-trick) don't swoosh.
+  late final Set<String> _silent;
+
+  /// Start delays of cards that arrived together.
+  final Map<String, Duration> _delays = {};
+
+  static Set<String> _keysOf(TableState t) => {
+    for (final p in t.visibleTrick.plays) _key(t.visibleTrick, p),
+  };
+  static String _key(Trick t, Play p) => '${t.leader}-${p.card.code}';
 
   /// The trick being collected (animating toward its winner).
   Trick? _leaving;
@@ -37,8 +57,25 @@ class _TrickAreaState extends State<TrickArea>
       });
 
   @override
+  void initState() {
+    super.initState();
+    _silent = _keysOf(widget.table);
+  }
+
+  @override
   void didUpdateWidget(TrickArea old) {
     super.didUpdateWidget(old);
+    final seen = _keysOf(old.table);
+    var i = 0;
+    for (final p in widget.table.visibleTrick.plays) {
+      final k = _key(widget.table.visibleTrick, p);
+      if (seen.contains(k) || _delays.containsKey(k)) continue;
+      _delays[k] = TrickArea.coalescedGap * i++;
+    }
+    if (_delays.length > 16) {
+      final live = _keysOf(widget.table);
+      _delays.removeWhere((k, _) => !live.contains(k));
+    }
     final held = old.table.displayTrick;
     if (held != null &&
         held.winner != null &&
@@ -112,7 +149,11 @@ class _TrickAreaState extends State<TrickArea>
                 ),
             for (final p in trick.plays)
               _FlyingCard(
-                key: ValueKey('${trick.leader}-${p.card.code}'),
+                key: ValueKey(_key(trick, p)),
+                delay: _delays[_key(trick, p)] ?? Duration.zero,
+                onLaunch: _silent.contains(_key(trick, p))
+                    ? null
+                    : () => playSfx(ref, Sfx.swoosh),
                 from: _dir(p.seat) * (box.maxWidth * 0.6),
                 // Straight, symmetric cross snapped to whole pixels.
                 target: Offset(
@@ -138,32 +179,76 @@ class _TrickAreaState extends State<TrickArea>
   }
 }
 
-class _FlyingCard extends StatelessWidget {
+/// A card flying in from its owner's side. [onLaunch] fires on the frame
+/// its flight starts (after [delay]), so the swoosh matches the motion.
+class _FlyingCard extends StatefulWidget {
   const _FlyingCard({
     super.key,
     required this.from,
     required this.target,
     required this.child,
+    this.delay = Duration.zero,
+    this.onLaunch,
   });
   final Offset from;
   final Offset target;
   final Widget child;
+  final Duration delay;
+  final VoidCallback? onLaunch;
+
+  @override
+  State<_FlyingCard> createState() => _FlyingCardState();
+}
+
+class _FlyingCardState extends State<_FlyingCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 320),
+  );
+  late final Animation<double> _t = CurvedAnimation(
+    parent: _ctrl,
+    curve: Curves.easeOutCubic,
+  );
+  Timer? _wait;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.delay > Duration.zero) {
+      _wait = Timer(widget.delay, _launch);
+    } else {
+      _launch();
+    }
+  }
+
+  void _launch() {
+    if (!mounted) return;
+    widget.onLaunch?.call();
+    _ctrl.forward();
+  }
+
+  @override
+  void dispose() {
+    _wait?.cancel();
+    _ctrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 320),
-      curve: Curves.easeOutCubic,
-      builder: (context, t, child) {
-        final o = target + from * (1 - t);
+    return AnimatedBuilder(
+      animation: _t,
+      builder: (context, child) {
+        final t = _t.value;
+        final o = widget.target + widget.from * (1 - t);
         return Positioned(
           left: o.dx,
           top: o.dy,
           child: Opacity(opacity: t.clamp(0, 1), child: child),
         );
       },
-      child: child,
+      child: widget.child,
     );
   }
 }

@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide Card;
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/deal_timing.dart';
+import '../../../core/perf/perf_log.dart';
 import '../../../core/rules/rules.dart';
 import '../../feedback/sound.dart';
 import '../../profile/profile_controller.dart';
@@ -33,7 +35,8 @@ enum Haptic { light, medium, heavy, selection }
 
 /// Wraps the table: plays the dealing animation (cards fly from the dealer
 /// counter-clockwise, 3 + 2 and later 3 each, the player's hand fans in),
-/// and turns state changes into sounds and haptics. Everything is derived
+/// and turns state changes into haptics and the deal / match result sound
+/// (card swooshes come from [TrickArea]). Everything is derived
 /// from consecutive [TableState]s, so online clients stay in sync and a
 /// client that (re)joins mid-deal just shows the current state.
 class TableEffects extends ConsumerStatefulWidget {
@@ -56,18 +59,25 @@ class _TableEffectsState extends ConsumerState<TableEffects>
     with SingleTickerProviderStateMixin {
   final _anchors = List.generate(4, (_) => GlobalKey());
   final _stackKey = GlobalKey();
-  late final AnimationController _ctrl = AnimationController(vsync: this)
-    ..addListener(_tick)
-    ..addStatusListener((s) {
-      if (s == AnimationStatus.completed) _finishDeal();
-    });
+
+  /// Deal clock. Advances with the frames but at most [_maxStep] per frame,
+  /// so a slow frame (first paint of the table) never makes cards jump or
+  /// land unseen: they keep flying smoothly from the first frame instead.
+  late final Ticker _ticker = createTicker(_onTick);
+  final _clock = ValueNotifier<Duration>(Duration.zero);
+  static const _maxStep = Duration(milliseconds: 50);
+  Duration _lastTick = Duration.zero;
+  Duration _total = Duration.zero;
 
   List<_Flight> _flights = const [];
   int _dealer = 0;
   List<Card> _myCards = const [];
   int _myArrived = 0;
-  int _launched = 0;
   Object? _turnKey;
+
+  /// A deal waiting for the page transition to finish (the table is still
+  /// sliding in; its first frames are the most expensive ones).
+  bool _waiting = false;
 
   @override
   void initState() {
@@ -78,15 +88,40 @@ class _TableEffectsState extends ConsumerState<TableEffects>
     if (g.phase == GamePhase.bidding &&
         g.bids.isEmpty &&
         g.hands[0].length == 5) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _startDeal(g, const [3, 2], g.hands[0]);
-      });
+      _prepareDeal(g, const [3, 2], g.hands[0]);
+      _waiting = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _whenSettled());
     }
+  }
+
+  /// Starts the clock once the route is fully in and one settled frame
+  /// has been drawn.
+  void _whenSettled() {
+    if (!mounted || !_waiting) return;
+    if (_skipAnimation) {
+      _waiting = false;
+      _finishDeal();
+      return;
+    }
+    final anim = ModalRoute.of(context)?.animation;
+    if (anim != null && !anim.isCompleted) {
+      void listener(AnimationStatus s) {
+        if (s != AnimationStatus.completed) return;
+        anim.removeStatusListener(listener);
+        WidgetsBinding.instance.addPostFrameCallback((_) => _whenSettled());
+      }
+
+      anim.addStatusListener(listener);
+      return;
+    }
+    _waiting = false;
+    _run();
   }
 
   @override
   void dispose() {
-    _ctrl.dispose();
+    _ticker.dispose();
+    _clock.dispose();
     super.dispose();
   }
 
@@ -123,28 +158,60 @@ class _TableEffectsState extends ConsumerState<TableEffects>
 
   // ------------------------------------------------------------- dealing
 
-  bool get _reducedMotion =>
-      MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+  bool get _skipAnimation =>
+      (MediaQuery.maybeDisableAnimationsOf(context) ?? false) ||
+      DealTiming.scale == 0;
 
   void _startDeal(GameState g, List<int> rounds, List<Card> myCards) {
-    if (_reducedMotion || DealTiming.scale == 0) {
+    _waiting = false;
+    _prepareDeal(g, rounds, myCards);
+    _run();
+  }
+
+  void _prepareDeal(GameState g, List<int> rounds, List<Card> myCards) {
+    final order = DealTiming.order(g.dealer, rounds);
+    _ticker.stop();
+    _clock.value = Duration.zero;
+    _total = DealTiming.total(order.length);
+    // Called from initState / didUpdateWidget: a build follows anyway.
+    _dealer = g.dealer;
+    _flights = [
+      for (var i = 0; i < order.length; i++)
+        _Flight(order[i], DealTiming.stagger * i),
+    ];
+    _myCards = myCards;
+    _myArrived = 0;
+  }
+
+  void _run() {
+    if (_skipAnimation) {
       _finishDeal();
       return;
     }
-    final order = DealTiming.order(g.dealer, rounds);
-    setState(() {
-      _dealer = g.dealer;
-      _flights = [
-        for (var i = 0; i < order.length; i++)
-          _Flight(order[i], DealTiming.stagger * i),
-      ];
-      _myCards = myCards;
-      _myArrived = 0;
-      _launched = 0;
-    });
-    _ctrl
-      ..duration = DealTiming.total(order.length)
-      ..forward(from: 0);
+    PerfLog.mark('deal clock start (${_flights.length} cards)');
+    _firstTickLogged = false;
+    _lastTick = Duration.zero;
+    _ticker.start();
+  }
+
+  void _onTick(Duration now) {
+    final step = now - _lastTick;
+    _lastTick = now;
+    final e = _clock.value + (step > _maxStep ? _maxStep : step);
+    if (PerfLog.enabled && !_firstTickLogged && e > Duration.zero) {
+      _firstTickLogged = true;
+      PerfLog.mark('deal first moving tick, clock ${e.inMilliseconds}ms');
+    }
+    _clock.value = e;
+    var mine = 0;
+    for (final f in _flights) {
+      if (f.seat == 0 && e >= f.delay + DealTiming.flight) mine++;
+    }
+    if (mine != _myArrived) setState(() => _myArrived = mine);
+    if (e >= _total) {
+      _ticker.stop();
+      _finishDeal();
+    }
   }
 
   void _finishDeal() {
@@ -158,21 +225,7 @@ class _TableEffectsState extends ConsumerState<TableEffects>
     _checkTurn();
   }
 
-  Duration get _elapsed => (_ctrl.duration ?? Duration.zero) * _ctrl.value;
-
-  void _tick() {
-    final e = _elapsed;
-    var launched = 0, mine = 0;
-    for (final f in _flights) {
-      if (e >= f.delay) launched++;
-      if (f.seat == 0 && e >= f.delay + DealTiming.flight) mine++;
-    }
-    for (var i = _launched; i < launched; i++) {
-      _sound(Sfx.deal, volume: 0.7);
-    }
-    _launched = launched;
-    if (mine != _myArrived) setState(() => _myArrived = mine);
-  }
+  bool _firstTickLogged = false;
 
   Offset? _centerOf(int seat) {
     final box = _anchors[seat].currentContext?.findRenderObject() as RenderBox?;
@@ -189,12 +242,12 @@ class _TableEffectsState extends ConsumerState<TableEffects>
     final back = RepaintBoundary(
       child: PlayingCardView(card: null, faceUp: false, width: w),
     );
-    return AnimatedBuilder(
-      animation: _ctrl,
-      builder: (context, _) {
+    return ValueListenableBuilder<Duration>(
+      valueListenable: _clock,
+      builder: (context, e, _) {
         final from = _centerOf(_dealer);
-        if (from == null) return const SizedBox.shrink();
-        final e = _elapsed;
+        // Nothing on the table until the clock runs (no frozen pile).
+        if (from == null || !_ticker.isActive) return const SizedBox.shrink();
         final flightUs = DealTiming.flight.inMicroseconds;
         final children = <Widget>[];
         // The undealt pile at the dealer.
@@ -235,10 +288,7 @@ class _TableEffectsState extends ConsumerState<TableEffects>
 
   // ------------------------------------------------------ sound & haptics
 
-  void _sound(Sfx s, {double volume = 1}) {
-    if (!ref.read(soundEnabledProvider)) return;
-    ref.read(soundPlayerProvider).play(s, volume: volume);
-  }
+  void _sound(Sfx s) => playSfx(ref, s);
 
   void _haptic(Haptic h) {
     if (kIsWeb || !ref.read(hapticsEnabledProvider)) return;
@@ -261,16 +311,8 @@ class _TableEffectsState extends ConsumerState<TableEffects>
       final before = o.tricks.length * 4 + o.currentTrick.plays.length;
       final after = n.tricks.length * 4 + n.currentTrick.plays.length;
       if (after > before) {
-        // One tap per card (state updates can coalesce several plays).
-        for (var i = 0; i < after - before; i++) {
-          if (i == 0) {
-            _sound(Sfx.play);
-          } else {
-            Future.delayed(const Duration(milliseconds: 90) * i, () {
-              if (mounted) _sound(Sfx.play);
-            });
-          }
-        }
+        // (The swoosh is played by the trick area when the card starts
+        // flying.)
         final plays = [
           for (final t in [...n.tricks, n.currentTrick]) ...t.plays,
         ];
@@ -280,11 +322,7 @@ class _TableEffectsState extends ConsumerState<TableEffects>
       }
       // Bids.
       for (final b in n.bids.skip(o.bids.length)) {
-        if (b.bid.kind == BidKind.double) {
-          _sound(Sfx.contra);
-          _haptic(Haptic.heavy);
-        } else if (b.bid.kind == BidKind.redouble) {
-          _sound(Sfx.recontra);
+        if (b.bid.kind == BidKind.double || b.bid.kind == BidKind.redouble) {
           _haptic(Haptic.heavy);
         } else if (b.seat == kHumanSeat) {
           _haptic(Haptic.selection);
@@ -293,41 +331,42 @@ class _TableEffectsState extends ConsumerState<TableEffects>
       // Declarations / belot.
       final a = n.lastAnnouncement;
       if (a != null && !identical(a, o.lastAnnouncement) && after > before) {
-        _sound(a.belot && a.declarations.isEmpty ? Sfx.belot : Sfx.announce);
-        if (a.belot && a.declarations.isNotEmpty) {
-          Future.delayed(const Duration(milliseconds: 260), () {
-            if (mounted) _sound(Sfx.belot);
-          });
-        }
         _haptic(Haptic.light);
       }
       // Trick collected (the held trick leaves the table).
       final held = old.displayTrick;
       if (held != null && now.displayTrick == null) {
-        _sound(Sfx.collect);
         if (held.winner != null && teamOf(held.winner!) == 0) {
           _haptic(Haptic.medium);
         }
       }
-      // Deal / match result.
+      // Deal / match result (after the last card's swoosh when they
+      // arrive together).
       if (n.history.length > o.history.length) {
         final d = n.history.last;
+        final Sfx result;
         if (n.phase == GamePhase.matchOver) {
-          final won = n.winnerTeam == 0;
-          _sound(won ? Sfx.matchWon : Sfx.matchLost);
+          result = n.winnerTeam == 0 ? Sfx.matchWon : Sfx.matchLost;
           _haptic(Haptic.heavy);
         } else {
-          _sound(
-            d.outcome == DealOutcome.outside ? Sfx.dealMade : Sfx.dealFailed,
-          );
+          result = d.outcome == DealOutcome.outside
+              ? Sfx.dealMade
+              : Sfx.dealFailed;
           _haptic(Haptic.medium);
+        }
+        if (after > before) {
+          Future.delayed(const Duration(milliseconds: 350), () {
+            if (mounted) _sound(result);
+          });
+        } else {
+          _sound(result);
         }
       }
     }
     _checkTurn();
   }
 
-  /// Quiet chime when a decision becomes the player's (not while dealing;
+  /// Haptic tick when a decision becomes the player's (not while dealing;
   /// checked again when the deal animation ends).
   void _checkTurn() {
     final now = widget.table, n = now.game;
@@ -340,11 +379,10 @@ class _TableEffectsState extends ConsumerState<TableEffects>
     );
     if (key == _turnKey) return;
     _turnKey = key;
-    _sound(Sfx.turn);
     _haptic(Haptic.selection);
   }
 
-  bool get _dealingNow => _ctrl.isAnimating;
+  bool get _dealingNow => _waiting || _ticker.isActive;
 
   @override
   Widget build(BuildContext context) {

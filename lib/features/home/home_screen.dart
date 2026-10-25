@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/models/card.dart' as m;
+import '../../core/perf/perf_log.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/suit_icon.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../game/widgets/playing_card.dart';
 import '../profile/profile_controller.dart';
+import '../pwa/pwa_banners.dart';
 import '../stats/stats_controller.dart';
 import '../profile/profile_screen.dart';
 
@@ -75,6 +77,7 @@ class HomeScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
+                const PwaBanners(),
                 const SizedBox(height: Gap.xl),
                 if (name != null)
                   Align(
@@ -362,6 +365,7 @@ class _OfflineStartSheet extends ConsumerWidget {
               label: l.play,
               selected: true,
               onTap: () {
+                PerfLog.mark('tap play');
                 Navigator.of(context).pop();
                 Navigator.of(context).pushNamed('/game');
               },

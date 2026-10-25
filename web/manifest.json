@@ -1,23 +1,30 @@
 {
+    "id": "/bulgarian_bridge_belotte_app/",
     "name": "Белот",
     "short_name": "Белот",
-    "start_url": ".",
+    "description": "Български белот: офлайн срещу ботове или онлайн с приятели.",
+    "lang": "bg",
+    "dir": "ltr",
+    "start_url": "./",
+    "scope": "./",
     "display": "standalone",
+    "orientation": "portrait",
     "background_color": "#000000",
     "theme_color": "#000000",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "categories": ["games", "entertainment"],
     "prefer_related_applications": false,
     "icons": [
         {
             "src": "icons/Icon-192.png",
             "sizes": "192x192",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any"
         },
         {
             "src": "icons/Icon-512.png",
             "sizes": "512x512",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any"
         },
         {
             "src": "icons/Icon-maskable-192.png",
@@ -30,6 +37,12 @@
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable"
+        },
+        {
+            "src": "icons/apple-touch-icon.png",
+            "sizes": "180x180",
+            "type": "image/png",
+            "purpose": "any"
         }
     ]
 }

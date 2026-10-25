@@ -23,6 +23,8 @@ jobs:
       - run: flutter analyze
       - run: flutter test
       - run: flutter build web --release --base-href /bulgarian_bridge_belotte_app/
+      # Service worker: version hash + app-shell precache list.
+      - run: python3 tool/make_sw.py build/web
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
         with:

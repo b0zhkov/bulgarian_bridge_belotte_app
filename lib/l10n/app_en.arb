@@ -278,5 +278,16 @@
         "type": "String"
       }
     }
-  }
+  },
+  "installTitle": "Install Belot",
+  "installSubtitle": "Full screen, fast and offline.",
+  "installButton": "Install",
+  "installHow": "How?",
+  "installIosTitle": "Add Belot to your Home Screen",
+  "installIosStep1": "Tap “Share” in Safari's toolbar.",
+  "installIosStep2": "Choose “Add to Home Screen”.",
+  "installIosStep3": "Tap “Add” — done.",
+  "installDismiss": "Hide",
+  "updateAvailable": "A new version is available",
+  "updateNow": "Update"
 }

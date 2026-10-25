@@ -700,4 +700,37 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get profileAndStatsDescription => 'Аватар, име, статистика и история';
+
+  @override
+  String get installTitle => 'Инсталирай Белот';
+
+  @override
+  String get installSubtitle => 'На цял екран, бързо и без интернет.';
+
+  @override
+  String get installButton => 'Инсталирай';
+
+  @override
+  String get installHow => 'Как?';
+
+  @override
+  String get installIosTitle => 'Добави Белот на началния екран';
+
+  @override
+  String get installIosStep1 => 'Натисни „Сподели“ в лентата на Safari.';
+
+  @override
+  String get installIosStep2 => 'Избери „Добави към началния екран“.';
+
+  @override
+  String get installIosStep3 => 'Натисни „Добави“ — готово.';
+
+  @override
+  String get installDismiss => 'Скрий';
+
+  @override
+  String get updateAvailable => 'Има нова версия';
+
+  @override
+  String get updateNow => 'Обнови';
 }

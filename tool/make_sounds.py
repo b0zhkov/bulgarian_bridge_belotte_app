@@ -1,7 +1,8 @@
 """Synthesizes the game's sound effects (CC0, made for this app).
 
 Run: python3 tool/make_sounds.py  -> assets/sounds/*.wav (22.05 kHz, mono, 16-bit).
-Soft and minimal: filtered noise for cards, sine/marimba-like tones for events.
+Soft and minimal: a filtered-noise swoosh for card plays, sine/marimba-like
+tones for the deal and match results.
 """
 import os
 import wave
@@ -64,42 +65,18 @@ def save(name, y, gain):
         w.writeframes(data.tobytes())
 
 
-# Card swish (deal): short airy band noise with a quick rise and fall.
-n = bandnoise(0.11, 1800, 7000)
-x = t(0.11)
-save('deal', n * np.sin(np.pi * x / 0.11) ** 2, 0.35)
-
-# Card play: soft tap = tiny noise click + low thump.
-n = bandnoise(0.07, 600, 3500) * env(int(SR * 0.07), 0.001, 70)
-thump = tone(170, 0.07, decay=45, harmonics=((1, 1.0),), attack=0.001)
-save('play', n * 0.7 + thump * 0.8, 0.55)
-
-# Trick collect: gentle longer slide with falling brightness.
-d = 0.24
-n1 = bandnoise(d, 900, 3000)
-n2 = bandnoise(d, 3000, 6500)
+# Card swoosh (a card is played): airy noise whose brightness sweeps up
+# then down, quick rise and a soft tail, so it reads as a card sliding
+# through the air onto the table.
+d = 0.2
 x = t(d)
-w = np.linspace(1, 0.1, len(x))
-shape = np.sin(np.pi * x / d) ** 1.5
-save('collect', (n1 + n2 * w) * shape, 0.32)
-
-# Your turn: very quiet two-partial chime.
-save('turn', tone(988, 0.45, decay=7, harmonics=((1, 1.0), (2.76, 0.12))), 0.18)
-
-# Announcement / declaration: pleasant two-note marimba.
-save('announce', seq([659.25, 987.77], 0.09, 0.32, decay=10,
-                     harmonics=((1, 1.0), (4, 0.08))), 0.45)
-
-# Belot: bright three-note arpeggio.
-save('belot', seq([783.99, 987.77, 1318.5], 0.075, 0.3, decay=11,
-                  harmonics=((1, 1.0), (4, 0.08))), 0.45)
-
-# Contra: distinct low double knock (descending fourth), slightly reedy.
-reedy = ((1, 1.0), (2, 0.35), (3, 0.25), (5, 0.1))
-save('contra', seq([440, 329.63], 0.12, 0.26, decay=12, harmonics=reedy), 0.55)
-
-# Recontra: three knocks, higher.
-save('recontra', seq([587.33, 440, 587.33], 0.1, 0.24, decay=13, harmonics=reedy), 0.55)
+bands = [(500, 1500), (1500, 3000), (3000, 5500), (5500, 9000)]
+peaks = [0.06, 0.08, 0.095, 0.11]
+y = np.zeros(len(x))
+for (lo, hi), pk in zip(bands, peaks):
+    y += bandnoise(d, lo, hi) * np.exp(-((x - pk) / 0.045) ** 2)
+shape = np.clip(x / 0.012, 0, 1) * np.exp(-np.clip(x - 0.11, 0, None) * 18)
+save('swoosh', y * shape, 0.42)
 
 # Deal result: made (outside) = rising major third; failed/hanging = soft falling.
 save('deal_made', seq([523.25, 659.25, 783.99], 0.11, 0.42, decay=7), 0.4)
@@ -109,6 +86,3 @@ save('deal_failed', seq([493.88, 392.0], 0.16, 0.5, decay=6), 0.38)
 save('match_won', seq([523.25, 659.25, 783.99, 1046.5], 0.13, 0.7, decay=4.5,
                       harmonics=((1, 1.0), (2, 0.2), (3, 0.08))), 0.5)
 save('match_lost', seq([392.0, 349.23, 293.66], 0.2, 0.7, decay=4.5), 0.42)
-
-# Silent clip used to unlock web audio on the first tap.
-save('silence', np.zeros(int(SR * 0.05)) + 1e-6, 0.0001)

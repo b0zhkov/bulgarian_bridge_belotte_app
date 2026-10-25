@@ -12,6 +12,12 @@ class DealTiming {
   static Duration get flight =>
       Duration(microseconds: (300000 * scale).round());
 
+  /// The first deal of a match starts when the table's page transition has
+  /// finished (its first frames are the most expensive ones): drivers add
+  /// this to that deal's hold.
+  static Duration get pageIn =>
+      Duration(microseconds: (500000 * scale).round());
+
   /// Duration of dealing [cards] cards (20 for 3+2, 12 for the last 3).
   static Duration total(int cards) =>
       stagger * (cards <= 0 ? 0 : cards - 1) + flight;
