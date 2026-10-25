@@ -94,12 +94,12 @@ class HomeScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: Gap.m),
                 _ModeCard(
+                  key: const Key('play-online'),
                   title: l.homeOnlineTitle,
                   subtitle: l.homeOnlineSubtitle,
                   colors: const [Color(0xFFFFE3E0), Color(0xFFFFF1D6)],
                   art: const Text('👥', style: TextStyle(fontSize: 44)),
-                  badge: l.comingSoon,
-                  onTap: null,
+                  onTap: () => Navigator.of(context).pushNamed('/online'),
                 ),
                 const SizedBox(height: Gap.m),
                 _StatsCard(stats: stats),
@@ -192,8 +192,7 @@ class _ModeCard extends StatelessWidget {
     required this.colors,
     required this.art,
     this.onTap,
-    this.badge,
-  });
+  }) : badge = null;
   final String title;
   final String subtitle;
   final List<Color> colors;

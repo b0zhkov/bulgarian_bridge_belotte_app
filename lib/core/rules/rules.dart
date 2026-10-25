@@ -5,3 +5,5 @@ export 'declarations.dart';
 export 'game_state.dart';
 export 'legal_moves.dart';
 export 'scoring.dart';
+export 'rotation.dart';
+export 'state_codec.dart';

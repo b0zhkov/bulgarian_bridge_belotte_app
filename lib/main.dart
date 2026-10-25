@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/theme/app_theme.dart';
 import 'features/game/game_screen.dart';
 import 'features/home/home_screen.dart';
+import 'features/online/online_entry_screen.dart';
+import 'features/online/room_screen.dart';
 import 'features/profile/name_screen.dart';
 import 'features/profile/profile_controller.dart';
 import 'features/settings/settings_screen.dart';
@@ -41,6 +43,17 @@ class BelotApp extends ConsumerWidget {
         '/': (_) => const _RootGate(),
         '/game': (_) => const GameScreen(),
         '/settings': (_) => const SettingsScreen(),
+        '/room': (_) => const RoomScreen(),
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/online') {
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (_) =>
+                OnlineEntryScreen(initialCode: settings.arguments as String?),
+          );
+        }
+        return null;
       },
     );
   }
@@ -53,9 +66,25 @@ class _RootGate extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final name = ref.watch(playerNameProvider);
+    if (name != null) _openInviteLinkOnce(context);
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
       child: name == null ? const NameScreen() : const HomeScreen(),
     );
   }
+}
+
+bool _inviteHandled = false;
+
+/// Web invite links (`?room=CODE`) open the join screen with the code.
+void _openInviteLinkOnce(BuildContext context) {
+  if (_inviteHandled) return;
+  _inviteHandled = true;
+  final code = Uri.base.queryParameters['room'];
+  if (code == null || code.isEmpty) return;
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (context.mounted) {
+      Navigator.of(context).pushNamed('/online', arguments: code);
+    }
+  });
 }

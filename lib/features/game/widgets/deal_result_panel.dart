@@ -13,10 +13,18 @@ class DealResultPanel extends StatelessWidget {
     required this.game,
     required this.onNext,
     required this.onNewMatch,
+    this.newMatchLabel,
+    this.waiting = false,
   });
   final GameState game;
   final VoidCallback onNext;
   final VoidCallback onNewMatch;
+
+  /// Online: label for the match-over button ("back to lobby").
+  final String? newMatchLabel;
+
+  /// Online: this player already continued; waiting for the others.
+  final bool waiting;
 
   @override
   Widget build(BuildContext context) {
@@ -184,9 +192,13 @@ class DealResultPanel extends StatelessWidget {
                   const SizedBox(height: 18),
                   PillButton(
                     key: const Key('result-continue'),
-                    label: over ? l.newMatch : l.nextDeal,
-                    selected: true,
-                    onTap: over ? onNewMatch : onNext,
+                    label: waiting
+                        ? l.readyWaiting
+                        : over
+                        ? (newMatchLabel ?? l.newMatch)
+                        : l.nextDeal,
+                    selected: !waiting,
+                    onTap: waiting ? null : (over ? onNewMatch : onNext),
                   ),
                 ],
               ),

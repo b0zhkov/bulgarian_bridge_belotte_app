@@ -111,7 +111,7 @@ class PlayerAvatar extends StatelessWidget {
     final l = AppLocalizations.of(context);
     final c = context.colors;
     final g = table.game;
-    final info = seatInfo(l, seat);
+    final info = table.infoFor(l, seat);
     final active =
         !table.holding &&
         g.currentSeat == seat &&

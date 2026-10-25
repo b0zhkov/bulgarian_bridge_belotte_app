@@ -20,6 +20,28 @@ Flutter app for Android, iOS and web. Rules follow [belot.bg](https://belot.bg/b
 - Hints: after 25 s of inactivity on your card turn a suggested legal card glows (`lib/core/agents/hint.dart`); toggle in Settings (on by default).
 - Live web build: https://b0zhkov.github.io/bulgarian_bridge_belotte_app/
 
+## Beta 3 — online play with room codes
+- Home → "Игра с приятели": create a room (5-char code, alphabet without 0/O/1/I/L) or join by code.
+  Invite link: `https://b0zhkov.github.io/bulgarian_bridge_belotte_app/?room=CODE` pre-fills the code.
+- Lobby: "Отбор 1" / "Отбор 2" (max 2 each, switch while the other team has room). The host can fill empty
+  seats with bots once each team has a human, then start. Partners sit opposite.
+- Joining mid-game → waiting screen; you take a bot's seat (team of your choice) when the current deal ends.
+- Disconnect → a bot plays the seat immediately; reconnecting with the same code within the deal reclaims it.
+  If the host leaves, the earliest-joined online human becomes host; the last human leaving deletes the room.
+- After a match everyone returns to the lobby. The room code is shown under the hand (tap to copy the invite).
+- Timers (online and offline, separate toggles in Settings): hint after 25 s, auto-play of the hint after 40 s.
+
+### Architecture
+- Firebase Anonymous Auth + Realtime Database (`europe-west1`), host-authoritative:
+  clients only write `intents/{uid}`, `members/{uid}` (presence/team); the host runs the engine and writes
+  `pub` (public state), `seats`, `hands/{uid}` (readable only by that uid) and `hostState/{code}`.
+- `lib/online/` — `Db` abstraction (Firebase + in-memory fake), `RoomLogic` (pure lobby/seat rules),
+  `HostDriver`, `RoomClient`. `lib/features/online/` — UI. Engine additions: `StateCodec`, `rotateState`.
+- Security rules: `database.rules.json`. Deploy with `firebase deploy --only database`
+  (project `bulgarian-bridge-belotte-app`, see `.firebaserc`).
+- Anonymous sign-in does not need the hosting domain in Auth → Settings → Authorized domains
+  (that list only matters for OAuth popup/redirect providers).
+
 ## Structure
 ```
 lib/
@@ -33,9 +55,11 @@ lib/
 ├── features/
 │   ├── game/        # Table screen, controller (Riverpod), card widgets, result panel
 │   ├── home/
-│   ├── lobby/       # (phase 2)
-│   ├── multiplayer/ # (phase 2)
+│   ├── lobby/       # (placeholder)
+│   ├── multiplayer/ # (placeholder)
+│   ├── online/      # Online entry, lobby, waiting screen, room table
 │   └── settings/    # Theme toggle (persisted)
+├── online/          # Db abstraction, room logic, host driver, room client
 ├── l10n/            # app_bg.arb (template), app_en.arb
 └── main.dart
 ```

@@ -54,3 +54,20 @@ class HintsController extends Notifier<bool> {
 final hintsEnabledProvider = NotifierProvider<HintsController, bool>(
   HintsController.new,
 );
+
+/// Whether the hinted card is played automatically after 40 s (default on).
+class AutoPlayController extends Notifier<bool> {
+  static const _key = 'autoplay_enabled';
+
+  @override
+  bool build() => ref.read(sharedPrefsProvider).getBool(_key) ?? true;
+
+  void set(bool v) {
+    state = v;
+    ref.read(sharedPrefsProvider).setBool(_key, v);
+  }
+}
+
+final autoPlayEnabledProvider = NotifierProvider<AutoPlayController, bool>(
+  AutoPlayController.new,
+);

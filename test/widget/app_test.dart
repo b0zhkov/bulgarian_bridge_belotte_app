@@ -18,7 +18,7 @@ Future<ProviderContainer> pumpApp(
   t.view.physicalSize = size;
   t.view.devicePixelRatio = 1;
   addTearDown(t.view.reset);
-  SharedPreferences.setMockInitialValues(prefs);
+  SharedPreferences.setMockInitialValues({'autoplay_enabled': false, ...prefs});
   final sp = await SharedPreferences.getInstance();
   final container = ProviderContainer(
     overrides: [sharedPrefsProvider.overrideWithValue(sp)],
@@ -33,7 +33,7 @@ Future<ProviderContainer> pumpApp(
 
 Future<void> leave(WidgetTester t) async {
   await t.pumpWidget(const SizedBox());
-  await t.pump(const Duration(seconds: 30));
+  await t.pump(const Duration(seconds: 45));
 }
 
 void main() {
@@ -320,12 +320,39 @@ void main() {
     await leave(t);
   });
 
+  testWidgets('auto-play plays the hinted card after 40 s', (t) async {
+    final container = await toHumanPlayTurn(
+      t,
+      prefs: const {'player_name': 'Георги', 'autoplay_enabled': true},
+    );
+    final before = container.read(gameControllerProvider).game.hands[0].length;
+    await t.pump(const Duration(seconds: 26));
+    final hint = container.read(gameControllerProvider).hint;
+    expect(hint, isNotNull);
+    await t.pump(const Duration(seconds: 13));
+    expect(container.read(gameControllerProvider).game.hands[0].length, before);
+    await t.pump(const Duration(seconds: 2));
+    final g = container.read(gameControllerProvider).game;
+    expect(g.hands[0].length, before - 1);
+    expect(g.hands[0], isNot(contains(hint)));
+    container.read(autoPlayEnabledProvider.notifier).set(false);
+    await leave(t);
+  });
+
+  testWidgets('auto-play off: nothing is played for the human', (t) async {
+    final container = await toHumanPlayTurn(t);
+    final before = container.read(gameControllerProvider).game.hands[0].length;
+    await t.pump(const Duration(seconds: 60));
+    expect(container.read(gameControllerProvider).game.hands[0].length, before);
+    await leave(t);
+  });
+
   testWidgets('no hint when hints are disabled', (t) async {
     final container = await toHumanPlayTurn(
       t,
       prefs: const {'player_name': 'Георги', 'hints_enabled': false},
     );
-    await t.pump(const Duration(seconds: 30));
+    await t.pump(const Duration(seconds: 45));
     expect(container.read(gameControllerProvider).hint, isNull);
     await leave(t);
   });

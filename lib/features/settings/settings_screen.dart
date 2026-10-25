@@ -18,6 +18,7 @@ class SettingsScreen extends ConsumerWidget {
     final mode = ref.watch(themeModeProvider);
     final name = ref.watch(playerNameProvider);
     final hints = ref.watch(hintsEnabledProvider);
+    final autoPlay = ref.watch(autoPlayEnabledProvider);
 
     Widget section(String title) => Padding(
       padding: const EdgeInsets.only(top: Gap.xl, bottom: Gap.m, left: Gap.xs),
@@ -53,6 +54,51 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
         );
+
+    Widget switchTile({
+      required Key key,
+      required String title,
+      required String description,
+      required bool value,
+      required ValueChanged<bool> onChanged,
+    }) => tile(
+      onTap: () => onChanged(!value),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: c.textPrimary,
+                    fontSize: AppText.body,
+                  ),
+                ),
+                const SizedBox(height: Gap.xs),
+                Text(
+                  description,
+                  style: TextStyle(
+                    color: c.textSecondary,
+                    fontSize: AppText.caption,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: Gap.m),
+          Switch.adaptive(
+            key: key,
+            value: value,
+            activeTrackColor: c.success,
+            thumbColor: const WidgetStatePropertyAll(Colors.white),
+            onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -132,45 +178,22 @@ class SettingsScreen extends ConsumerWidget {
                 ],
               ),
               section(l.gameplay),
-              tile(
-                onTap: () =>
-                    ref.read(hintsEnabledProvider.notifier).set(!hints),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l.hints,
-                            style: TextStyle(
-                              color: c.textPrimary,
-                              fontSize: AppText.body,
-                            ),
-                          ),
-                          const SizedBox(height: Gap.xs),
-                          Text(
-                            l.hintsDescription,
-                            style: TextStyle(
-                              color: c.textSecondary,
-                              fontSize: AppText.caption,
-                              height: 1.3,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: Gap.m),
-                    Switch.adaptive(
-                      key: const Key('hints-switch'),
-                      value: hints,
-                      activeTrackColor: c.success,
-                      thumbColor: const WidgetStatePropertyAll(Colors.white),
-                      onChanged: (v) =>
-                          ref.read(hintsEnabledProvider.notifier).set(v),
-                    ),
-                  ],
-                ),
+              switchTile(
+                key: const Key('hints-switch'),
+                title: l.hints,
+                description: l.hintsDescription,
+                value: hints,
+                onChanged: (v) =>
+                    ref.read(hintsEnabledProvider.notifier).set(v),
+              ),
+              const SizedBox(height: Gap.s),
+              switchTile(
+                key: const Key('autoplay-switch'),
+                title: l.autoPlay,
+                description: l.autoPlayDescription,
+                value: autoPlay,
+                onChanged: (v) =>
+                    ref.read(autoPlayEnabledProvider.notifier).set(v),
               ),
               section(l.language),
               tile(

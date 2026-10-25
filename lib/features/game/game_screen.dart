@@ -18,6 +18,37 @@ import 'widgets/trick_area.dart';
 class GameScreen extends ConsumerWidget {
   const GameScreen({super.key});
 
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return TableView(
+      table: ref.watch(gameControllerProvider),
+      actions: ref.read(gameControllerProvider.notifier),
+      onLeave: () => Navigator.of(context).pop(),
+    );
+  }
+}
+
+/// The game table (shared by offline and online play).
+class TableView extends ConsumerWidget {
+  const TableView({
+    super.key,
+    required this.table,
+    required this.actions,
+    required this.onLeave,
+    this.footer,
+    this.newMatchLabel,
+  });
+
+  final TableState table;
+  final TableActions actions;
+
+  /// Called after the player confirmed leaving.
+  final VoidCallback onLeave;
+
+  /// Extra widget below the hand (online: the room code).
+  final Widget? footer;
+  final String? newMatchLabel;
+
   Future<void> _confirmLeave(BuildContext context) async {
     final l = AppLocalizations.of(context);
     final ok = await showDialog<bool>(
@@ -40,21 +71,21 @@ class GameScreen extends ConsumerWidget {
             child: Text(l.cancel),
           ),
           TextButton(
+            key: const Key('confirm-leave'),
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(l.leave),
           ),
         ],
       ),
     );
-    if (ok == true && context.mounted) Navigator.of(context).pop();
+    if (ok == true && context.mounted) onLeave();
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context);
     final c = context.colors;
-    final table = ref.watch(gameControllerProvider);
-    final ctrl = ref.read(gameControllerProvider.notifier);
+    final ctrl = actions;
     final myName = ref.watch(playerNameProvider);
     final hintsOn = ref.watch(hintsEnabledProvider);
     final g = table.game;
@@ -156,7 +187,12 @@ class GameScreen extends ConsumerWidget {
                               onPlay: ctrl.humanPlay,
                             ),
                           ),
-                          const SizedBox(height: Gap.l),
+                          if (footer != null) ...[
+                            const SizedBox(height: Gap.s),
+                            footer!,
+                            const SizedBox(height: Gap.s),
+                          ] else
+                            const SizedBox(height: Gap.l),
                         ],
                       ),
                       if (showResult)
@@ -165,6 +201,8 @@ class GameScreen extends ConsumerWidget {
                             game: g,
                             onNext: ctrl.nextDeal,
                             onNewMatch: ctrl.newMatch,
+                            newMatchLabel: newMatchLabel,
+                            waiting: table.waitingReady,
                           ),
                         ),
                       if (g.phase == GamePhase.allPassed)
@@ -398,7 +436,7 @@ class _StatusLine extends StatelessWidget {
             ? l.yourBid
             : (hintShown ? '${l.yourTurn} · ${l.hintLabel}' : l.yourTurn);
       } else if (!table.holding) {
-        text = l.waitingFor(seatInfo(l, g.currentSeat).name);
+        text = l.waitingFor(table.infoFor(l, g.currentSeat).name);
       }
     }
     return SizedBox(
@@ -534,7 +572,7 @@ class _SelfStrip extends StatelessWidget {
     final g = table.game;
     final contract = g.contract;
     final bubble = table.bubbles[kHumanSeat];
-    final me = seatInfo(l, kHumanSeat, name);
+    final me = table.infoFor(l, kHumanSeat, name);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: Gap.l),
       child: AnimatedContainer(
@@ -578,7 +616,7 @@ class _SelfStrip extends StatelessWidget {
                   const SizedBox(height: 2),
                   if (contract != null)
                     Text(
-                      '${contractName(l, contract.type)}${multiplierSuffix(l, contract.multiplier)} · ${seatInfo(l, contract.declarer, name).name}',
+                      '${contractName(l, contract.type)}${multiplierSuffix(l, contract.multiplier)} · ${table.infoFor(l, contract.declarer, name).name}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(

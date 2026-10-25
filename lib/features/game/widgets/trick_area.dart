@@ -59,7 +59,7 @@ class TrickArea extends StatelessWidget {
                 ),
               ),
             if (table.game.phase == GamePhase.bidding)
-              Positioned.fill(child: _BiddingCenter(game: table.game)),
+              Positioned.fill(child: _BiddingCenter(table: table)),
           ],
         );
       },
@@ -98,8 +98,9 @@ class _FlyingCard extends StatelessWidget {
 }
 
 class _BiddingCenter extends StatelessWidget {
-  const _BiddingCenter({required this.game});
-  final GameState game;
+  const _BiddingCenter({required this.table});
+  final TableState table;
+  GameState get game => table.game;
 
   @override
   Widget build(BuildContext context) {
@@ -153,7 +154,7 @@ class _BiddingCenter extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          seatInfo(l, contract.declarer).name,
+                          table.infoFor(l, contract.declarer).name,
                           style: TextStyle(
                             color: c.textSecondary,
                             fontSize: AppText.caption,

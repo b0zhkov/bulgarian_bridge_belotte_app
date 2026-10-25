@@ -308,4 +308,153 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsResetConfirm => 'Reset';
+
+  @override
+  String get readyWaiting => 'Waiting for the others…';
+
+  @override
+  String get backToLobby => 'Back to lobby';
+
+  @override
+  String get autoPlay => 'Auto-play';
+
+  @override
+  String get autoPlayDescription =>
+      'Plays the hinted card after 40 seconds (passes when bidding)';
+
+  @override
+  String get onlineTitle => 'Play with friends';
+
+  @override
+  String get createRoom => 'Create room';
+
+  @override
+  String get createRoomSubtitle => 'Get a code to share';
+
+  @override
+  String get joinRoom => 'Join with code';
+
+  @override
+  String get joinRoomSubtitle => 'Enter a friend\'s code';
+
+  @override
+  String get roomCode => 'Room code';
+
+  @override
+  String get roomCodeShort => 'Room';
+
+  @override
+  String get joinAction => 'Join';
+
+  @override
+  String get codeCopied => 'Invite copied';
+
+  @override
+  String get tapToCopy => 'Tap to copy the invite';
+
+  @override
+  String shareText(String code, String link) {
+    return 'Let\'s play Belot! Room code: $code\n$link';
+  }
+
+  @override
+  String get team1 => 'Team 1';
+
+  @override
+  String get team2 => 'Team 2';
+
+  @override
+  String get joinTeam => 'Join';
+
+  @override
+  String get emptySlot => 'Free seat';
+
+  @override
+  String get botPlayer => 'Bot';
+
+  @override
+  String get hostLabel => 'host';
+
+  @override
+  String get youLabel => 'you';
+
+  @override
+  String get addBots => 'Fill with bots';
+
+  @override
+  String get startGame => 'Start game';
+
+  @override
+  String get waitingForHost => 'Waiting for the host to start…';
+
+  @override
+  String get needEachTeam => 'Each team needs at least one person';
+
+  @override
+  String get needFullTeams =>
+      'Fill the free seats with bots or wait for more players';
+
+  @override
+  String get noTeamYet => 'Pick a team';
+
+  @override
+  String get spectators => 'No team';
+
+  @override
+  String get leaveRoom => 'Leave room';
+
+  @override
+  String get leaveRoomTitle => 'Leave the room?';
+
+  @override
+  String get leaveRoomBody => 'If a game is running, a bot will play for you.';
+
+  @override
+  String get roomNotFound => 'No room with this code';
+
+  @override
+  String get roomClosed => 'The room is closed';
+
+  @override
+  String get connecting => 'Connecting…';
+
+  @override
+  String get connectionError => 'Cannot reach the server. Try again.';
+
+  @override
+  String get invalidCode => 'The code has 5 characters';
+
+  @override
+  String get waitingTitle => 'A game is running';
+
+  @override
+  String get waitingBody =>
+      'You will take a bot\'s seat when the current deal ends.';
+
+  @override
+  String get waitingNoSeat =>
+      'All seats are taken by people. You can play in the next game.';
+
+  @override
+  String get chooseTeam => 'Choose a team';
+
+  @override
+  String seatsWithBots(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n bot seats',
+      one: '1 bot seat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get back => 'Back';
+
+  @override
+  String get players => 'Players';
+
+  @override
+  String get retry => 'Try again';
 }

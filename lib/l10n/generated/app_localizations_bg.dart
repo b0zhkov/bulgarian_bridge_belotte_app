@@ -307,4 +307,153 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get statsResetConfirm => 'Нулирай';
+
+  @override
+  String get readyWaiting => 'Чакаме останалите…';
+
+  @override
+  String get backToLobby => 'Към лобито';
+
+  @override
+  String get autoPlay => 'Автоматичен ход';
+
+  @override
+  String get autoPlayDescription =>
+      'Изиграва подсказаната карта след 40 секунди (при обявяване – пас)';
+
+  @override
+  String get onlineTitle => 'Игра с приятели';
+
+  @override
+  String get createRoom => 'Създай стая';
+
+  @override
+  String get createRoomSubtitle => 'Получаваш код, който да споделиш';
+
+  @override
+  String get joinRoom => 'Влез със код';
+
+  @override
+  String get joinRoomSubtitle => 'Въведи кода от приятел';
+
+  @override
+  String get roomCode => 'Код на стаята';
+
+  @override
+  String get roomCodeShort => 'Стая';
+
+  @override
+  String get joinAction => 'Влез';
+
+  @override
+  String get codeCopied => 'Поканата е копирана';
+
+  @override
+  String get tapToCopy => 'Докосни, за да копираш поканата';
+
+  @override
+  String shareText(String code, String link) {
+    return 'Ела да играем Белот! Код на стаята: $code\n$link';
+  }
+
+  @override
+  String get team1 => 'Отбор 1';
+
+  @override
+  String get team2 => 'Отбор 2';
+
+  @override
+  String get joinTeam => 'Влез';
+
+  @override
+  String get emptySlot => 'Свободно място';
+
+  @override
+  String get botPlayer => 'Бот';
+
+  @override
+  String get hostLabel => 'домакин';
+
+  @override
+  String get youLabel => 'ти';
+
+  @override
+  String get addBots => 'Попълни с ботове';
+
+  @override
+  String get startGame => 'Започни играта';
+
+  @override
+  String get waitingForHost => 'Чакаме домакина да започне играта…';
+
+  @override
+  String get needEachTeam => 'Нужен е поне един човек във всеки отбор';
+
+  @override
+  String get needFullTeams =>
+      'Попълни свободните места с ботове или изчакай още играчи';
+
+  @override
+  String get noTeamYet => 'Избери отбор';
+
+  @override
+  String get spectators => 'Без отбор';
+
+  @override
+  String get leaveRoom => 'Напусни стаята';
+
+  @override
+  String get leaveRoomTitle => 'Да напуснеш ли стаята?';
+
+  @override
+  String get leaveRoomBody => 'Ако играта тече, бот ще играе на твоето място.';
+
+  @override
+  String get roomNotFound => 'Няма стая с този код';
+
+  @override
+  String get roomClosed => 'Стаята е затворена';
+
+  @override
+  String get connecting => 'Свързване…';
+
+  @override
+  String get connectionError => 'Няма връзка със сървъра. Опитай отново.';
+
+  @override
+  String get invalidCode => 'Кодът е от 5 знака';
+
+  @override
+  String get waitingTitle => 'Играта е в ход';
+
+  @override
+  String get waitingBody =>
+      'Ще влезеш на мястото на бот, когато свърши текущото раздаване.';
+
+  @override
+  String get waitingNoSeat =>
+      'Всички места са заети от хора. Ще можеш да играеш в следващата игра.';
+
+  @override
+  String get chooseTeam => 'Избери отбор';
+
+  @override
+  String seatsWithBots(int n) {
+    String _temp0 = intl.Intl.pluralLogic(
+      n,
+      locale: localeName,
+      other: '$n места с бот',
+      one: '1 място с бот',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get back => 'Назад';
+
+  @override
+  String get players => 'Играчи';
+
+  @override
+  String get retry => 'Опитай пак';
 }

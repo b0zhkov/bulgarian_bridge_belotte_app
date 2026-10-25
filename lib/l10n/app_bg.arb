@@ -133,5 +133,67 @@
   "gameplay": "Игра",
   "teamUs": "Ние",
   "teamThem": "Вие",
-  "statsResetConfirm": "Нулирай"
+  "statsResetConfirm": "Нулирай",
+  "readyWaiting": "Чакаме останалите…",
+  "backToLobby": "Към лобито",
+  "autoPlay": "Автоматичен ход",
+  "autoPlayDescription": "Изиграва подсказаната карта след 40 секунди (при обявяване – пас)",
+  "onlineTitle": "Игра с приятели",
+  "createRoom": "Създай стая",
+  "createRoomSubtitle": "Получаваш код, който да споделиш",
+  "joinRoom": "Влез със код",
+  "joinRoomSubtitle": "Въведи кода от приятел",
+  "roomCode": "Код на стаята",
+  "roomCodeShort": "Стая",
+  "joinAction": "Влез",
+  "codeCopied": "Поканата е копирана",
+  "tapToCopy": "Докосни, за да копираш поканата",
+  "shareText": "Ела да играем Белот! Код на стаята: {code}\n{link}",
+  "@shareText": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      },
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "team1": "Отбор 1",
+  "team2": "Отбор 2",
+  "joinTeam": "Влез",
+  "emptySlot": "Свободно място",
+  "botPlayer": "Бот",
+  "hostLabel": "домакин",
+  "youLabel": "ти",
+  "addBots": "Попълни с ботове",
+  "startGame": "Започни играта",
+  "waitingForHost": "Чакаме домакина да започне играта…",
+  "needEachTeam": "Нужен е поне един човек във всеки отбор",
+  "needFullTeams": "Попълни свободните места с ботове или изчакай още играчи",
+  "noTeamYet": "Избери отбор",
+  "spectators": "Без отбор",
+  "leaveRoom": "Напусни стаята",
+  "leaveRoomTitle": "Да напуснеш ли стаята?",
+  "leaveRoomBody": "Ако играта тече, бот ще играе на твоето място.",
+  "roomNotFound": "Няма стая с този код",
+  "roomClosed": "Стаята е затворена",
+  "connecting": "Свързване…",
+  "connectionError": "Няма връзка със сървъра. Опитай отново.",
+  "invalidCode": "Кодът е от 5 знака",
+  "waitingTitle": "Играта е в ход",
+  "waitingBody": "Ще влезеш на мястото на бот, когато свърши текущото раздаване.",
+  "waitingNoSeat": "Всички места са заети от хора. Ще можеш да играеш в следващата игра.",
+  "chooseTeam": "Избери отбор",
+  "seatsWithBots": "{n, plural, =1{1 място с бот} other{{n} места с бот}}",
+  "@seatsWithBots": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "back": "Назад",
+  "players": "Играчи",
+  "retry": "Опитай пак"
 }

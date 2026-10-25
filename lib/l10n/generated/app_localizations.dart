@@ -673,6 +673,276 @@ abstract class AppLocalizations {
   /// In bg, this message translates to:
   /// **'Нулирай'**
   String get statsResetConfirm;
+
+  /// No description provided for @readyWaiting.
+  ///
+  /// In bg, this message translates to:
+  /// **'Чакаме останалите…'**
+  String get readyWaiting;
+
+  /// No description provided for @backToLobby.
+  ///
+  /// In bg, this message translates to:
+  /// **'Към лобито'**
+  String get backToLobby;
+
+  /// No description provided for @autoPlay.
+  ///
+  /// In bg, this message translates to:
+  /// **'Автоматичен ход'**
+  String get autoPlay;
+
+  /// No description provided for @autoPlayDescription.
+  ///
+  /// In bg, this message translates to:
+  /// **'Изиграва подсказаната карта след 40 секунди (при обявяване – пас)'**
+  String get autoPlayDescription;
+
+  /// No description provided for @onlineTitle.
+  ///
+  /// In bg, this message translates to:
+  /// **'Игра с приятели'**
+  String get onlineTitle;
+
+  /// No description provided for @createRoom.
+  ///
+  /// In bg, this message translates to:
+  /// **'Създай стая'**
+  String get createRoom;
+
+  /// No description provided for @createRoomSubtitle.
+  ///
+  /// In bg, this message translates to:
+  /// **'Получаваш код, който да споделиш'**
+  String get createRoomSubtitle;
+
+  /// No description provided for @joinRoom.
+  ///
+  /// In bg, this message translates to:
+  /// **'Влез със код'**
+  String get joinRoom;
+
+  /// No description provided for @joinRoomSubtitle.
+  ///
+  /// In bg, this message translates to:
+  /// **'Въведи кода от приятел'**
+  String get joinRoomSubtitle;
+
+  /// No description provided for @roomCode.
+  ///
+  /// In bg, this message translates to:
+  /// **'Код на стаята'**
+  String get roomCode;
+
+  /// No description provided for @roomCodeShort.
+  ///
+  /// In bg, this message translates to:
+  /// **'Стая'**
+  String get roomCodeShort;
+
+  /// No description provided for @joinAction.
+  ///
+  /// In bg, this message translates to:
+  /// **'Влез'**
+  String get joinAction;
+
+  /// No description provided for @codeCopied.
+  ///
+  /// In bg, this message translates to:
+  /// **'Поканата е копирана'**
+  String get codeCopied;
+
+  /// No description provided for @tapToCopy.
+  ///
+  /// In bg, this message translates to:
+  /// **'Докосни, за да копираш поканата'**
+  String get tapToCopy;
+
+  /// No description provided for @shareText.
+  ///
+  /// In bg, this message translates to:
+  /// **'Ела да играем Белот! Код на стаята: {code}\n{link}'**
+  String shareText(String code, String link);
+
+  /// No description provided for @team1.
+  ///
+  /// In bg, this message translates to:
+  /// **'Отбор 1'**
+  String get team1;
+
+  /// No description provided for @team2.
+  ///
+  /// In bg, this message translates to:
+  /// **'Отбор 2'**
+  String get team2;
+
+  /// No description provided for @joinTeam.
+  ///
+  /// In bg, this message translates to:
+  /// **'Влез'**
+  String get joinTeam;
+
+  /// No description provided for @emptySlot.
+  ///
+  /// In bg, this message translates to:
+  /// **'Свободно място'**
+  String get emptySlot;
+
+  /// No description provided for @botPlayer.
+  ///
+  /// In bg, this message translates to:
+  /// **'Бот'**
+  String get botPlayer;
+
+  /// No description provided for @hostLabel.
+  ///
+  /// In bg, this message translates to:
+  /// **'домакин'**
+  String get hostLabel;
+
+  /// No description provided for @youLabel.
+  ///
+  /// In bg, this message translates to:
+  /// **'ти'**
+  String get youLabel;
+
+  /// No description provided for @addBots.
+  ///
+  /// In bg, this message translates to:
+  /// **'Попълни с ботове'**
+  String get addBots;
+
+  /// No description provided for @startGame.
+  ///
+  /// In bg, this message translates to:
+  /// **'Започни играта'**
+  String get startGame;
+
+  /// No description provided for @waitingForHost.
+  ///
+  /// In bg, this message translates to:
+  /// **'Чакаме домакина да започне играта…'**
+  String get waitingForHost;
+
+  /// No description provided for @needEachTeam.
+  ///
+  /// In bg, this message translates to:
+  /// **'Нужен е поне един човек във всеки отбор'**
+  String get needEachTeam;
+
+  /// No description provided for @needFullTeams.
+  ///
+  /// In bg, this message translates to:
+  /// **'Попълни свободните места с ботове или изчакай още играчи'**
+  String get needFullTeams;
+
+  /// No description provided for @noTeamYet.
+  ///
+  /// In bg, this message translates to:
+  /// **'Избери отбор'**
+  String get noTeamYet;
+
+  /// No description provided for @spectators.
+  ///
+  /// In bg, this message translates to:
+  /// **'Без отбор'**
+  String get spectators;
+
+  /// No description provided for @leaveRoom.
+  ///
+  /// In bg, this message translates to:
+  /// **'Напусни стаята'**
+  String get leaveRoom;
+
+  /// No description provided for @leaveRoomTitle.
+  ///
+  /// In bg, this message translates to:
+  /// **'Да напуснеш ли стаята?'**
+  String get leaveRoomTitle;
+
+  /// No description provided for @leaveRoomBody.
+  ///
+  /// In bg, this message translates to:
+  /// **'Ако играта тече, бот ще играе на твоето място.'**
+  String get leaveRoomBody;
+
+  /// No description provided for @roomNotFound.
+  ///
+  /// In bg, this message translates to:
+  /// **'Няма стая с този код'**
+  String get roomNotFound;
+
+  /// No description provided for @roomClosed.
+  ///
+  /// In bg, this message translates to:
+  /// **'Стаята е затворена'**
+  String get roomClosed;
+
+  /// No description provided for @connecting.
+  ///
+  /// In bg, this message translates to:
+  /// **'Свързване…'**
+  String get connecting;
+
+  /// No description provided for @connectionError.
+  ///
+  /// In bg, this message translates to:
+  /// **'Няма връзка със сървъра. Опитай отново.'**
+  String get connectionError;
+
+  /// No description provided for @invalidCode.
+  ///
+  /// In bg, this message translates to:
+  /// **'Кодът е от 5 знака'**
+  String get invalidCode;
+
+  /// No description provided for @waitingTitle.
+  ///
+  /// In bg, this message translates to:
+  /// **'Играта е в ход'**
+  String get waitingTitle;
+
+  /// No description provided for @waitingBody.
+  ///
+  /// In bg, this message translates to:
+  /// **'Ще влезеш на мястото на бот, когато свърши текущото раздаване.'**
+  String get waitingBody;
+
+  /// No description provided for @waitingNoSeat.
+  ///
+  /// In bg, this message translates to:
+  /// **'Всички места са заети от хора. Ще можеш да играеш в следващата игра.'**
+  String get waitingNoSeat;
+
+  /// No description provided for @chooseTeam.
+  ///
+  /// In bg, this message translates to:
+  /// **'Избери отбор'**
+  String get chooseTeam;
+
+  /// No description provided for @seatsWithBots.
+  ///
+  /// In bg, this message translates to:
+  /// **'{n, plural, =1{1 място с бот} other{{n} места с бот}}'**
+  String seatsWithBots(int n);
+
+  /// No description provided for @back.
+  ///
+  /// In bg, this message translates to:
+  /// **'Назад'**
+  String get back;
+
+  /// No description provided for @players.
+  ///
+  /// In bg, this message translates to:
+  /// **'Играчи'**
+  String get players;
+
+  /// No description provided for @retry.
+  ///
+  /// In bg, this message translates to:
+  /// **'Опитай пак'**
+  String get retry;
 }
 
 class _AppLocalizationsDelegate

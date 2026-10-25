@@ -8,6 +8,8 @@ import '../../core/agents/hint.dart';
 import '../../core/agents/player_agent.dart';
 import '../../core/rules/rules.dart';
 import '../profile/profile_controller.dart';
+import '../../l10n/generated/app_localizations.dart';
+import 'labels.dart';
 import '../stats/stats_controller.dart';
 
 const int kHumanSeat = 0;
@@ -20,7 +22,20 @@ class TableState {
     this.displayTrick,
     this.bubbles = const {},
     this.hint,
+    this.seatInfos,
+    this.locked = false,
+    this.waitingReady = false,
   });
+
+  /// Names/emojis per (view) seat for online games; null = offline bots.
+  final List<SeatInfo>? seatInfos;
+
+  /// Input temporarily blocked (online: an action is in flight or the hand
+  /// is not in sync with the public state yet).
+  final bool locked;
+
+  /// Online: this player already confirmed the deal result.
+  final bool waitingReady;
 
   final GameState game;
 
@@ -37,6 +52,7 @@ class TableState {
   Trick get visibleTrick => displayTrick ?? game.currentTrick;
   bool get isHumanTurn =>
       !holding &&
+      !locked &&
       game.currentSeat == kHumanSeat &&
       (game.phase == GamePhase.bidding || game.phase == GamePhase.playing);
 
@@ -47,6 +63,9 @@ class TableState {
     Map<int, Announcement>? bubbles,
     Card? hint,
     bool clearHint = false,
+    List<SeatInfo>? seatInfos,
+    bool? locked,
+    bool? waitingReady,
   }) => TableState(
     game: game ?? this.game,
     displayTrick: clearDisplayTrick
@@ -54,21 +73,75 @@ class TableState {
         : (displayTrick ?? this.displayTrick),
     bubbles: bubbles ?? this.bubbles,
     hint: clearHint ? null : (hint ?? this.hint),
+    seatInfos: seatInfos ?? this.seatInfos,
+    locked: locked ?? this.locked,
+    waitingReady: waitingReady ?? this.waitingReady,
   );
+
+  /// Name and emoji for a view seat.
+  SeatInfo infoFor(AppLocalizations l, int seat, [String? myName]) =>
+      seatInfos?[seat] ?? seatInfo(l, seat, myName);
+}
+
+/// What the table screen can ask the game to do (offline controller or
+/// online room).
+abstract class TableActions {
+  List<Bid> humanBids();
+  Set<Card> humanLegalCards();
+  void humanBid(Bid bid);
+  void humanPlay(Card card);
+  void nextDeal();
+  void newMatch();
+}
+
+/// Hint (25 s) and auto-play (40 s) timers for the local player's turn.
+class TurnTimers {
+  static Duration hintDelay = const Duration(seconds: 25);
+  static Duration autoPlayDelay = const Duration(seconds: 40);
+
+  Timer? _hint;
+  Timer? _auto;
+  Object? _token;
+
+  /// Starts timers for [token] (a turn identity); no-op if already running
+  /// for the same turn.
+  void start(
+    Object token, {
+    required bool hints,
+    required bool autoPlay,
+    required void Function() onHint,
+    required void Function() onAuto,
+  }) {
+    if (token == _token) return;
+    cancel();
+    _token = token;
+    if (hints) _hint = Timer(hintDelay, onHint);
+    if (autoPlay) _auto = Timer(autoPlayDelay, onAuto);
+  }
+
+  void cancel() {
+    _hint?.cancel();
+    _auto?.cancel();
+    _hint = _auto = null;
+    _token = null;
+  }
 }
 
 /// Drives a local match: the human plays seat 0, placeholder agents play
 /// the other seats (to be replaced by real bots behind [PlayerAgent]).
-class GameController extends Notifier<TableState> {
+class GameController extends Notifier<TableState> implements TableActions {
   final List<Timer> _timers = [];
   late Map<int, PlayerAgent> _agents;
 
   static Duration botDelay = const Duration(milliseconds: 650);
   static Duration trickPause = const Duration(milliseconds: 1100);
   static Duration redealPause = const Duration(milliseconds: 1600);
-  static Duration hintDelay = const Duration(seconds: 25);
+  static Duration get hintDelay => TurnTimers.hintDelay;
+  static set hintDelay(Duration d) => TurnTimers.hintDelay = d;
+  static Duration get autoPlayDelay => TurnTimers.autoPlayDelay;
+  static set autoPlayDelay(Duration d) => TurnTimers.autoPlayDelay = d;
   static int? fixedSeed;
-  Timer? _hintTimer;
+  final TurnTimers _turn = TurnTimers();
 
   @override
   TableState build() {
@@ -87,8 +160,7 @@ class GameController extends Notifier<TableState> {
   }
 
   void _cancelTimers() {
-    _hintTimer?.cancel();
-    _hintTimer = null;
+    _turn.cancel();
     for (final t in _timers) {
       t.cancel();
     }
@@ -110,6 +182,7 @@ class GameController extends Notifier<TableState> {
     final g = s.game;
     switch (g.phase) {
       case GamePhase.bidding:
+        if (g.currentSeat == kHumanSeat) _startTurnTimers();
         if (g.currentSeat != kHumanSeat) {
           _after(botDelay, () {
             final seat = state.game.currentSeat;
@@ -120,7 +193,7 @@ class GameController extends Notifier<TableState> {
           });
         }
       case GamePhase.playing:
-        if (g.currentSeat == kHumanSeat) _startHintTimer();
+        if (g.currentSeat == kHumanSeat) _startTurnTimers();
         if (g.currentSeat != kHumanSeat) {
           _after(botDelay, () {
             final seat = state.game.currentSeat;
@@ -151,18 +224,34 @@ class GameController extends Notifier<TableState> {
   int _cardsPlayed(GameState g) =>
       g.tricks.length * 4 + g.currentTrick.plays.length;
 
-  /// Starts (or restarts) the 25 s hint timer for the human's turn.
-  void _startHintTimer() {
-    _hintTimer?.cancel();
-    if (!ref.read(hintsEnabledProvider)) return;
-    final token = (state.game.dealNumber, _cardsPlayed(state.game));
-    _hintTimer = Timer(hintDelay, () {
-      final g = state.game;
-      if (!state.isHumanTurn || g.phase != GamePhase.playing) return;
-      if ((g.dealNumber, _cardsPlayed(g)) != token) return;
-      if (!ref.read(hintsEnabledProvider)) return;
-      state = state.copyWith(hint: suggestCard(g, kHumanSeat));
-    });
+  /// Hint after 25 s and auto-play after 40 s on the human's turn.
+  void _startTurnTimers() {
+    final g = state.game;
+    final token = (g.dealNumber, g.phase, _cardsPlayed(g), g.bids.length);
+    bool sameTurn() {
+      final n = state.game;
+      return state.isHumanTurn &&
+          (n.dealNumber, n.phase, _cardsPlayed(n), n.bids.length) == token;
+    }
+
+    _turn.start(
+      token,
+      hints: ref.read(hintsEnabledProvider) && g.phase == GamePhase.playing,
+      autoPlay: ref.read(autoPlayEnabledProvider),
+      onHint: () {
+        if (!sameTurn() || !ref.read(hintsEnabledProvider)) return;
+        state = state.copyWith(hint: suggestCard(state.game, kHumanSeat));
+      },
+      onAuto: () {
+        if (!sameTurn() || !ref.read(autoPlayEnabledProvider)) return;
+        final n = state.game;
+        if (n.phase == GamePhase.playing) {
+          _play(kHumanSeat, state.hint ?? suggestCard(n, kHumanSeat));
+        } else if (n.phase == GamePhase.bidding) {
+          _bid(kHumanSeat, Bid.pass);
+        }
+      },
+    );
   }
 
   void _recordStats(GameState before, GameState after) {
@@ -179,6 +268,7 @@ class GameController extends Notifier<TableState> {
   }
 
   void _bid(int seat, Bid bid) {
+    if (seat == kHumanSeat) _turn.cancel();
     state = state.copyWith(game: BelotEngine.applyBid(state.game, seat, bid));
     _schedule();
   }
@@ -187,7 +277,7 @@ class GameController extends Notifier<TableState> {
     final before = state.game;
     final after = BelotEngine.applyPlay(before, seat, card);
     if (seat == kHumanSeat) {
-      _hintTimer?.cancel();
+      _turn.cancel();
       state = state.copyWith(clearHint: true);
     }
     _recordStats(before, after);
@@ -219,26 +309,31 @@ class GameController extends Notifier<TableState> {
 
   // ------------------------------------------------------------ human API
 
+  @override
   List<Bid> humanBids() => state.isHumanTurn
       ? BelotEngine.validBids(state.game, kHumanSeat)
       : const [];
 
+  @override
   Set<Card> humanLegalCards() => state.isHumanTurn
       ? BelotEngine.getLegalMoves(state.game, kHumanSeat).toSet()
       : const {};
 
+  @override
   void humanBid(Bid bid) {
     if (!humanBids().contains(bid)) return;
     HapticFeedback.selectionClick();
     _bid(kHumanSeat, bid);
   }
 
+  @override
   void humanPlay(Card card) {
     if (!humanLegalCards().contains(card)) return;
     HapticFeedback.lightImpact();
     _play(kHumanSeat, card);
   }
 
+  @override
   void nextDeal() {
     if (state.game.phase != GamePhase.dealScored) return;
     state = state.copyWith(
@@ -248,6 +343,7 @@ class GameController extends Notifier<TableState> {
     _schedule();
   }
 
+  @override
   void newMatch() {
     _cancelTimers();
     state = _start();
