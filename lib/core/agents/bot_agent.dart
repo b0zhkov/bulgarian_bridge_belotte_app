@@ -35,19 +35,25 @@ class BotAgent implements PlayerAgent {
   final Duration? budget;
   final int maxWorlds;
 
-  Random _rndFor(GameState s, int seat, int salt) => Random(
-    Object.hash(
-          seed,
-          s.seed,
-          s.dealNumber,
-          s.bids.length,
-          s.tricks.length,
-          s.currentTrick.plays.length,
-          seat,
-          salt,
-        ) &
-        0x7fffffff,
-  );
+  /// Per-decision RNG from a stable mix of the inputs (`Object.hash` is
+  /// seeded per process, so it would not be reproducible).
+  Random _rndFor(GameState s, int seat, int salt) {
+    var h = 0x2545F491;
+    for (final v in [
+      seed,
+      s.seed,
+      s.dealNumber,
+      s.bids.length,
+      s.tricks.length,
+      s.currentTrick.plays.length,
+      seat,
+      salt,
+    ]) {
+      h = ((h ^ (v & 0x7fffffff)) * 0x01000193) & 0x7fffffff;
+      h = (h ^ (h >> 15)) & 0x7fffffff;
+    }
+    return Random(h);
+  }
 
   @override
   Bid chooseBid(GameState state, int seat) => switch (level) {

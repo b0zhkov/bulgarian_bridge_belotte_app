@@ -415,26 +415,25 @@ class _LobbyView extends ConsumerWidget {
                     ),
                   ],
                   const SizedBox(height: Gap.l),
-                  Row(
+                  Column(
                     key: const Key('lobby-bot-level'),
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        '${l.lobbyBotLevel} $kBotAvatar',
+                        '$kBotAvatar ${l.botLevel}',
                         style: TextStyle(
                           color: c.textSecondary,
                           fontSize: AppText.label,
                         ),
                       ),
-                      const SizedBox(width: Gap.m),
-                      Expanded(
-                        child: DifficultyPicker(
-                          value: client.meta!.botLevel,
-                          height: 38,
-                          showHint: false,
-                          onChanged: client.isHost
-                              ? (v) => ctrl.setBotLevel(v)
-                              : null,
-                        ),
+                      const SizedBox(height: Gap.s),
+                      DifficultyPicker(
+                        value: client.meta!.botLevel,
+                        height: 42,
+                        showHint: false,
+                        onChanged: client.isHost
+                            ? (v) => ctrl.setBotLevel(v)
+                            : null,
                       ),
                     ],
                   ),
