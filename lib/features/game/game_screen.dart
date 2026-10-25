@@ -154,8 +154,11 @@ class TableView extends ConsumerWidget {
                                   final shown = shownScore(g, done);
                                   return _TopBar(
                                     onBack: () => _confirmLeave(context),
-                                    onScore: () =>
-                                        showScoreSheet(context, live),
+                                    onScore: () => showScoreSheet(
+                                      context,
+                                      live,
+                                      nameOf: nameOf,
+                                    ),
                                     game: g,
                                     scores: shown.scores,
                                     hanging: shown.hanging,
@@ -212,6 +215,8 @@ class TableView extends ConsumerWidget {
                                               child: LastTrickButton(
                                                 trick: g.tricks.last,
                                                 nameOf: nameOf,
+                                                live: live,
+                                                contract: g.contract?.type,
                                               ),
                                             ),
                                         ],

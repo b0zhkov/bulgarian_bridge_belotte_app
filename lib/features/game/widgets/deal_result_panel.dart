@@ -146,7 +146,11 @@ class _DealResultPanelState extends State<DealResultPanel> {
                     const SizedBox(height: Gap.l),
                   ],
                   if (over && _sheet)
-                    ScoreSheetTable(game: game, shrinkWrap: true)
+                    ScoreSheetTable(
+                      game: game,
+                      shrinkWrap: true,
+                      nameOf: widget.nameOf,
+                    )
                   else
                     DealRecap(
                       key: ValueKey('recap-${game.history.length}'),
@@ -183,12 +187,14 @@ class _Row {
     this.label,
     this.points, {
     this.sub,
+    this.subTeam,
     this.strong = false,
   });
   final String key;
   final String label;
   final List<int> points;
   final String? sub;
+  final int? subTeam;
   final bool strong;
 }
 
@@ -219,32 +225,10 @@ class _DealRecapState extends State<DealRecap>
   DealScore get d => widget.game.lastDeal!;
 
   List<_Row> _rows(AppLocalizations l) {
-    final rows = <_Row>[];
-    for (final line in d.breakdown) {
-      switch (line.step) {
-        case ScoreStep.cards:
-          rows.add(_Row('cards', l.cardPoints, line.points));
-        case ScoreStep.lastTen:
-          rows.add(_Row('lastTen', l.lastTen, line.points));
-        case ScoreStep.declarations:
-          rows.add(
-            _Row(
-              'declarations',
-              l.premiums,
-              line.points,
-              sub: d.scoringDeclarations
-                  .map((x) => declarationName(l, x))
-                  .join(' · '),
-            ),
-          );
-        case ScoreStep.belot:
-          rows.add(_Row('belot', l.belot, line.points));
-        case ScoreStep.noTrumpDouble:
-          rows.add(_Row('noTrumpDouble', l.noTrumpDouble, line.points));
-        case ScoreStep.valat:
-          rows.add(_Row('valat', l.valat, line.points));
-      }
-    }
+    final rows = [
+      for (final r in breakdownRows(l, d, nameOf: widget.nameOf))
+        _Row(r.key, r.label, r.points, sub: r.sub, subTeam: r.subTeam),
+    ];
     rows.add(_Row('raw', l.total, d.rawPoints, strong: true));
     return rows;
   }
@@ -291,20 +275,7 @@ class _DealRecapState extends State<DealRecap>
     final contract = d.contract;
     final declarer = widget.nameOf?.call(contract.declarer);
 
-    String outcomeText() {
-      final mult = contract.multiplier;
-      if (mult != Multiplier.none) {
-        final name = mult == Multiplier.doubled ? l.double : l.redouble;
-        return d.outcome == DealOutcome.hanging
-            ? l.doubledHangingExplain(name, mult.factor)
-            : '${outcomeLabel(l, d)} · ${l.doubledExplain(name, mult.factor)}';
-      }
-      return switch (d.outcome) {
-        DealOutcome.outside => l.outsideExplain,
-        DealOutcome.inside => l.insideExplain,
-        DealOutcome.hanging => l.hangingExplain,
-      };
-    }
+    String outcomeText() => outcomeExplain(l, d);
 
     Widget numbers(int i, String key, List<int> pts, {bool strong = false}) {
       final p = Curves.easeOutCubic.transform(_p(i));
@@ -342,30 +313,36 @@ class _DealRecapState extends State<DealRecap>
       );
     }
 
-    Widget labelled(String label, {String? sub, bool strong = false}) =>
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  color: strong ? c.textPrimary : c.textSecondary,
-                  fontSize: strong ? AppText.body : AppText.label,
-                  fontWeight: strong ? FontWeight.w600 : FontWeight.w400,
-                ),
-              ),
-              if (sub != null && sub.isNotEmpty)
-                Text(
-                  sub,
-                  style: TextStyle(
-                    color: c.textSecondary,
-                    fontSize: AppText.caption,
-                  ),
-                ),
-            ],
+    Widget labelled(
+      String label, {
+      String? sub,
+      int? subTeam,
+      bool strong = false,
+    }) => Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: strong ? c.textPrimary : c.textSecondary,
+              fontSize: strong ? AppText.body : AppText.label,
+              fontWeight: strong ? FontWeight.w600 : FontWeight.w400,
+            ),
           ),
-        );
+          if (sub != null && sub.isNotEmpty)
+            Text(
+              sub,
+              style: TextStyle(
+                color: subTeam == null
+                    ? c.textSecondary
+                    : (subTeam == 0 ? c.teamUs : c.teamThem),
+                fontSize: AppText.caption,
+              ),
+            ),
+        ],
+      ),
+    );
 
     final written = d.writtenForDeal;
     final outcomeIndex = rows.length;
@@ -452,7 +429,12 @@ class _DealRecapState extends State<DealRecap>
                       : null,
                   child: Row(
                     children: [
-                      labelled(r.label, sub: r.sub, strong: r.strong),
+                      labelled(
+                        r.label,
+                        sub: r.sub,
+                        subTeam: r.subTeam,
+                        strong: r.strong,
+                      ),
                       numbers(i, r.key, r.points, strong: r.strong),
                     ],
                   ),
@@ -462,10 +444,27 @@ class _DealRecapState extends State<DealRecap>
               outcomeIndex,
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: Gap.s),
-                child: Text(
-                  outcomeText(),
-                  key: const Key('recap-outcome'),
-                  style: TextStyle(color: c.chipText, fontSize: AppText.label),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      outcomeText(),
+                      key: const Key('recap-outcome'),
+                      style: TextStyle(
+                        color: c.chipText,
+                        fontSize: AppText.label,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${l.roundingTitle}: ${roundingText(l, d)}',
+                      key: const Key('recap-rounding'),
+                      style: TextStyle(
+                        color: c.textSecondary,
+                        fontSize: AppText.caption,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

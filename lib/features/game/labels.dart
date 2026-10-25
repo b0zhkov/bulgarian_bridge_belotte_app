@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart' hide Card;
 
 import '../../core/agents/bot_names.dart';
+import '../../core/constants/game_constants.dart';
 import '../../core/rules/rules.dart';
 import '../../core/widgets/suit_icon.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -149,4 +150,144 @@ class ContractGlyph extends StatelessWidget {
       ),
     );
   }
+}
+
+/// One declaration with its cards: "Терца ♥ до A", "Каре J".
+String declarationDetail(AppLocalizations l, Declaration d) {
+  final name = declarationName(l, d);
+  if (d.type == DeclarationType.square) {
+    return '$name ${d.cards.isEmpty ? '' : d.cards.first.rank.label}'.trim();
+  }
+  if (d.cards.isEmpty) return name;
+  return l.declarationUpTo(name, d.suit!.glyph, d.highRank.label);
+}
+
+String teamName(AppLocalizations l, int team) => team == 0 ? l.us : l.them;
+
+/// How the raw points were rounded into match points (belot.bg):
+/// "Ние 96 → 9 · Вие 66 → 7", "Общо 162 → 16 за Вие", …
+String roundingText(AppLocalizations l, DealScore d) {
+  final r = d.rounding;
+  final dt = d.contract.declarerTeam;
+  final ot = 1 - dt;
+  if (r.multiplied) {
+    final res = r.roundedTotal * r.factor;
+    if (r.outcome == DealOutcome.hanging) {
+      return l.roundingMultipliedHanging(
+        r.total,
+        r.roundedTotal,
+        r.factor,
+        res,
+      );
+    }
+    final winner = r.raw[0] > r.raw[1] ? 0 : 1;
+    return l.roundingMultiplied(
+      r.total,
+      r.roundedTotal,
+      r.factor,
+      res,
+      teamName(l, winner),
+    );
+  }
+  return switch (r.outcome) {
+    DealOutcome.outside => [
+      for (var t = 0; t < 2; t++)
+        '${teamName(l, t)} ${r.raw[t]} → ${r.rounded[t]}',
+    ].join(' · '),
+    DealOutcome.inside => l.roundingInside(
+      r.total,
+      r.roundedTotal,
+      teamName(l, ot),
+    ),
+    DealOutcome.hanging => l.roundingHanging(
+      teamName(l, ot),
+      r.raw[ot],
+      r.rounded[ot],
+      r.hanging,
+    ),
+  };
+}
+
+/// One line explaining the outcome (изкарана / вкарана / висяща, контра…).
+String outcomeExplain(AppLocalizations l, DealScore d) {
+  final mult = d.contract.multiplier;
+  if (mult != Multiplier.none) {
+    final name = mult == Multiplier.doubled ? l.double : l.redouble;
+    return d.outcome == DealOutcome.hanging
+        ? l.doubledHangingExplain(name, mult.factor)
+        : '${outcomeLabel(l, d)} · ${l.doubledExplain(name, mult.factor)}';
+  }
+  return switch (d.outcome) {
+    DealOutcome.outside => l.outsideExplain,
+    DealOutcome.inside => l.insideExplain,
+    DealOutcome.hanging => l.hangingExplain,
+  };
+}
+
+/// A row of a deal's breakdown: label, optional sub-label, points per team.
+class BreakdownRow {
+  const BreakdownRow(
+    this.key,
+    this.label,
+    this.points, {
+    this.sub,
+    this.subTeam,
+  });
+  final String key;
+  final String label;
+  final List<int> points;
+  final String? sub;
+
+  /// Colours [sub] (e.g. the declaration's owner) in that team's colour.
+  final int? subTeam;
+}
+
+/// The engine's breakdown as display rows, with every scoring declaration on
+/// its own line in its owner's column. Rows add up to the raw points.
+List<BreakdownRow> breakdownRows(
+  AppLocalizations l,
+  DealScore d, {
+  String Function(int seat)? nameOf,
+}) {
+  final rows = <BreakdownRow>[];
+  for (final line in d.breakdown) {
+    switch (line.step) {
+      case ScoreStep.cards:
+        rows.add(BreakdownRow('cards', l.cardPoints, line.points));
+      case ScoreStep.lastTen:
+        rows.add(BreakdownRow('lastTen', l.lastTen, line.points));
+      case ScoreStep.declarations:
+        for (final (i, x) in d.scoringDeclarations.indexed) {
+          final team = teamOf(x.seat);
+          rows.add(
+            BreakdownRow(
+              'decl$i',
+              declarationDetail(l, x),
+              [for (var t = 0; t < 2; t++) t == team ? x.points : 0],
+              sub: nameOf?.call(x.seat) ?? teamName(l, team),
+              subTeam: team,
+            ),
+          );
+        }
+      case ScoreStep.belot:
+        for (var t = 0; t < 2; t++) {
+          final n = d.belotPoints[t] ~/ kBelotBonus;
+          if (n == 0) continue;
+          rows.add(
+            BreakdownRow(
+              'belot$t',
+              n > 1 ? '${l.belot} ×$n' : l.belot,
+              [for (var u = 0; u < 2; u++) u == t ? d.belotPoints[t] : 0],
+              sub: teamName(l, t),
+              subTeam: t,
+            ),
+          );
+        }
+      case ScoreStep.noTrumpDouble:
+        rows.add(BreakdownRow('noTrumpDouble', l.noTrumpDouble, line.points));
+      case ScoreStep.valat:
+        rows.add(BreakdownRow('valat', l.valat, line.points));
+    }
+  }
+  return rows;
 }

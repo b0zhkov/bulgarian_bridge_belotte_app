@@ -1447,6 +1447,113 @@ abstract class AppLocalizations {
   /// In bg, this message translates to:
   /// **'Обнови'**
   String get updateNow;
+
+  /// Beta 10: invites / score details (invite).
+  ///
+  /// In bg, this message translates to:
+  /// **'Покани'**
+  String get invite;
+
+  /// Beta 10: invites / score details (inviteTitle).
+  ///
+  /// In bg, this message translates to:
+  /// **'Покана за Белот'**
+  String get inviteTitle;
+
+  /// Beta 10: invites / score details (inviteFailedTitle).
+  ///
+  /// In bg, this message translates to:
+  /// **'Поканата не може да се отвори'**
+  String get inviteFailedTitle;
+
+  /// Beta 10: invites / score details (inviteFailedBody).
+  ///
+  /// In bg, this message translates to:
+  /// **'Стаята от поканата е затворена или вече не съществува. Създай нова стая или въведи друг код.'**
+  String get inviteFailedBody;
+
+  /// Beta 10: invites / score details (inviteInvalidBody).
+  ///
+  /// In bg, this message translates to:
+  /// **'Кодът във връзката е грешен. Помоли приятеля си за нова покана или въведи кода ръчно.'**
+  String get inviteInvalidBody;
+
+  /// Beta 10: invites / score details (declarationUpTo).
+  ///
+  /// In bg, this message translates to:
+  /// **'{name} {suit} до {rank}'**
+  String declarationUpTo(String name, String suit, String rank);
+
+  /// Beta 10: invites / score details (roundingTitle).
+  ///
+  /// In bg, this message translates to:
+  /// **'Закръгляне'**
+  String get roundingTitle;
+
+  /// Beta 10: invites / score details (roundingInside).
+  ///
+  /// In bg, this message translates to:
+  /// **'Общо {total} → {rounded} за {team}'**
+  String roundingInside(int total, int rounded, String team);
+
+  /// Beta 10: invites / score details (roundingHanging).
+  ///
+  /// In bg, this message translates to:
+  /// **'{team}: {raw} → {rounded}; {hang} висят'**
+  String roundingHanging(String team, int raw, int rounded, int hang);
+
+  /// Beta 10: invites / score details (roundingMultiplied).
+  ///
+  /// In bg, this message translates to:
+  /// **'Общо {total} → {rounded} ×{factor} = {result} за {team}'**
+  String roundingMultiplied(
+    int total,
+    int rounded,
+    int factor,
+    int result,
+    String team,
+  );
+
+  /// Beta 10: invites / score details (roundingMultipliedHanging).
+  ///
+  /// In bg, this message translates to:
+  /// **'Общо {total} → {rounded} ×{factor} = {result} висят'**
+  String roundingMultipliedHanging(
+    int total,
+    int rounded,
+    int factor,
+    int result,
+  );
+
+  /// Beta 10: invites / score details (tapRowForDetails).
+  ///
+  /// In bg, this message translates to:
+  /// **'Докосни раздаване за подробности'**
+  String get tapRowForDetails;
+
+  /// Beta 10: invites / score details (dealNumberTitle).
+  ///
+  /// In bg, this message translates to:
+  /// **'Раздаване {n}'**
+  String dealNumberTitle(int n);
+
+  /// Beta 10: invites / score details (contractBy).
+  ///
+  /// In bg, this message translates to:
+  /// **'Играят: {team}'**
+  String contractBy(String team);
+
+  /// Beta 10: invites / score details (trickPoints).
+  ///
+  /// In bg, this message translates to:
+  /// **'{points} т. във взятката'**
+  String trickPoints(int points);
+
+  /// Beta 10: invites / score details (lastTrickHides).
+  ///
+  /// In bg, this message translates to:
+  /// **'Скрива се при следващата карта'**
+  String get lastTrickHides;
 }
 
 class _AppLocalizationsDelegate

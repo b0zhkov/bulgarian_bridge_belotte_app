@@ -58,8 +58,9 @@ class _LiveGameState extends State<LiveGame> {
 /// The score sheet as a bottom sheet that follows [live].
 Future<void> showScoreSheet(
   BuildContext context,
-  ValueListenable<GameState> live,
-) {
+  ValueListenable<GameState> live, {
+  String Function(int seat)? nameOf,
+}) {
   final l = AppLocalizations.of(context);
   final c = context.colors;
   return showModalBottomSheet<void>(
@@ -87,11 +88,19 @@ Future<void> showScoreSheet(
                   fontWeight: FontWeight.w400,
                 ),
               ),
+              Text(
+                l.tapRowForDetails,
+                style: TextStyle(
+                  color: c.textSecondary,
+                  fontSize: AppText.caption,
+                ),
+              ),
               const SizedBox(height: Gap.m),
               Flexible(
                 child: ValueListenableBuilder<GameState>(
                   valueListenable: live,
-                  builder: (context, g, _) => ScoreSheetTable(game: g),
+                  builder: (context, g, _) =>
+                      ScoreSheetTable(game: g, nameOf: nameOf),
                 ),
               ),
             ],
@@ -110,9 +119,13 @@ class ScoreSheetTable extends StatelessWidget {
     super.key,
     required this.game,
     this.shrinkWrap = false,
+    this.nameOf,
   });
   final GameState game;
   final bool shrinkWrap;
+
+  /// Display name for a (view) seat, for declaration owners in the details.
+  final String Function(int seat)? nameOf;
 
   static const double _mid = 52;
 
@@ -147,6 +160,7 @@ class ScoreSheetTable extends StatelessWidget {
           deal: d,
           totals: List.of(running),
           divider: line,
+          nameOf: nameOf,
         ),
       );
     }
@@ -216,7 +230,7 @@ class ScoreSheetTable extends StatelessWidget {
   /// panel ([shrinkWrap]) they get a fixed maximum.
   Widget _fit(Widget list) => shrinkWrap
       ? ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 260),
+          constraints: const BoxConstraints(maxHeight: 340),
           child: list,
         )
       : Flexible(child: list);
@@ -235,24 +249,36 @@ class ScoreSheetTable extends StatelessWidget {
   );
 }
 
-class _SheetRow extends StatelessWidget {
+class _SheetRow extends StatefulWidget {
   const _SheetRow({
     super.key,
     required this.index,
     required this.deal,
     required this.totals,
     required this.divider,
+    this.nameOf,
   });
   final int index;
   final DealScore deal;
   final List<int> totals;
   final BorderSide divider;
+  final String Function(int seat)? nameOf;
+
+  @override
+  State<_SheetRow> createState() => _SheetRowState();
+}
+
+class _SheetRowState extends State<_SheetRow> {
+  bool _open = false;
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final c = context.colors;
-    final d = deal;
+    final d = widget.deal;
+    final index = widget.index;
+    final totals = widget.totals;
+    final divider = widget.divider;
     final marks = sheetMarks(l, d);
 
     Widget cell(int t) {
@@ -283,68 +309,290 @@ class _SheetRow extends StatelessWidget {
     }
 
     final declarerTeam = d.contract.declarerTeam;
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: Gap.s),
-      decoration: BoxDecoration(
-        border: Border(bottom: divider.copyWith(width: 0.5)),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              cell(0),
-              SizedBox(
-                width: ScoreSheetTable._mid,
-                child: Center(
-                  child: Container(
-                    key: Key('sheet-badge-$index'),
-                    width: 38,
-                    height: 38,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: c.surfaceHigh,
-                      border: Border.all(
-                        color: declarerTeam == 0 ? c.teamUs : c.teamThem,
-                        width: 1.2,
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ContractGlyph(
-                          d.contract.type,
-                          size: 16,
-                          color: c.textPrimary,
-                          red: c.cardRed,
+    return InkWell(
+      key: Key('sheet-tap-$index'),
+      onTap: () => setState(() => _open = !_open),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: Gap.s),
+        decoration: BoxDecoration(
+          border: Border(bottom: divider.copyWith(width: 0.5)),
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                cell(0),
+                SizedBox(
+                  width: ScoreSheetTable._mid,
+                  child: Center(
+                    child: Container(
+                      key: Key('sheet-badge-$index'),
+                      width: 38,
+                      height: 38,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: c.surfaceHigh,
+                        border: Border.all(
+                          color: declarerTeam == 0 ? c.teamUs : c.teamThem,
+                          width: 1.2,
                         ),
-                        if (d.contract.multiplier != Multiplier.none)
-                          Text(
-                            '×${d.contract.multiplier.factor}',
-                            style: TextStyle(
-                              color: c.chipText,
-                              fontSize: 9,
-                              fontWeight: FontWeight.w700,
-                              height: 1.1,
-                            ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ContractGlyph(
+                            d.contract.type,
+                            size: 16,
+                            color: c.textPrimary,
+                            red: c.cardRed,
                           ),
-                      ],
+                          if (d.contract.multiplier != Multiplier.none)
+                            Text(
+                              '×${d.contract.multiplier.factor}',
+                              style: TextStyle(
+                                color: c.chipText,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700,
+                                height: 1.1,
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
+                cell(1),
+              ],
+            ),
+            if (marks.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text(
+                  marks,
+                  key: Key('sheet-marks-$index'),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: c.chipText,
+                    fontSize: AppText.caption,
+                  ),
+                ),
               ),
-              cell(1),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOutCubic,
+              alignment: Alignment.topCenter,
+              child: _open
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: Gap.s),
+                      child: DealBreakdown(
+                        key: Key('sheet-details-$index'),
+                        deal: d,
+                        index: index,
+                        nameOf: widget.nameOf,
+                      ),
+                    )
+                  : const SizedBox(width: double.infinity),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Static per-deal breakdown for the score sheet: contract, card points,
+/// last 10, each declaration (in its owner's column), belot, the No Trump
+/// doubling, капо, the raw totals, the outcome (контра / реконтра, вкарана,
+/// висяща), the belot.bg rounding and the points written.
+class DealBreakdown extends StatelessWidget {
+  const DealBreakdown({super.key, required this.deal, this.index, this.nameOf});
+  final DealScore deal;
+  final int? index;
+  final String Function(int seat)? nameOf;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final c = context.colors;
+    final d = deal;
+    final contract = d.contract;
+    final dt = contract.declarerTeam;
+    final declarer = nameOf?.call(contract.declarer) ?? teamName(l, dt);
+
+    Widget nums(String key, List<int> pts, {bool strong = false}) => Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var t = 0; t < 2; t++)
+          SizedBox(
+            width: 52,
+            child: Text(
+              strong || pts[t] != 0 ? '${pts[t]}' : '–',
+              key: Key('detail-$key-$t'),
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                color: strong
+                    ? c.textPrimary
+                    : (pts[t] == 0
+                          ? c.textSecondary.withValues(alpha: 0.5)
+                          : c.textPrimary),
+                fontSize: strong ? AppText.body : AppText.label,
+                fontWeight: strong ? FontWeight.w700 : FontWeight.w400,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ),
+      ],
+    );
+
+    Widget row(
+      String key,
+      String label,
+      List<int> pts, {
+      String? sub,
+      int? subTeam,
+      bool strong = false,
+      bool topLine = false,
+    }) => Container(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      decoration: topLine
+          ? BoxDecoration(
+              border: Border(top: BorderSide(color: c.outline)),
+            )
+          : null,
+      child: Row(
+        children: [
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                text: label,
+                children: [
+                  if (sub != null)
+                    TextSpan(
+                      text: '  $sub',
+                      style: TextStyle(
+                        color: subTeam == null
+                            ? c.textSecondary
+                            : (subTeam == 0 ? c.teamUs : c.teamThem),
+                        fontSize: AppText.caption,
+                      ),
+                    ),
+                ],
+              ),
+              style: TextStyle(
+                color: strong ? c.textPrimary : c.textSecondary,
+                fontSize: strong ? AppText.label + 1 : AppText.label,
+                fontWeight: strong ? FontWeight.w600 : FontWeight.w400,
+              ),
+            ),
+          ),
+          nums(key, pts, strong: strong),
+        ],
+      ),
+    );
+
+    final written = d.writtenForDeal;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(Gap.m, Gap.s, Gap.m, Gap.m),
+      decoration: BoxDecoration(
+        color: c.surfaceHigh,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              ContractGlyph(
+                contract.type,
+                size: 18,
+                color: c.textPrimary,
+                red: c.cardRed,
+              ),
+              const SizedBox(width: Gap.s),
+              Expanded(
+                child: Text.rich(
+                  TextSpan(
+                    text:
+                        '${index == null ? '' : '${l.dealNumberTitle(index! + 1)} · '}'
+                        '${contractName(l, contract.type)}'
+                        '${multiplierSuffix(l, contract.multiplier)}',
+                    children: [
+                      TextSpan(
+                        text: '\n${l.playsContract(declarer)}',
+                        style: TextStyle(
+                          color: dt == 0 ? c.teamUs : c.teamThem,
+                          fontSize: AppText.caption,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  style: TextStyle(
+                    color: c.textPrimary,
+                    fontSize: AppText.label,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              for (final (label, color) in [
+                (l.us, c.teamUs),
+                (l.them, c.teamThem),
+              ])
+                SizedBox(
+                  width: 52,
+                  child: Text(
+                    label,
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      color: color,
+                      fontSize: AppText.caption,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
             ],
           ),
-          if (marks.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Text(
-                marks,
-                key: Key('sheet-marks-$index'),
-                textAlign: TextAlign.center,
-                style: TextStyle(color: c.chipText, fontSize: AppText.caption),
-              ),
+          const SizedBox(height: Gap.xs),
+          for (final r in breakdownRows(l, d, nameOf: nameOf))
+            row(r.key, r.label, r.points, sub: r.sub, subTeam: r.subTeam),
+          row('raw', l.total, d.rawPoints, strong: true, topLine: true),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: Gap.xs),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  outcomeExplain(l, d),
+                  key: const Key('detail-outcome'),
+                  style: TextStyle(
+                    color: c.chipText,
+                    fontSize: AppText.caption,
+                  ),
+                ),
+                Text(
+                  '${l.roundingTitle}: ${roundingText(l, d)}',
+                  key: const Key('detail-rounding'),
+                  style: TextStyle(
+                    color: c.textSecondary,
+                    fontSize: AppText.caption,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          row('written', l.written, written, strong: true, topLine: true),
+          if (d.hangingAwarded > 0)
+            row('awarded', l.hangingAwardedLine(d.hangingAwarded), [
+              for (var t = 0; t < 2; t++)
+                d.hangingAwardedTo == t ? d.hangingAwarded : 0,
+            ]),
+          if (d.newlyHanging > 0)
+            Text(
+              l.hangingLeft(d.newlyHanging),
+              key: const Key('detail-hanging'),
+              style: TextStyle(color: c.chipText, fontSize: AppText.caption),
             ),
         ],
       ),

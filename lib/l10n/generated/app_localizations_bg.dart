@@ -733,4 +733,81 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get updateNow => 'Обнови';
+
+  @override
+  String get invite => 'Покани';
+
+  @override
+  String get inviteTitle => 'Покана за Белот';
+
+  @override
+  String get inviteFailedTitle => 'Поканата не може да се отвори';
+
+  @override
+  String get inviteFailedBody =>
+      'Стаята от поканата е затворена или вече не съществува. Създай нова стая или въведи друг код.';
+
+  @override
+  String get inviteInvalidBody =>
+      'Кодът във връзката е грешен. Помоли приятеля си за нова покана или въведи кода ръчно.';
+
+  @override
+  String declarationUpTo(String name, String suit, String rank) {
+    return '$name $suit до $rank';
+  }
+
+  @override
+  String get roundingTitle => 'Закръгляне';
+
+  @override
+  String roundingInside(int total, int rounded, String team) {
+    return 'Общо $total → $rounded за $team';
+  }
+
+  @override
+  String roundingHanging(String team, int raw, int rounded, int hang) {
+    return '$team: $raw → $rounded; $hang висят';
+  }
+
+  @override
+  String roundingMultiplied(
+    int total,
+    int rounded,
+    int factor,
+    int result,
+    String team,
+  ) {
+    return 'Общо $total → $rounded ×$factor = $result за $team';
+  }
+
+  @override
+  String roundingMultipliedHanging(
+    int total,
+    int rounded,
+    int factor,
+    int result,
+  ) {
+    return 'Общо $total → $rounded ×$factor = $result висят';
+  }
+
+  @override
+  String get tapRowForDetails => 'Докосни раздаване за подробности';
+
+  @override
+  String dealNumberTitle(int n) {
+    return 'Раздаване $n';
+  }
+
+  @override
+  String contractBy(String team) {
+    return 'Играят: $team';
+  }
+
+  @override
+  String trickPoints(int points) {
+    return '$points т. във взятката';
+  }
+
+  @override
+  String get lastTrickHides => 'Скрива се при следващата карта';
 }

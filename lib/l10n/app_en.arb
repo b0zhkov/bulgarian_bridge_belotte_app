@@ -289,5 +289,119 @@
   "installIosStep3": "Tap “Add” — done.",
   "installDismiss": "Hide",
   "updateAvailable": "A new version is available",
-  "updateNow": "Update"
+  "updateNow": "Update",
+  "invite": "Invite",
+  "inviteTitle": "Belot invite",
+  "inviteFailedTitle": "Can't open this invite",
+  "inviteFailedBody": "The room from this invite is closed or no longer exists. Create a new room or enter another code.",
+  "inviteInvalidBody": "The code in this link is wrong. Ask your friend for a new invite or type the code.",
+  "declarationUpTo": "{name} {suit} to {rank}",
+  "@declarationUpTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "suit": {
+        "type": "String"
+      },
+      "rank": {
+        "type": "String"
+      }
+    }
+  },
+  "roundingTitle": "Rounding",
+  "roundingInside": "All {total} → {rounded} to {team}",
+  "@roundingInside": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "rounded": {
+        "type": "int"
+      },
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "roundingHanging": "{team}: {raw} → {rounded}; {hang} hanging",
+  "@roundingHanging": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      },
+      "raw": {
+        "type": "int"
+      },
+      "rounded": {
+        "type": "int"
+      },
+      "hang": {
+        "type": "int"
+      }
+    }
+  },
+  "roundingMultiplied": "All {total} → {rounded} ×{factor} = {result} to {team}",
+  "@roundingMultiplied": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "rounded": {
+        "type": "int"
+      },
+      "factor": {
+        "type": "int"
+      },
+      "result": {
+        "type": "int"
+      },
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "roundingMultipliedHanging": "All {total} → {rounded} ×{factor} = {result} hanging",
+  "@roundingMultipliedHanging": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "rounded": {
+        "type": "int"
+      },
+      "factor": {
+        "type": "int"
+      },
+      "result": {
+        "type": "int"
+      }
+    }
+  },
+  "tapRowForDetails": "Tap a deal for details",
+  "dealNumberTitle": "Deal {n}",
+  "@dealNumberTitle": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "contractBy": "Playing: {team}",
+  "@contractBy": {
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "trickPoints": "{points} points in this trick",
+  "@trickPoints": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "lastTrickHides": "Hides when the next card is played"
 }

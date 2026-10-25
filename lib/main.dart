@@ -9,6 +9,8 @@ import 'features/game/game_screen.dart';
 import 'features/game/widgets/warm_up.dart';
 import 'features/home/home_screen.dart';
 import 'features/online/online_entry_screen.dart';
+import 'features/online/invite/web_bridge.dart';
+import 'features/online/room_code.dart';
 import 'features/online/room_screen.dart';
 import 'features/profile/name_screen.dart';
 import 'features/profile/profile_controller.dart';
@@ -79,11 +81,13 @@ class BelotApp extends ConsumerWidget {
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/online') {
+          final args = settings.arguments;
           return MaterialPageRoute<void>(
             settings: settings,
             builder: (_) => _NameGate(
               child: OnlineEntryScreen(
-                initialCode: settings.arguments as String?,
+                initialCode: args is InviteArgs ? args.code : args as String?,
+                fromInvite: args is InviteArgs,
               ),
             ),
           );
@@ -125,17 +129,33 @@ class _NameGate extends ConsumerWidget {
   }
 }
 
+/// Arguments for `/online` opened from an invite link: join right away.
+class InviteArgs {
+  const InviteArgs(this.code);
+  final String code;
+}
+
 bool _inviteHandled = false;
 
-/// Web invite links (`?room=CODE`) open the join screen with the code.
+/// The address the app was opened with (tests replace it).
+@visibleForTesting
+Uri Function() debugLaunchUri = () => Uri.base;
+
+@visibleForTesting
+void debugResetInvite() => _inviteHandled = false;
+
+/// Web invite links (`?room=CODE`): once the player has a name, go straight
+/// to joining that room. The query is then removed from the address bar so a
+/// reload does not join again.
 void _openInviteLinkOnce(BuildContext context) {
   if (_inviteHandled) return;
   _inviteHandled = true;
-  final code = Uri.base.queryParameters['room'];
-  if (code == null || code.isEmpty) return;
+  final code = inviteCodeFrom(debugLaunchUri());
+  if (code == null) return;
+  clearInviteFromUrl();
   WidgetsBinding.instance.addPostFrameCallback((_) {
     if (context.mounted) {
-      Navigator.of(context).pushNamed('/online', arguments: code);
+      Navigator.of(context).pushNamed('/online', arguments: InviteArgs(code));
     }
   });
 }

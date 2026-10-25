@@ -1,12 +1,70 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../../online/room_models.dart';
+import 'invite/web_bridge.dart';
 
 const kAppUrl = 'https://b0zhkov.github.io/bulgarian_bridge_belotte_app/';
 
 String inviteLink(String code) => '$kAppUrl?room=$code';
+
+/// The room code carried by an invite link (`?room=CODE`), normalised, or
+/// null when there is none. A malformed code is returned as typed so the
+/// join screen can say it is invalid.
+String? inviteCodeFrom(Uri uri) {
+  final raw = uri.queryParameters['room']?.trim();
+  if (raw == null || raw.isEmpty) return null;
+  final code = normalizeCode(raw);
+  return code.isEmpty ? raw.toUpperCase() : code;
+}
+
+/// Opens the platform share sheet with [text]; tests replace it.
+@visibleForTesting
+Future<ShareOutcome> Function(String title, String text, Rect? origin)
+debugInviteSharer = _platformShare;
+
+Future<ShareOutcome> _platformShare(
+  String title,
+  String text,
+  Rect? origin,
+) async {
+  if (kIsWeb) return webShare(title: title, text: text);
+  if (defaultTargetPlatform != TargetPlatform.android &&
+      defaultTargetPlatform != TargetPlatform.iOS) {
+    return ShareOutcome.unavailable;
+  }
+  try {
+    final r = await SharePlus.instance.share(
+      ShareParams(text: text, subject: title, sharePositionOrigin: origin),
+    );
+    return r.status == ShareResultStatus.unavailable
+        ? ShareOutcome.unavailable
+        : ShareOutcome.shared;
+  } catch (_) {
+    return ShareOutcome.unavailable;
+  }
+}
+
+/// "Покани": the native / Web Share sheet with the invite text and link;
+/// where there is none, the invite is copied with a toast.
+Future<void> shareInvite(BuildContext context, String code) async {
+  final l = AppLocalizations.of(context);
+  final box = context.findRenderObject();
+  final origin = box is RenderBox && box.hasSize
+      ? box.localToGlobal(Offset.zero) & box.size
+      : null;
+  final outcome = await debugInviteSharer(
+    l.inviteTitle,
+    l.shareText(code, inviteLink(code)),
+    origin,
+  );
+  if (outcome == ShareOutcome.shared || !context.mounted) return;
+  await copyInvite(context, code);
+}
 
 Future<void> copyInvite(BuildContext context, String code) async {
   final l = AppLocalizations.of(context);
@@ -23,6 +81,57 @@ Future<void> copyInvite(BuildContext context, String code) async {
         duration: const Duration(seconds: 2),
       ),
     );
+}
+
+/// Small "Покани" pill (share icon + label).
+class InviteButton extends StatelessWidget {
+  const InviteButton({super.key, required this.code, this.compact = false});
+  final String code;
+
+  /// In-game: a smaller pill next to the code.
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final c = context.colors;
+    return Material(
+      color: compact ? c.surface : c.accent,
+      shape: const StadiumBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: Builder(
+        builder: (context) => InkWell(
+          key: Key(compact ? 'invite-chip' : 'invite-button'),
+          onTap: () => shareInvite(context, code),
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: compact ? Gap.m : Gap.l + 2,
+              vertical: compact ? Gap.xs + 2 : Gap.s + 2,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.ios_share_rounded,
+                  size: compact ? 16 : 20,
+                  color: compact ? c.textPrimary : c.background,
+                ),
+                const SizedBox(width: Gap.xs + 2),
+                Text(
+                  l.invite,
+                  style: TextStyle(
+                    color: compact ? c.textPrimary : c.background,
+                    fontSize: compact ? AppText.label : AppText.body,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 /// Big room code card for the lobby (tap to copy the invite).
@@ -83,22 +192,22 @@ class RoomCodeCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: Gap.s),
+              const SizedBox(height: Gap.m),
               Row(
-                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.copy_rounded, size: 16, color: c.textSecondary),
                   const SizedBox(width: Gap.xs + 2),
-                  Flexible(
+                  Expanded(
                     child: Text(
                       l.tapToCopy,
-                      textAlign: TextAlign.center,
                       style: TextStyle(
                         color: c.textSecondary,
                         fontSize: AppText.caption,
                       ),
                     ),
                   ),
+                  const SizedBox(width: Gap.s),
+                  InviteButton(code: code),
                 ],
               ),
             ],
@@ -119,41 +228,54 @@ class RoomCodeChip extends StatelessWidget {
     final l = AppLocalizations.of(context);
     final c = context.colors;
     return Center(
-      child: Material(
-        color: c.surface,
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: Gap.s,
+        runSpacing: Gap.xs,
+        children: [
+          _chip(context, l, c),
+          InviteButton(code: code, compact: true),
+        ],
+      ),
+    );
+  }
+
+  Widget _chip(BuildContext context, AppLocalizations l, BelotColors c) {
+    return Material(
+      color: c.surface,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        key: const Key('room-code-chip'),
         borderRadius: BorderRadius.circular(20),
-        child: InkWell(
-          key: const Key('room-code-chip'),
-          borderRadius: BorderRadius.circular(20),
-          onTap: () => copyInvite(context, code),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: Gap.l,
-              vertical: Gap.xs + 2,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '${l.roomCodeShort} ',
-                  style: TextStyle(
-                    color: c.textSecondary,
-                    fontSize: AppText.label,
-                  ),
+        onTap: () => copyInvite(context, code),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: Gap.m,
+            vertical: Gap.xs + 2,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${l.roomCodeShort} ',
+                style: TextStyle(
+                  color: c.textSecondary,
+                  fontSize: AppText.label,
                 ),
-                Text(
-                  code,
-                  style: TextStyle(
-                    color: c.textPrimary,
-                    fontSize: AppText.body,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 2,
-                  ),
+              ),
+              Text(
+                code,
+                style: TextStyle(
+                  color: c.textPrimary,
+                  fontSize: AppText.body,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 2,
                 ),
-                const SizedBox(width: Gap.s),
-                Icon(Icons.copy_rounded, size: 16, color: c.textSecondary),
-              ],
-            ),
+              ),
+              const SizedBox(width: Gap.s),
+              Icon(Icons.copy_rounded, size: 16, color: c.textSecondary),
+            ],
           ),
         ),
       ),

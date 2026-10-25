@@ -6,6 +6,8 @@ import 'package:bulgarian_bridge_belotte_app/features/game/game_controller.dart'
 import 'package:bulgarian_bridge_belotte_app/features/game/widgets/deal_result_panel.dart';
 import 'package:bulgarian_bridge_belotte_app/features/game/widgets/score_sheet.dart';
 import 'package:bulgarian_bridge_belotte_app/features/game/widgets/playing_card.dart';
+import 'package:bulgarian_bridge_belotte_app/features/game/widgets/last_trick.dart';
+import 'package:bulgarian_bridge_belotte_app/features/game/labels.dart';
 import 'package:bulgarian_bridge_belotte_app/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart' hide Card;
 import 'package:flutter_test/flutter_test.dart';
@@ -138,11 +140,28 @@ void main() {
       await t.pump();
       for (var team = 0; team < 2; team++) {
         for (final line in d.breakdown) {
-          expect(
-            text(t, 'recap-${line.step.name}-$team'),
-            '${line.points[team]}',
-          );
+          if (line.step == ScoreStep.declarations) {
+            // One line per declaration, in its owner's column.
+            var sum = 0;
+            for (var i = 0; i < d.scoringDeclarations.length; i++) {
+              sum += int.parse(text(t, 'recap-decl$i-$team'));
+            }
+            expect(sum, line.points[team]);
+          } else if (line.step == ScoreStep.belot) {
+            expect(
+              find.byKey(Key('recap-belot$team-$team')).evaluate().isEmpty
+                  ? 0
+                  : int.parse(text(t, 'recap-belot$team-$team')),
+              line.points[team],
+            );
+          } else {
+            expect(
+              text(t, 'recap-${line.step.name}-$team'),
+              '${line.points[team]}',
+            );
+          }
         }
+        expect(find.byKey(const Key('recap-rounding')), findsOneWidget);
         expect(text(t, 'recap-raw-$team'), '${d.rawPoints[team]}');
         expect(text(t, 'recap-written-$team'), '${d.writtenForDeal[team]}');
         if (d.hangingAwarded > 0) {
@@ -294,8 +313,10 @@ void main() {
       expect(v.highlighted, p.seat == last.winner);
     }
     expect(text(t, 'last-trick-winner'), startsWith('Взе: '));
-    // Any tap closes it.
-    await t.tapAt(const Offset(20, 20));
+    // Any tap closes it (unless the next card already did).
+    if (find.byKey(const Key('last-trick')).evaluate().isNotEmpty) {
+      await t.tap(find.byKey(const Key('last-trick')), warnIfMissed: false);
+    }
     await t.pump(const Duration(milliseconds: 300));
     expect(find.byKey(const Key('last-trick')), findsNothing);
 
@@ -363,5 +384,163 @@ void main() {
     expect(text(t, 'score-us'), '${g.scores[0]}');
     expect(text(t, 'score-them'), '${g.scores[1]}');
     await app.leave(t);
+  });
+
+  testWidgets('score sheet: tap a deal for its full breakdown', (t) async {
+    t.view.physicalSize = const Size(430, 2400);
+    t.view.devicePixelRatio = 1;
+    addTearDown(t.view.reset);
+    final l = lookupAppLocalizations(const Locale('bg'));
+    var checked = 0;
+    for (var seed = 1; seed < 40 && checked < 3; seed++) {
+      final g = finishedMatch(seed);
+      final i = g.history.indexWhere((d) => d.scoringDeclarations.isNotEmpty);
+      if (i < 0) continue;
+      final d = g.history[i];
+      await t.pumpWidget(
+        host(
+          SingleChildScrollView(
+            child: ScoreSheetTable(
+              game: g,
+              shrinkWrap: true,
+              nameOf: (s) => 'P$s',
+            ),
+          ),
+        ),
+      );
+      await t.pumpAndSettle();
+      final row = find.byKey(Key('sheet-tap-$i'));
+      await t.scrollUntilVisible(
+        row,
+        80,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await t.pumpAndSettle();
+      expect(find.byKey(Key('sheet-details-$i')), findsNothing);
+      await t.tap(row);
+      await t.pumpAndSettle();
+      final details = find.byKey(Key('sheet-details-$i'));
+      expect(details, findsOneWidget);
+      String cell(String key) => t
+          .widget<Text>(
+            find.descendant(of: details, matching: find.byKey(Key(key))),
+          )
+          .data!;
+      for (var team = 0; team < 2; team++) {
+        expect(cell('detail-raw-$team'), '${d.rawPoints[team]}');
+        expect(cell('detail-written-$team'), '${d.writtenForDeal[team]}');
+      }
+      for (final (k, x) in d.scoringDeclarations.indexed) {
+        final team = teamOf(x.seat);
+        expect(cell('detail-decl$k-$team'), '${x.points}');
+        expect(cell('detail-decl$k-${1 - team}'), '–');
+        expect(
+          find.descendant(
+            of: details,
+            matching: find.textContaining(declarationDetail(l, x)),
+          ),
+          findsWidgets,
+        );
+      }
+      expect(
+        cell('detail-rounding'),
+        '${l.roundingTitle}: ${roundingText(l, d)}',
+      );
+      expect(cell('detail-outcome'), outcomeExplain(l, d));
+      // Tap again (on the row's header) to fold it.
+      await t.ensureVisible(find.byKey(Key('sheet-badge-$i')));
+      await t.pumpAndSettle();
+      await t.tap(find.byKey(Key('sheet-badge-$i')));
+      await t.pumpAndSettle();
+      expect(find.byKey(Key('sheet-details-$i')), findsNothing);
+      checked++;
+    }
+    expect(checked, greaterThan(0));
+  });
+
+  testWidgets('score sheet details for контра and вкарана deals', (t) async {
+    t.view.physicalSize = const Size(430, 1400);
+    t.view.devicePixelRatio = 1;
+    addTearDown(t.view.reset);
+    final g = BelotEngine.newMatch(seed: 1);
+    final doubled = deal(mult: Multiplier.doubled, scored: const [32, 0]);
+    final inside = DealScore(
+      contract: const Contract(ContractType.spades, 0, Multiplier.none),
+      cardPoints: const [71, 71],
+      declarationPoints: const [0, 0],
+      belotPoints: const [0, 20],
+      lastTrickTeam: 0,
+      valatTeam: null,
+      rawPoints: const [81, 101],
+      outcome: DealOutcome.inside,
+      scored: const [0, 18],
+      newlyHanging: 0,
+      hangingAwarded: 0,
+      hangingAwardedTo: null,
+      scoringDeclarations: const [],
+    );
+    final game = g.copyWith(history: [doubled, inside], scores: [32, 18]);
+    await t.pumpWidget(host(ScoreSheetTable(game: game, shrinkWrap: true)));
+    await t.tap(find.byKey(const Key('sheet-tap-0')));
+    await t.pumpAndSettle();
+    expect(find.textContaining('Общо 162 → 16 ×2 = 32 за Ние'), findsOneWidget);
+    expect(find.textContaining('Контра — по-силният'), findsOneWidget);
+    await t.tap(find.byKey(const Key('sheet-tap-0')));
+    await t.pumpAndSettle();
+    await t.tap(find.byKey(const Key('sheet-tap-1')));
+    await t.pumpAndSettle();
+    expect(find.textContaining('Общо 182 → 18 за Вие'), findsOneWidget);
+    expect(text(t, 'detail-belot1-1'), '20');
+  });
+
+  testWidgets('last trick hides when the next card is played', (t) async {
+    final g = finishedMatch(3);
+    final live = ValueNotifier<GameState>(
+      g.copyWith(
+        phase: GamePhase.playing,
+        tricks: g.history.isEmpty ? g.tricks : g.tricks.take(3).toList(),
+        currentTrick: const Trick(0),
+      ),
+    );
+    addTearDown(live.dispose);
+    final trick = live.value.tricks.last;
+    await t.pumpWidget(
+      host(
+        Builder(
+          builder: (context) => Center(
+            child: LastTrickButton(
+              trick: trick,
+              nameOf: (s) => 'P$s',
+              live: live,
+              contract: live.value.contract?.type ?? ContractType.hearts,
+            ),
+          ),
+        ),
+      ),
+    );
+    await t.tap(find.byKey(const Key('last-trick-button')));
+    await t.pumpAndSettle();
+    expect(find.byKey(const Key('last-trick')), findsOneWidget);
+    expect(find.byKey(const Key('last-trick-points')), findsOneWidget);
+    expect(
+      find.textContaining('Скрива се при следващата карта'),
+      findsOneWidget,
+    );
+    // A new card on the table closes it; the screen under it stays.
+    live.value = live.value.copyWith(
+      currentTrick: live.value.currentTrick.add(
+        Play(0, live.value.tricks.first.plays.first.card),
+      ),
+    );
+    await t.pumpAndSettle();
+    expect(find.byKey(const Key('last-trick')), findsNothing);
+    expect(find.byKey(const Key('last-trick-button')), findsOneWidget);
+    // Reopen and close it with a tap.
+    await t.tap(find.byKey(const Key('last-trick-button')));
+    await t.pumpAndSettle();
+    await t.tap(find.byKey(const Key('last-trick')));
+    await t.pumpAndSettle();
+    expect(find.byKey(const Key('last-trick')), findsNothing);
+    expect(find.byKey(const Key('last-trick-button')), findsOneWidget);
   });
 }

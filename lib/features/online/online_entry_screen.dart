@@ -16,8 +16,15 @@ String onlineErrorText(AppLocalizations l, OnlineError e) => switch (e) {
 
 /// "Play with friends": create a room or join one by code.
 class OnlineEntryScreen extends ConsumerStatefulWidget {
-  const OnlineEntryScreen({super.key, this.initialCode});
+  const OnlineEntryScreen({
+    super.key,
+    this.initialCode,
+    this.fromInvite = false,
+  });
   final String? initialCode;
+
+  /// Opened from an invite link: join [initialCode] right away.
+  final bool fromInvite;
 
   @override
   ConsumerState<OnlineEntryScreen> createState() => _OnlineEntryScreenState();
@@ -28,6 +35,21 @@ class _OnlineEntryScreenState extends ConsumerState<OnlineEntryScreen> {
     text: normalizeCode(widget.initialCode ?? ''),
   );
   bool _invalid = false;
+
+  /// The invite link's room could not be joined (shown above the form).
+  bool _inviteFailed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.fromInvite) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        final ok = await _join();
+        if (!ok && mounted) setState(() => _inviteFailed = true);
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -40,15 +62,16 @@ class _OnlineEntryScreenState extends ConsumerState<OnlineEntryScreen> {
     if (ok && mounted) Navigator.of(context).pushReplacementNamed('/room');
   }
 
-  Future<void> _join() async {
+  Future<bool> _join() async {
     final code = normalizeCode(_code.text);
     if (!isValidCode(code)) {
       setState(() => _invalid = true);
-      return;
+      return false;
     }
     setState(() => _invalid = false);
     final ok = await ref.read(onlineControllerProvider.notifier).join(code);
     if (ok && mounted) Navigator.of(context).pushReplacementNamed('/room');
+    return ok;
   }
 
   @override
@@ -148,6 +171,50 @@ class _OnlineEntryScreenState extends ConsumerState<OnlineEntryScreen> {
                     ),
                   ],
                 ),
+                if (_inviteFailed) ...[
+                  const SizedBox(height: Gap.l),
+                  Container(
+                    key: const Key('invite-failed'),
+                    padding: const EdgeInsets.all(Gap.l),
+                    decoration: BoxDecoration(
+                      color: c.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: c.outline),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.link_off_rounded, color: c.danger),
+                        const SizedBox(width: Gap.m),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                l.inviteFailedTitle,
+                                style: TextStyle(
+                                  color: c.textPrimary,
+                                  fontSize: AppText.body,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: Gap.xs),
+                              Text(
+                                _invalid
+                                    ? l.inviteInvalidBody
+                                    : l.inviteFailedBody,
+                                style: TextStyle(
+                                  color: c.textSecondary,
+                                  fontSize: AppText.label,
+                                  height: 1.35,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: Gap.xl),
                 card(
                   key: const Key('create-room'),

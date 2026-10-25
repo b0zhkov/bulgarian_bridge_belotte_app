@@ -398,5 +398,151 @@
   "updateNow": "Обнови",
   "@updateNow": {
     "description": "Web app install / update (updateNow)."
+  },
+  "invite": "Покани",
+  "@invite": {
+    "description": "Beta 10: invites / score details (invite)."
+  },
+  "inviteTitle": "Покана за Белот",
+  "@inviteTitle": {
+    "description": "Beta 10: invites / score details (inviteTitle)."
+  },
+  "inviteFailedTitle": "Поканата не може да се отвори",
+  "@inviteFailedTitle": {
+    "description": "Beta 10: invites / score details (inviteFailedTitle)."
+  },
+  "inviteFailedBody": "Стаята от поканата е затворена или вече не съществува. Създай нова стая или въведи друг код.",
+  "@inviteFailedBody": {
+    "description": "Beta 10: invites / score details (inviteFailedBody)."
+  },
+  "inviteInvalidBody": "Кодът във връзката е грешен. Помоли приятеля си за нова покана или въведи кода ръчно.",
+  "@inviteInvalidBody": {
+    "description": "Beta 10: invites / score details (inviteInvalidBody)."
+  },
+  "declarationUpTo": "{name} {suit} до {rank}",
+  "@declarationUpTo": {
+    "description": "Beta 10: invites / score details (declarationUpTo).",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "suit": {
+        "type": "String"
+      },
+      "rank": {
+        "type": "String"
+      }
+    }
+  },
+  "roundingTitle": "Закръгляне",
+  "@roundingTitle": {
+    "description": "Beta 10: invites / score details (roundingTitle)."
+  },
+  "roundingInside": "Общо {total} → {rounded} за {team}",
+  "@roundingInside": {
+    "description": "Beta 10: invites / score details (roundingInside).",
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "rounded": {
+        "type": "int"
+      },
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "roundingHanging": "{team}: {raw} → {rounded}; {hang} висят",
+  "@roundingHanging": {
+    "description": "Beta 10: invites / score details (roundingHanging).",
+    "placeholders": {
+      "team": {
+        "type": "String"
+      },
+      "raw": {
+        "type": "int"
+      },
+      "rounded": {
+        "type": "int"
+      },
+      "hang": {
+        "type": "int"
+      }
+    }
+  },
+  "roundingMultiplied": "Общо {total} → {rounded} ×{factor} = {result} за {team}",
+  "@roundingMultiplied": {
+    "description": "Beta 10: invites / score details (roundingMultiplied).",
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "rounded": {
+        "type": "int"
+      },
+      "factor": {
+        "type": "int"
+      },
+      "result": {
+        "type": "int"
+      },
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "roundingMultipliedHanging": "Общо {total} → {rounded} ×{factor} = {result} висят",
+  "@roundingMultipliedHanging": {
+    "description": "Beta 10: invites / score details (roundingMultipliedHanging).",
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "rounded": {
+        "type": "int"
+      },
+      "factor": {
+        "type": "int"
+      },
+      "result": {
+        "type": "int"
+      }
+    }
+  },
+  "tapRowForDetails": "Докосни раздаване за подробности",
+  "@tapRowForDetails": {
+    "description": "Beta 10: invites / score details (tapRowForDetails)."
+  },
+  "dealNumberTitle": "Раздаване {n}",
+  "@dealNumberTitle": {
+    "description": "Beta 10: invites / score details (dealNumberTitle).",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "contractBy": "Играят: {team}",
+  "@contractBy": {
+    "description": "Beta 10: invites / score details (contractBy).",
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "trickPoints": "{points} т. във взятката",
+  "@trickPoints": {
+    "description": "Beta 10: invites / score details (trickPoints).",
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "lastTrickHides": "Скрива се при следващата карта",
+  "@lastTrickHides": {
+    "description": "Beta 10: invites / score details (lastTrickHides)."
   }
 }

@@ -23,6 +23,10 @@ import 'package:bulgarian_bridge_belotte_app/core/agents/bot_names.dart';
 import 'package:bulgarian_bridge_belotte_app/features/profile/match_history.dart';
 import 'package:bulgarian_bridge_belotte_app/features/stats/stats_controller.dart';
 
+import 'package:bulgarian_bridge_belotte_app/features/online/invite/web_bridge.dart';
+import 'package:bulgarian_bridge_belotte_app/features/online/room_code.dart';
+import 'package:flutter/services.dart';
+
 import 'fakes.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,6 +40,8 @@ void main() {
   final others = <RoomClient>[];
 
   setUp(() {
+    debugResetInvite();
+    debugLaunchUri = () => Uri.parse('http://localhost/');
     sound = FakeSoundPlayer();
     DealTiming.scale = 0;
     server = MemoryDbServer();
@@ -47,7 +53,7 @@ void main() {
   Future<ProviderContainer> pumpOnline(
     WidgetTester t, {
     String uid = 'me',
-    String name = 'Георги',
+    String? name = 'Георги',
     Size size = const Size(390, 844),
     Map<String, Object> prefs = const {},
   }) async {
@@ -55,7 +61,7 @@ void main() {
     t.view.devicePixelRatio = 1;
     addTearDown(t.view.reset);
     SharedPreferences.setMockInitialValues({
-      'player_name': name,
+      'player_name': ?name,
       'autoplay_enabled': false,
       ...prefs,
     });
@@ -661,5 +667,134 @@ void main() {
     await settle(t, 6);
     expect(container.read(matchHistoryProvider), hasLength(1));
     await finish(t, container);
+  });
+
+  // ------------------------------------------------------------- invites
+
+  Uri invite(String code) => Uri.parse(
+    'https://b0zhkov.github.io/bulgarian_bridge_belotte_app/?room=$code',
+  );
+
+  testWidgets('invite link on first launch: name, then straight to the lobby', (
+    t,
+  ) async {
+    final host = await other(t, 'h', 'Мария', create: true);
+    debugLaunchUri = () => invite('hjkmn');
+    final container = await pumpOnline(t, uid: 'me', name: null);
+    await t.pumpAndSettle();
+    expect(find.byType(NameScreen), findsWidgets);
+    await t.enterText(find.byType(TextField).last, 'Гошо');
+    await t.testTextInput.receiveAction(TextInputAction.done);
+    await t.pump();
+    await settle(t);
+    expect(find.byKey(const Key('lobby')), findsOneWidget);
+    expect(host.members['me']!.name, 'Гошо');
+    expect(find.text('Избери отбор'), findsOneWidget);
+    await finish(t, container);
+  });
+
+  testWidgets('invite link into a running game shows the waiting screen', (
+    t,
+  ) async {
+    final host = await other(t, 'h', 'Мария', create: true);
+    final b = await other(t, 'b', 'Иван', code: 'HJKMN');
+    await b.setTeam(1);
+    await settle(t, 3);
+    await host.addBots();
+    await settle(t, 3);
+    expect(await host.startMatch(), isTrue);
+    await settle(t, 3);
+    debugLaunchUri = () => invite('HJKMN');
+    final container = await pumpOnline(t, uid: 'me', name: 'Петър');
+    await settle(t);
+    expect(find.byKey(const Key('waiting-screen')), findsOneWidget);
+    await finish(t, container);
+  });
+
+  testWidgets('invite link to a missing room explains it in Bulgarian', (
+    t,
+  ) async {
+    debugLaunchUri = () => invite('QQQQQ');
+    final container = await pumpOnline(t, uid: 'me', name: 'Петър');
+    await settle(t);
+    expect(find.byKey(const Key('invite-failed')), findsOneWidget);
+    expect(find.text('Поканата не може да се отвори'), findsOneWidget);
+    expect(find.text('Няма стая с този код'), findsOneWidget);
+    // The code is filled in and the player can still create a room.
+    expect(find.byKey(const Key('create-room')), findsOneWidget);
+    await finish(t, container);
+  });
+
+  testWidgets('invite link with a broken code', (t) async {
+    debugLaunchUri = () => invite('ab');
+    final container = await pumpOnline(t, uid: 'me', name: 'Петър');
+    await settle(t);
+    expect(find.byKey(const Key('invite-failed')), findsOneWidget);
+    expect(find.textContaining('Кодът във връзката е грешен'), findsOneWidget);
+    await finish(t, container);
+  });
+
+  testWidgets('Покани: share sheet, or copy with a toast where there is none', (
+    t,
+  ) async {
+    final shared = <String>[];
+    var available = true;
+    debugInviteSharer = (title, text, origin) async {
+      if (!available) return ShareOutcome.unavailable;
+      shared.add(text);
+      return ShareOutcome.shared;
+    };
+    addTearDown(
+      () => debugInviteSharer = (a, b, c) async => ShareOutcome.unavailable,
+    );
+    String? clip;
+    t.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'Clipboard.setData') {
+          clip = (call.arguments as Map)['text'] as String;
+        }
+        return null;
+      },
+    );
+    addTearDown(
+      () => t.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+    final container = await pumpOnline(t, uid: 'me', name: 'Петър');
+    await t.tap(find.byKey(const Key('play-online')));
+    await t.pumpAndSettle();
+    await t.tap(find.byKey(const Key('create-room')));
+    await settle(t);
+    final code = container.read(onlineControllerProvider).client!.code;
+    expect(find.byKey(const Key('invite-button')), findsOneWidget);
+    expect(find.text('Покани'), findsOneWidget);
+    await t.tap(find.byKey(const Key('invite-button')));
+    await t.pump();
+    expect(shared, hasLength(1));
+    expect(
+      shared.single,
+      contains(
+        'https://b0zhkov.github.io/bulgarian_bridge_belotte_app/?room=$code',
+      ),
+    );
+    expect(find.text('Поканата е копирана'), findsNothing);
+    available = false;
+    await t.tap(find.byKey(const Key('invite-button')));
+    await t.pump();
+    await t.pump();
+    expect(clip, contains('?room=$code'));
+    expect(find.text('Поканата е копирана'), findsWidgets);
+    await finish(t, container);
+  });
+
+  test('invite codes from links', () {
+    expect(inviteCodeFrom(invite('hjkmn')), 'HJKMN');
+    expect(inviteCodeFrom(Uri.parse('https://x/?room=%20HJKMN%20')), 'HJKMN');
+    expect(inviteCodeFrom(Uri.parse('https://x/')), isNull);
+    expect(inviteCodeFrom(Uri.parse('https://x/?room=')), isNull);
+    expect(inviteLink('HJKMN'), invite('HJKMN').toString());
   });
 }

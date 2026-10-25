@@ -734,4 +734,81 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get updateNow => 'Update';
+
+  @override
+  String get invite => 'Invite';
+
+  @override
+  String get inviteTitle => 'Belot invite';
+
+  @override
+  String get inviteFailedTitle => 'Can\'t open this invite';
+
+  @override
+  String get inviteFailedBody =>
+      'The room from this invite is closed or no longer exists. Create a new room or enter another code.';
+
+  @override
+  String get inviteInvalidBody =>
+      'The code in this link is wrong. Ask your friend for a new invite or type the code.';
+
+  @override
+  String declarationUpTo(String name, String suit, String rank) {
+    return '$name $suit to $rank';
+  }
+
+  @override
+  String get roundingTitle => 'Rounding';
+
+  @override
+  String roundingInside(int total, int rounded, String team) {
+    return 'All $total → $rounded to $team';
+  }
+
+  @override
+  String roundingHanging(String team, int raw, int rounded, int hang) {
+    return '$team: $raw → $rounded; $hang hanging';
+  }
+
+  @override
+  String roundingMultiplied(
+    int total,
+    int rounded,
+    int factor,
+    int result,
+    String team,
+  ) {
+    return 'All $total → $rounded ×$factor = $result to $team';
+  }
+
+  @override
+  String roundingMultipliedHanging(
+    int total,
+    int rounded,
+    int factor,
+    int result,
+  ) {
+    return 'All $total → $rounded ×$factor = $result hanging';
+  }
+
+  @override
+  String get tapRowForDetails => 'Tap a deal for details';
+
+  @override
+  String dealNumberTitle(int n) {
+    return 'Deal $n';
+  }
+
+  @override
+  String contractBy(String team) {
+    return 'Playing: $team';
+  }
+
+  @override
+  String trickPoints(int points) {
+    return '$points points in this trick';
+  }
+
+  @override
+  String get lastTrickHides => 'Hides when the next card is played';
 }

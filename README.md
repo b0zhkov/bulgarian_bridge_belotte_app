@@ -147,6 +147,28 @@ Flutter app for Android, iOS and web. Rules follow [belot.bg](https://belot.bg/b
   and match result sounds are kept; all other effects were removed. The player is created and its pools
   preloaded at app start, and on the web every voice is unlocked by the first tap. Haptics are unchanged.
 
+## Beta 10 — invite links, last trick and score details
+- **Покани** (lobby code card and next to the in-game code) opens the native share sheet (`share_plus` on
+  Android/iOS, Web Share API in browsers that have it) with the text and
+  `https://b0zhkov.github.io/bulgarian_bridge_belotte_app/?room=CODE`; where there is no share sheet (desktop
+  browsers) the invite is copied with a toast. Tapping the code itself still copies.
+- **Opening an invite link** (web / installed PWA): first launch asks for the name, then the app goes straight to
+  joining that room with the usual rules (team pick in the lobby, waiting screen mid-game). A closed or unknown
+  room, or a broken code, shows *Поканата не може да се отвори* with the reason, the code filled in and
+  *Създай стая* still available. `?room=` is removed from the address bar once handled, so a reload does not
+  join again. The Android APK shares the same link (opens the web app); no APK deep link (Android App Links
+  would need `assetlinks.json` at the domain root, which GitHub project pages cannot serve).
+- **Last trick** (button in the trick area during play, offline and online): who played what and who took it,
+  plus the trick's points. It closes on tap, or by itself when the next card is played or the deal ends. Online
+  it uses the public trick list only (no new data, no rule changes).
+- **Score details**: tap a deal in the Ние/Вие sheet (in game and at match end) for its breakdown — contract
+  and who played it, card points, last 10, each declaration (терца/кварта/квинта with suit and top card, каре)
+  in its owner's column with the owner's name, белот per team, Без коз ×2, капо, raw totals, the outcome
+  (изкарана/вкарана/висяща, контра/реконтра ×2/×4) and the belot.bg rounding in words (e.g.
+  *Ние 96 → 9 · Вие 66 → 7*, *Общо 162 → 16 ×2 = 32 за Ние*), then the points written and hanging points. The
+  deal recap shows the same per-declaration lines and the rounding. Rounding display is recomputed by
+  `DealScoreRounding` and tested against the engine on random deals.
+
 ## Structure
 ```
 lib/

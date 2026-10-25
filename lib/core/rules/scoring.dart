@@ -291,3 +291,62 @@ extension DealScoreBreakdown on DealScore {
       scored[t] - (hangingAwardedTo == t ? hangingAwarded : 0),
   ];
 }
+
+/// How a deal's raw points became match points (belot.bg rounding), for the
+/// score details. Recomputed with [roundPoints]; the tests check it against
+/// [DealScore.scored].
+class DealRounding {
+  const DealRounding({
+    required this.outcome,
+    required this.factor,
+    required this.raw,
+    required this.rounded,
+    required this.total,
+    required this.roundedTotal,
+    required this.hanging,
+  });
+
+  final DealOutcome outcome;
+
+  /// 1, 2 (контра) or 4 (реконтра).
+  final int factor;
+
+  /// Raw points per team ([DealScore.rawPoints]).
+  final List<int> raw;
+
+  /// Each team's own raw points rounded (with the "lower team" rule).
+  final List<int> rounded;
+
+  /// Both teams' raw points together, and rounded.
+  final int total;
+  final int roundedTotal;
+
+  /// Match points left hanging by this deal.
+  final int hanging;
+
+  bool get multiplied => factor > 1;
+}
+
+extension DealScoreRounding on DealScore {
+  DealRounding get rounding {
+    final type = contract.type;
+    final lower = rawPoints[0] < rawPoints[1] ? 0 : 1;
+    final total = rawPoints[0] + rawPoints[1];
+    return DealRounding(
+      outcome: outcome,
+      factor: contract.multiplier.factor,
+      raw: rawPoints,
+      rounded: List.unmodifiable([
+        for (var t = 0; t < 2; t++)
+          roundPoints(
+            rawPoints[t],
+            type,
+            isLower: outcome != DealOutcome.hanging && t == lower,
+          ),
+      ]),
+      total: total,
+      roundedTotal: roundPoints(total, type),
+      hanging: newlyHanging,
+    );
+  }
+}

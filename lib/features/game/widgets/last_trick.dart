@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide Card;
 
 import '../../../core/rules/rules.dart';
@@ -8,9 +9,21 @@ import 'playing_card.dart';
 /// Small round button in the corner of the trick area; opens the previous
 /// trick.
 class LastTrickButton extends StatelessWidget {
-  const LastTrickButton({super.key, required this.trick, required this.nameOf});
+  const LastTrickButton({
+    super.key,
+    required this.trick,
+    required this.nameOf,
+    this.live,
+    this.contract,
+  });
   final Trick trick;
   final String Function(int seat) nameOf;
+
+  /// The table's game: the view closes when the next card is played.
+  final ValueListenable<GameState>? live;
+
+  /// For the trick's points.
+  final ContractType? contract;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +37,13 @@ class LastTrickButton extends StatelessWidget {
         child: InkWell(
           key: const Key('last-trick-button'),
           customBorder: const CircleBorder(),
-          onTap: () => showLastTrick(context, trick, nameOf),
+          onTap: () => showLastTrick(
+            context,
+            trick,
+            nameOf,
+            live: live,
+            contract: contract,
+          ),
           child: Padding(
             padding: const EdgeInsets.all(9),
             child: Icon(
@@ -39,14 +58,41 @@ class LastTrickButton extends StatelessWidget {
   }
 }
 
+/// Cards played so far in the deal (tricks done plus the current one).
+int playedCount(GameState g) =>
+    g.tricks.length * 4 + g.currentTrick.plays.length;
+
 /// Shows [trick] as a cross (you at the bottom) with names and the winner
-/// highlighted; any tap closes it.
+/// highlighted; any tap closes it, and so does the next card played (or the
+/// deal ending) when [live] is given.
 Future<void> showLastTrick(
   BuildContext context,
   Trick trick,
-  String Function(int seat) nameOf,
-) {
+  String Function(int seat) nameOf, {
+  ValueListenable<GameState>? live,
+  ContractType? contract,
+}) {
   final l = AppLocalizations.of(context);
+  final nav = Navigator.of(context);
+  final played = live == null ? null : playedCount(live.value);
+  final phase = live?.value.phase;
+  final deal = live?.value.dealNumber;
+  ModalRoute<Object?>? route;
+  void watch() {
+    final g = live!.value;
+    final r = route;
+    if (r == null || !r.isActive) return;
+    if (playedCount(g) != played || g.phase != phase || g.dealNumber != deal) {
+      // Only ever this dialog: never a route below it.
+      if (r.isCurrent) {
+        nav.pop();
+      } else {
+        nav.removeRoute(r);
+      }
+    }
+  }
+
+  live?.addListener(watch);
   return showGeneralDialog<void>(
     context: context,
     barrierDismissible: true,
@@ -60,26 +106,45 @@ Future<void> showLastTrick(
         child: child,
       ),
     ),
-    pageBuilder: (ctx, _, _) => GestureDetector(
-      key: const Key('last-trick'),
-      behavior: HitTestBehavior.opaque,
-      onTap: () => Navigator.of(ctx).pop(),
-      child: SafeArea(
-        child: Center(
-          child: Material(
-            type: MaterialType.transparency,
-            child: _LastTrickView(trick: trick, nameOf: nameOf),
+    pageBuilder: (ctx, _, _) {
+      route ??= ModalRoute.of(ctx);
+      return GestureDetector(
+        key: const Key('last-trick'),
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          // Already closing (e.g. the next card was played): never pop the
+          // table underneath.
+          if (route?.isCurrent ?? false) Navigator.of(ctx).pop();
+        },
+        child: SafeArea(
+          child: Center(
+            child: Material(
+              type: MaterialType.transparency,
+              child: _LastTrickView(
+                trick: trick,
+                nameOf: nameOf,
+                contract: contract,
+                autoHides: live != null,
+              ),
+            ),
           ),
         ),
-      ),
-    ),
-  );
+      );
+    },
+  ).whenComplete(() => live?.removeListener(watch));
 }
 
 class _LastTrickView extends StatelessWidget {
-  const _LastTrickView({required this.trick, required this.nameOf});
+  const _LastTrickView({
+    required this.trick,
+    required this.nameOf,
+    this.contract,
+    this.autoHides = false,
+  });
   final Trick trick;
   final String Function(int seat) nameOf;
+  final ContractType? contract;
+  final bool autoHides;
 
   static Alignment _at(int seat) => switch (seat) {
     0 => const Alignment(0, 0.62),
@@ -145,9 +210,21 @@ class _LastTrickView extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
+          if (contract case final t?)
+            Text(
+              l.trickPoints(
+                trick.cards.fold(0, (a, card) => a + cardPoints(card, t)),
+              ),
+              key: const Key('last-trick-points'),
+              style: TextStyle(
+                color: c.textSecondary,
+                fontSize: AppText.caption,
+              ),
+            ),
           const SizedBox(height: Gap.xs),
           Text(
-            l.tapToClose,
+            autoHides ? '${l.tapToClose} · ${l.lastTrickHides}' : l.tapToClose,
+            textAlign: TextAlign.center,
             style: TextStyle(color: c.textSecondary, fontSize: AppText.caption),
           ),
         ],
