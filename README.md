@@ -1,0 +1,1 @@
+# bulgarian_bridge_belotte_app
