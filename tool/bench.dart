@@ -73,26 +73,31 @@ void main(List<String> args) {
     );
   }
 
-  if (which == 'all' || which == 'easy')
+  if (which == 'all' || which == 'easy') {
     run('easy vs random', (s) => lvl(BotLevel.easy, s), rnd);
-  if (which == 'all' || which == 'medium')
+  }
+  if (which == 'all' || which == 'medium') {
     run('medium vs random', (s) => lvl(BotLevel.medium, s), rnd);
-  if (which == 'all' || which == 'me')
+  }
+  if (which == 'all' || which == 'me') {
     run(
       'medium vs easy',
       (s) => lvl(BotLevel.medium, s),
       (s) => lvl(BotLevel.easy, s),
     );
-  if (which == 'all' || which == 'he')
+  }
+  if (which == 'all' || which == 'he') {
     run(
       'hard vs easy',
       (s) => lvl(BotLevel.hard, s),
       (s) => lvl(BotLevel.easy, s),
     );
-  if (which == 'all' || which == 'hm')
+  }
+  if (which == 'all' || which == 'hm') {
     run(
       'hard vs medium',
       (s) => lvl(BotLevel.hard, s),
       (s) => lvl(BotLevel.medium, s),
     );
+  }
 }
