@@ -21,6 +21,8 @@ class SettingsScreen extends ConsumerWidget {
     final name = ref.watch(playerNameProvider);
     final hints = ref.watch(hintsEnabledProvider);
     final autoPlay = ref.watch(autoPlayEnabledProvider);
+    final sound = ref.watch(soundEnabledProvider);
+    final haptics = ref.watch(hapticsEnabledProvider);
 
     Widget section(String title) => Padding(
       padding: const EdgeInsets.only(top: Gap.xl, bottom: Gap.m, left: Gap.xs),
@@ -178,6 +180,24 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   ),
                 ],
+              ),
+              section(l.soundSection),
+              switchTile(
+                key: const Key('sound-switch'),
+                title: l.sound,
+                description: l.soundDescription,
+                value: sound,
+                onChanged: (v) =>
+                    ref.read(soundEnabledProvider.notifier).set(v),
+              ),
+              const SizedBox(height: Gap.s),
+              switchTile(
+                key: const Key('haptics-switch'),
+                title: l.haptics,
+                description: l.hapticsDescription,
+                value: haptics,
+                onChanged: (v) =>
+                    ref.read(hapticsEnabledProvider.notifier).set(v),
               ),
               section(l.gameplay),
               switchTile(

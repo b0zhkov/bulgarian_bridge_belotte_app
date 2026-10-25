@@ -515,4 +515,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lobbyBotLevel => 'Bots';
+
+  @override
+  String get soundSection => 'Sound & feel';
+
+  @override
+  String get sound => 'Sound';
+
+  @override
+  String get soundDescription => 'Soft sounds for dealing, plays and tricks';
+
+  @override
+  String get haptics => 'Haptics';
+
+  @override
+  String get hapticsDescription => 'Gentle taps on plays, tricks and contra';
 }

@@ -92,3 +92,26 @@ class BotLevelController extends Notifier<BotLevel> {
 final botLevelProvider = NotifierProvider<BotLevelController, BotLevel>(
   BotLevelController.new,
 );
+
+/// A persisted on/off preference.
+class BoolPref extends Notifier<bool> {
+  BoolPref(this._key, this._default);
+  final String _key;
+  final bool _default;
+
+  @override
+  bool build() => ref.read(sharedPrefsProvider).getBool(_key) ?? _default;
+
+  void set(bool v) {
+    state = v;
+    ref.read(sharedPrefsProvider).setBool(_key, v);
+  }
+}
+
+final soundEnabledProvider = NotifierProvider<BoolPref, bool>(
+  () => BoolPref('sound_enabled', true),
+);
+
+final hapticsEnabledProvider = NotifierProvider<BoolPref, bool>(
+  () => BoolPref('haptics_enabled', true),
+);

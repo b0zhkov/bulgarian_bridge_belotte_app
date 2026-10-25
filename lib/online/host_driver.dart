@@ -1,3 +1,4 @@
+import '../core/constants/deal_timing.dart';
 import '../core/agents/bot_agent.dart';
 import '../core/agents/bot_runner.dart';
 
@@ -169,7 +170,7 @@ class HostDriver {
     );
     version++;
     ready.clear();
-    _holdUntil = null;
+    _holdUntil = clock.now().add(DealTiming.hold(20));
     _agents.clear();
     _publish(extra: {'$_room/meta/status': 'playing'});
     _schedule();
@@ -218,6 +219,10 @@ class HostDriver {
     version++;
     if (next.tricks.length > before.tricks.length) {
       _holdUntil = clock.now().add(trickPause);
+    } else if (before.phase == GamePhase.bidding &&
+        next.phase == GamePhase.playing) {
+      // The last three cards are being dealt on every client.
+      _holdUntil = clock.now().add(DealTiming.hold(12));
     }
     _publish();
     _schedule();
@@ -330,7 +335,7 @@ class HostDriver {
     game = BelotEngine.nextDeal(g);
     version++;
     ready.clear();
-    _holdUntil = null;
+    _holdUntil = clock.now().add(DealTiming.hold(20));
     _publish();
     _schedule();
   }

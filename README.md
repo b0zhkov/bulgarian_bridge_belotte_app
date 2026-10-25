@@ -54,6 +54,23 @@ Flutter app for Android, iOS and web. Rules follow [belot.bg](https://belot.bg/b
   (`rooms/{code}/meta/lvl`). Bots pause 0.6–1.2 s. The hint uses the Средно bot's choice.
 - Benchmark: `dart run tool/bench.dart 100 <easy|medium|me|he|hm>` (seeded matches, sides swapped).
 
+## Beta 5 — sound and feel
+- Animated deal (`widgets/table_effects.dart`): card backs fly from the dealer counter-clockwise in belot order
+  (3 + 2 each, then 3 each after the contract), staggered 70 ms; the player's cards fan into the hand as they
+  land. Won tricks slide off toward the winner. Driven only by consecutive table states, so online clients
+  animate the same deal without extra messages; a client that (re)joins mid-deal just shows the cards. Input is
+  disabled while dealing and the drivers (offline controller, online host) hold bots for the animation
+  (`core/constants/deal_timing.dart`). Reduced motion (OS setting) skips the flights.
+- Sound (`features/feedback/sound.dart`, `audioplayers`): soft deal swish, card tap, trick collect, quiet
+  your-turn chime, declaration and belot tones, distinct contra/recontra, deal made/failed, match won/lost.
+  Pooled players so rapid cards overlap cleanly; mixes with other audio and respects the iOS silent switch; on
+  the web audio unlocks on the first tap.
+- Haptics on mobile: light on your plays and bids, medium on tricks your team wins and deal results, heavy on
+  contra/recontra and the match result.
+- Settings → **Звук и усещане**: Sound and Haptics toggles (persisted).
+- All sounds are synthesized by `tool/make_sounds.py` (numpy, 22 kHz mono WAV, ~290 KB total) and released as
+  CC0 — see `assets/sounds/LICENSE.md`. Regenerate with `python3 tool/make_sounds.py`.
+
 ## Structure
 ```
 lib/

@@ -14,8 +14,12 @@ class HandView extends StatelessWidget {
     required this.interactive,
     required this.onPlay,
     this.hint,
+    this.hidden = const {},
     this.maxCardWidth = 104,
   });
+
+  /// Cards still being dealt: left out, the rest fans around them.
+  final Set<Card> hidden;
 
   final List<Card> cards;
   final Set<Card> legal;
@@ -28,6 +32,12 @@ class HandView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cards = hidden.isEmpty
+        ? this.cards
+        : [
+            for (final c in this.cards)
+              if (!hidden.contains(c)) c,
+          ];
     return LayoutBuilder(
       builder: (context, box) {
         final w = box.maxWidth;
@@ -62,11 +72,13 @@ class HandView extends StatelessWidget {
                     onTap: interactive && legal.contains(card)
                         ? () => onPlay(card)
                         : null,
-                    child: PlayingCardView(
-                      card: card,
-                      width: cw,
-                      dimmed: interactive && !legal.contains(card),
-                      glow: interactive && card == hint,
+                    child: _FanIn(
+                      child: PlayingCardView(
+                        card: card,
+                        width: cw,
+                        dimmed: interactive && !legal.contains(card),
+                        glow: interactive && card == hint,
+                      ),
                     ),
                   ),
                 ),
@@ -74,6 +86,30 @@ class HandView extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// A card arriving in the hand: a short rise and fade in.
+class _FanIn extends StatelessWidget {
+  const _FanIn({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) return child;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+      child: child,
+      builder: (context, t, child) => Opacity(
+        opacity: t,
+        child: Transform.translate(
+          offset: Offset(0, 18 * (1 - t)),
+          child: child,
+        ),
+      ),
     );
   }
 }

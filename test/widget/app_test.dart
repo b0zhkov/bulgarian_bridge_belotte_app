@@ -8,6 +8,11 @@ import 'package:bulgarian_bridge_belotte_app/main.dart';
 import 'package:flutter/material.dart' hide Card;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:bulgarian_bridge_belotte_app/features/feedback/sound.dart';
+import 'package:bulgarian_bridge_belotte_app/core/constants/deal_timing.dart';
+
+import 'fakes.dart';
+
 import 'package:bulgarian_bridge_belotte_app/features/game/widgets/trick_area.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -22,7 +27,10 @@ Future<ProviderContainer> pumpApp(
   SharedPreferences.setMockInitialValues({'autoplay_enabled': false, ...prefs});
   final sp = await SharedPreferences.getInstance();
   final container = ProviderContainer(
-    overrides: [sharedPrefsProvider.overrideWithValue(sp)],
+    overrides: [
+      sharedPrefsProvider.overrideWithValue(sp),
+      soundPlayerProvider.overrideWithValue(sound),
+    ],
   );
   addTearDown(container.dispose);
   await t.pumpWidget(
@@ -37,8 +45,13 @@ Future<void> leave(WidgetTester t) async {
   await t.pump(const Duration(seconds: 45));
 }
 
+/// Sounds requested by the app under test.
+FakeSoundPlayer sound = FakeSoundPlayer();
+
 void main() {
   setUp(() {
+    sound = FakeSoundPlayer();
+    DealTiming.scale = 0;
     GameController.botDelay = const Duration(milliseconds: 10);
     GameController.trickPause = const Duration(milliseconds: 10);
     GameController.redealPause = const Duration(milliseconds: 10);

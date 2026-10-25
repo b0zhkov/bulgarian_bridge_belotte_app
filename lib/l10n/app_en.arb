@@ -157,5 +157,10 @@
   "levelHardHint": "Calculate the possible hands",
   "chooseDifficulty": "Choose difficulty",
   "play": "Play",
-  "lobbyBotLevel": "Bots"
+  "lobbyBotLevel": "Bots",
+  "soundSection": "Sound & feel",
+  "sound": "Sound",
+  "soundDescription": "Soft sounds for dealing, plays and tricks",
+  "haptics": "Haptics",
+  "hapticsDescription": "Gentle taps on plays, tricks and contra"
 }

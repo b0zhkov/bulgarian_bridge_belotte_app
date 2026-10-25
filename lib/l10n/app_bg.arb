@@ -233,5 +233,10 @@
   "levelHardHint": "Пресмятат възможните ръце",
   "chooseDifficulty": "Избери трудност",
   "play": "Играй",
-  "lobbyBotLevel": "Ботове"
+  "lobbyBotLevel": "Ботове",
+  "soundSection": "Звук и усещане",
+  "sound": "Звук",
+  "soundDescription": "Меки звуци при раздаване, ход и взятка",
+  "haptics": "Вибрация",
+  "hapticsDescription": "Леко потрепване при ход, взятка и контра"
 }

@@ -514,4 +514,19 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get lobbyBotLevel => 'Ботове';
+
+  @override
+  String get soundSection => 'Звук и усещане';
+
+  @override
+  String get sound => 'Звук';
+
+  @override
+  String get soundDescription => 'Меки звуци при раздаване, ход и взятка';
+
+  @override
+  String get haptics => 'Вибрация';
+
+  @override
+  String get hapticsDescription => 'Леко потрепване при ход, взятка и контра';
 }

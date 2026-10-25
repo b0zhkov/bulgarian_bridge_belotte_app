@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/agents/bot_agent.dart';
@@ -305,7 +304,6 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
   void humanBid(Bid bid) {
     final c = client;
     if (c == null || !humanBids().contains(bid)) return;
-    HapticFeedback.selectionClick();
     _pendingVersion = c.version;
     _turn.cancel();
     c.bid(bid);
@@ -316,7 +314,6 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
   void humanPlay(Card card) {
     final c = client;
     if (c == null || !humanLegalCards().contains(card)) return;
-    HapticFeedback.lightImpact();
     _pendingVersion = c.version;
     _turn.cancel();
     _hint = null;

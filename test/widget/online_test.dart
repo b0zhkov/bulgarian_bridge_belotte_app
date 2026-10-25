@@ -1,6 +1,7 @@
 import 'package:bulgarian_bridge_belotte_app/core/agents/bot_agent.dart';
 import 'package:bulgarian_bridge_belotte_app/core/rules/rules.dart';
 import 'package:bulgarian_bridge_belotte_app/features/game/game_screen.dart';
+import 'package:bulgarian_bridge_belotte_app/features/game/widgets/playing_card.dart';
 import 'package:bulgarian_bridge_belotte_app/features/online/online_controller.dart';
 import 'package:bulgarian_bridge_belotte_app/features/profile/name_screen.dart';
 import 'package:bulgarian_bridge_belotte_app/features/profile/profile_controller.dart';
@@ -13,14 +14,24 @@ import 'package:bulgarian_bridge_belotte_app/online/room_models.dart';
 import 'package:flutter/material.dart' hide Card;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:bulgarian_bridge_belotte_app/features/feedback/sound.dart';
+import 'package:bulgarian_bridge_belotte_app/core/constants/deal_timing.dart';
+
+import 'fakes.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Online UI against the in-memory database (no network).
+/// Sounds requested by the app under test.
+FakeSoundPlayer sound = FakeSoundPlayer();
+
 void main() {
   late MemoryDbServer server;
   final others = <RoomClient>[];
 
   setUp(() {
+    sound = FakeSoundPlayer();
+    DealTiming.scale = 0;
     server = MemoryDbServer();
     others.clear();
     HostDriver.botDelay = const Duration(milliseconds: 100);
@@ -44,6 +55,7 @@ void main() {
     final container = ProviderContainer(
       overrides: [
         sharedPrefsProvider.overrideWithValue(sp),
+        soundPlayerProvider.overrideWithValue(sound),
         dbConnectorProvider.overrideWithValue(() async => server.client(uid)),
       ],
     );
@@ -178,7 +190,14 @@ void main() {
       final r = t.getRect(find.byKey(Key(k)));
       expect(r.overlaps(toast), isFalse, reason: '$k vs toast');
     }
-    expect(find.text('Ники'), findsOneWidget);
+    // (The bidding centre may also name her seat as declarer.)
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('seat-1')),
+        matching: find.text('Ники'),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('🤖'), findsNWidgets(3));
     // The name/avatar crossfade out leaves no trace of the human.
     await t.pump(const Duration(milliseconds: 600));
@@ -274,7 +293,10 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final sp = await SharedPreferences.getInstance();
     final container = ProviderContainer(
-      overrides: [sharedPrefsProvider.overrideWithValue(sp)],
+      overrides: [
+        sharedPrefsProvider.overrideWithValue(sp),
+        soundPlayerProvider.overrideWithValue(sound),
+      ],
     );
     addTearDown(container.dispose);
     await t.pumpWidget(
@@ -312,5 +334,39 @@ void main() {
     await t.tap(find.byKey(const Key('level-easy')));
     await t.pumpAndSettle();
     expect(container.read(botLevelProvider), BotLevel.easy);
+  });
+
+  testWidgets('online deal is animated from state; bots wait for it', (
+    t,
+  ) async {
+    DealTiming.scale = 1;
+    addTearDown(() => DealTiming.scale = 0);
+    HostDriver.botDelay = const Duration(milliseconds: 10);
+    final container = await pumpOnline(t);
+    await t.tap(find.byKey(const Key('play-online')));
+    await t.pumpAndSettle();
+    await t.tap(find.byKey(const Key('create-room')));
+    await settle(t);
+    final code = container.read(onlineControllerProvider).client!.code;
+    final b = await other(t, 'b', 'Иванка', code: code);
+    await b.setTeam(1);
+    await settle(t);
+    await t.ensureVisible(find.byKey(const Key('add-bots')));
+    await t.tap(find.byKey(const Key('add-bots')));
+    await settle(t);
+    await t.ensureVisible(find.byKey(const Key('start-game')));
+    await t.tap(find.byKey(const Key('start-game')));
+    await settle(t, 4);
+    int backs() => find
+        .byWidgetPredicate((w) => w is PlayingCardView && !w.faceUp)
+        .evaluate()
+        .length;
+    expect(backs(), greaterThan(0), reason: 'cards are flying');
+    final game = container.read(onlineControllerProvider).table!.game;
+    expect(game.bids, isEmpty, reason: 'bots hold during the deal');
+    await settle(t, 40);
+    expect(backs(), 0);
+    expect(sound.played.where((s) => s == Sfx.deal).length, 20);
+    await finish(t, container);
   });
 }

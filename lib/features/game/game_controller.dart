@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/services.dart';
+import 'package:clock/clock.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/agents/hint.dart';
+import '../../core/constants/deal_timing.dart';
 import '../../core/agents/bot_agent.dart';
 import '../../core/agents/bot_runner.dart';
 import '../../core/rules/rules.dart';
@@ -137,7 +138,16 @@ class GameController extends Notifier<TableState> implements TableActions {
 
   /// A natural pause before a bot acts: [botDelay] to twice that
   /// (0.6–1.2 s by default).
-  Duration get _botPause => botDelay * (1 + _rnd.nextDouble());
+  Duration get _botPause {
+    final pause = botDelay * (1 + _rnd.nextDouble());
+    final hold = _dealHoldUntil?.difference(clock.now());
+    return hold != null && hold > pause ? hold : pause;
+  }
+
+  /// Bots wait while the cards are being dealt on screen.
+  DateTime? _dealHoldUntil;
+  void _holdForDeal(int cards) =>
+      _dealHoldUntil = clock.now().add(DealTiming.hold(cards));
 
   static Duration botDelay = const Duration(milliseconds: 600);
   static Duration trickPause = const Duration(milliseconds: 1100);
@@ -162,6 +172,7 @@ class GameController extends Notifier<TableState> implements TableActions {
       for (final s in [1, 2, 3]) s: BotAgent(level, seed: seed + s),
     };
     _rnd = Random(seed);
+    _holdForDeal(20);
     final initial = TableState(game: BelotEngine.newMatch(seed: seed));
     Future.microtask(_schedule);
     return initial;
@@ -226,6 +237,7 @@ class GameController extends Notifier<TableState> implements TableActions {
       case GamePhase.allPassed:
         _after(redealPause, () {
           if (state.game.phase == GamePhase.allPassed) {
+            _holdForDeal(20);
             state = state.copyWith(
               game: BelotEngine.nextDeal(state.game),
               bubbles: const {},
@@ -287,7 +299,9 @@ class GameController extends Notifier<TableState> implements TableActions {
 
   void _bid(int seat, Bid bid) {
     if (seat == kHumanSeat) _turn.cancel();
-    state = state.copyWith(game: BelotEngine.applyBid(state.game, seat, bid));
+    final next = BelotEngine.applyBid(state.game, seat, bid);
+    if (next.phase == GamePhase.playing) _holdForDeal(12);
+    state = state.copyWith(game: next);
     _schedule();
   }
 
@@ -340,20 +354,19 @@ class GameController extends Notifier<TableState> implements TableActions {
   @override
   void humanBid(Bid bid) {
     if (!humanBids().contains(bid)) return;
-    HapticFeedback.selectionClick();
     _bid(kHumanSeat, bid);
   }
 
   @override
   void humanPlay(Card card) {
     if (!humanLegalCards().contains(card)) return;
-    HapticFeedback.lightImpact();
     _play(kHumanSeat, card);
   }
 
   @override
   void nextDeal() {
     if (state.game.phase != GamePhase.dealScored) return;
+    _holdForDeal(20);
     state = state.copyWith(
       game: BelotEngine.nextDeal(state.game),
       bubbles: const {},

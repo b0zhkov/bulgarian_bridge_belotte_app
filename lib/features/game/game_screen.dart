@@ -13,6 +13,7 @@ import 'widgets/deal_result_panel.dart';
 import 'widgets/hand_view.dart';
 import 'widgets/history_sheet.dart';
 import 'widgets/player_avatar.dart';
+import 'widgets/table_effects.dart';
 import 'widgets/trick_area.dart';
 
 class GameScreen extends ConsumerWidget {
@@ -118,138 +119,155 @@ class TableView extends ConsumerWidget {
                 builder: (context, box) {
                   final narrow = box.maxWidth < 380;
                   final sideW = narrow ? 76.0 : 92.0;
-                  return Stack(
-                    children: [
-                      Column(
-                        children: [
-                          _TopBar(
-                            onBack: () => _confirmLeave(context),
-                            onScore: () => showHistorySheet(context, g),
-                            game: g,
-                          ),
-                          // Partner sits opposite (top), opponents left and right.
-                          PlayerAvatar(
-                            key: const Key('seat-2'),
-                            seat: 2,
-                            table: table,
-                            width: 120,
-                          ),
-                          Expanded(
-                            child: Row(
+                  return TableEffects(
+                    table: table,
+                    builder: (context, deal) => Stack(
+                      children: [
+                        Column(
+                          children: [
+                            _TopBar(
+                              onBack: () => _confirmLeave(context),
+                              onScore: () => showHistorySheet(context, g),
+                              game: g,
+                            ),
+                            // Partner sits opposite (top), opponents left and right.
+                            KeyedSubtree(
+                              key: deal.anchors[2],
+                              child: PlayerAvatar(
+                                key: const Key('seat-2'),
+                                seat: 2,
+                                table: table,
+                                width: 120,
+                              ),
+                            ),
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                    width: sideW,
+                                    child: Center(
+                                      child: KeyedSubtree(
+                                        key: deal.anchors[3],
+                                        child: PlayerAvatar(
+                                          key: const Key('seat-3'),
+                                          seat: 3,
+                                          table: table,
+                                          width: sideW,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(child: TrickArea(table: table)),
+                                  SizedBox(
+                                    width: sideW,
+                                    child: Center(
+                                      child: KeyedSubtree(
+                                        key: deal.anchors[1],
+                                        child: PlayerAvatar(
+                                          key: const Key('seat-1'),
+                                          seat: 1,
+                                          table: table,
+                                          width: sideW,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Stack(
+                              alignment: Alignment.center,
+                              clipBehavior: Clip.none,
                               children: [
-                                SizedBox(
-                                  width: sideW,
-                                  child: Center(
-                                    child: PlayerAvatar(
-                                      key: const Key('seat-3'),
-                                      seat: 3,
-                                      table: table,
-                                      width: sideW,
-                                    ),
-                                  ),
+                                _StatusLine(
+                                  table: table,
+                                  hintShown: hintsOn && table.hint != null,
                                 ),
-                                Expanded(child: TrickArea(table: table)),
-                                SizedBox(
-                                  width: sideW,
-                                  child: Center(
-                                    child: PlayerAvatar(
-                                      key: const Key('seat-1'),
-                                      seat: 1,
-                                      table: table,
-                                      width: sideW,
-                                    ),
-                                  ),
-                                ),
+                                ?notice,
                               ],
                             ),
-                          ),
-                          Stack(
-                            alignment: Alignment.center,
-                            clipBehavior: Clip.none,
-                            children: [
-                              _StatusLine(
-                                table: table,
-                                hintShown: hintsOn && table.hint != null,
-                              ),
-                              ?notice,
-                            ],
-                          ),
-                          const SizedBox(height: Gap.s),
-                          if (g.phase == GamePhase.bidding)
-                            _BiddingPanel(
-                              bids: ctrl.humanBids(),
-                              onBid: ctrl.humanBid,
-                              active: table.isHumanTurn,
-                              compact: box.maxHeight < 720,
-                            )
-                          else
-                            _SelfStrip(table: table, name: myName),
-                          const SizedBox(height: Gap.m),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: Gap.l,
-                            ),
-                            child: HandView(
-                              cards: sortHand(
-                                g.hands[kHumanSeat],
-                                g.phase == GamePhase.bidding
-                                    ? null
-                                    : g.contract?.type,
-                              ),
-                              legal: ctrl.humanLegalCards(),
-                              interactive:
-                                  table.isHumanTurn &&
-                                  g.phase == GamePhase.playing,
-                              hint: hintsOn ? table.hint : null,
-                              maxCardWidth: box.maxHeight < 720 ? 92 : 104,
-                              onPlay: ctrl.humanPlay,
-                            ),
-                          ),
-                          if (footer != null) ...[
                             const SizedBox(height: Gap.s),
-                            footer!,
-                            const SizedBox(height: Gap.s),
-                          ] else
-                            const SizedBox(height: Gap.l),
-                        ],
-                      ),
-                      if (showResult)
-                        Positioned.fill(
-                          child: DealResultPanel(
-                            game: g,
-                            onNext: ctrl.nextDeal,
-                            onNewMatch: ctrl.newMatch,
-                            newMatchLabel: newMatchLabel,
-                            waiting: table.waitingReady,
-                          ),
+                            if (g.phase == GamePhase.bidding)
+                              _BiddingPanel(
+                                bids: ctrl.humanBids(),
+                                onBid: ctrl.humanBid,
+                                active: table.isHumanTurn && !deal.dealing,
+                                compact: box.maxHeight < 720,
+                              )
+                            else
+                              _SelfStrip(table: table, name: myName),
+                            const SizedBox(height: Gap.m),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: Gap.l,
+                              ),
+                              child: KeyedSubtree(
+                                key: deal.anchors[kHumanSeat],
+                                child: HandView(
+                                  cards: sortHand(
+                                    g.hands[kHumanSeat],
+                                    g.phase == GamePhase.bidding
+                                        ? null
+                                        : g.contract?.type,
+                                  ),
+                                  legal: ctrl.humanLegalCards(),
+                                  hidden: deal.hiddenHand,
+                                  interactive:
+                                      table.isHumanTurn &&
+                                      !deal.dealing &&
+                                      g.phase == GamePhase.playing,
+                                  hint: hintsOn ? table.hint : null,
+                                  maxCardWidth: box.maxHeight < 720 ? 92 : 104,
+                                  onPlay: ctrl.humanPlay,
+                                ),
+                              ),
+                            ),
+                            if (footer != null) ...[
+                              const SizedBox(height: Gap.s),
+                              footer!,
+                              const SizedBox(height: Gap.s),
+                            ] else
+                              const SizedBox(height: Gap.l),
+                          ],
                         ),
-                      if (g.phase == GamePhase.allPassed)
-                        Positioned.fill(
-                          child: IgnorePointer(
-                            child: Center(
-                              child: Container(
-                                margin: const EdgeInsets.all(Gap.page),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: Gap.page,
-                                  vertical: Gap.m + 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: c.surfaceHigh,
-                                  borderRadius: BorderRadius.circular(40),
-                                ),
-                                child: Text(
-                                  l.allPassed,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: c.textPrimary,
-                                    fontSize: AppText.label,
+                        if (showResult)
+                          Positioned.fill(
+                            child: DealResultPanel(
+                              game: g,
+                              onNext: ctrl.nextDeal,
+                              onNewMatch: ctrl.newMatch,
+                              newMatchLabel: newMatchLabel,
+                              waiting: table.waitingReady,
+                            ),
+                          ),
+                        if (g.phase == GamePhase.allPassed)
+                          Positioned.fill(
+                            child: IgnorePointer(
+                              child: Center(
+                                child: Container(
+                                  margin: const EdgeInsets.all(Gap.page),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: Gap.page,
+                                    vertical: Gap.m + 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: c.surfaceHigh,
+                                    borderRadius: BorderRadius.circular(40),
+                                  ),
+                                  child: Text(
+                                    l.allPassed,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: c.textPrimary,
+                                      fontSize: AppText.label,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   );
                 },
               ),

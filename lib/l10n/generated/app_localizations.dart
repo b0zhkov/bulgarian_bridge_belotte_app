@@ -1045,6 +1045,36 @@ abstract class AppLocalizations {
   /// In bg, this message translates to:
   /// **'Ботове'**
   String get lobbyBotLevel;
+
+  /// No description provided for @soundSection.
+  ///
+  /// In bg, this message translates to:
+  /// **'Звук и усещане'**
+  String get soundSection;
+
+  /// No description provided for @sound.
+  ///
+  /// In bg, this message translates to:
+  /// **'Звук'**
+  String get sound;
+
+  /// No description provided for @soundDescription.
+  ///
+  /// In bg, this message translates to:
+  /// **'Меки звуци при раздаване, ход и взятка'**
+  String get soundDescription;
+
+  /// No description provided for @haptics.
+  ///
+  /// In bg, this message translates to:
+  /// **'Вибрация'**
+  String get haptics;
+
+  /// No description provided for @hapticsDescription.
+  ///
+  /// In bg, this message translates to:
+  /// **'Леко потрепване при ход, взятка и контра'**
+  String get hapticsDescription;
 }
 
 class _AppLocalizationsDelegate

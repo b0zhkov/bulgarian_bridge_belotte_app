@@ -11,10 +11,49 @@ import 'playing_card.dart';
 
 /// Centre of the table: the four cards of the current trick arranged in a
 /// cross (you at the bottom, partner at the top). Cards fly in from their
-/// owner's side.
-class TrickArea extends StatelessWidget {
+/// owner's side; a won trick slides off toward the winner's seat.
+class TrickArea extends StatefulWidget {
   const TrickArea({super.key, required this.table});
   final TableState table;
+
+  @override
+  State<TrickArea> createState() => _TrickAreaState();
+}
+
+class _TrickAreaState extends State<TrickArea>
+    with SingleTickerProviderStateMixin {
+  TableState get table => widget.table;
+
+  /// The trick being collected (animating toward its winner).
+  Trick? _leaving;
+  late final AnimationController _collect =
+      AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 380),
+      )..addStatusListener((s) {
+        if (s == AnimationStatus.completed && mounted) {
+          setState(() => _leaving = null);
+        }
+      });
+
+  @override
+  void didUpdateWidget(TrickArea old) {
+    super.didUpdateWidget(old);
+    final held = old.table.displayTrick;
+    if (held != null &&
+        held.winner != null &&
+        widget.table.displayTrick == null &&
+        !(MediaQuery.maybeDisableAnimationsOf(context) ?? false)) {
+      _leaving = held;
+      _collect.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _collect.dispose();
+    super.dispose();
+  }
 
   static Offset _dir(int seat) => switch (seat) {
     0 => const Offset(0, 1),
@@ -36,9 +75,41 @@ class TrickArea extends StatelessWidget {
         final center = Offset(box.maxWidth / 2, box.maxHeight / 2);
         final spreadX = cw * 1.15;
         final spreadY = ch * 0.63;
+        Offset slot(int seat) => Offset(
+          (center.dx + _dir(seat).dx * spreadX - cw / 2).roundToDouble(),
+          (center.dy + _dir(seat).dy * spreadY - ch / 2).roundToDouble(),
+        );
+        final leaving = _leaving;
         return Stack(
           clipBehavior: Clip.none,
           children: [
+            if (leaving != null)
+              for (final p in leaving.plays)
+                AnimatedBuilder(
+                  key: ValueKey('leaving-${leaving.leader}-${p.card.code}'),
+                  animation: _collect,
+                  builder: (context, child) {
+                    final t = Curves.easeInCubic.transform(_collect.value);
+                    final to =
+                        center -
+                        Offset(cw / 2, ch / 2) +
+                        _dir(leaving.winner!) *
+                            (box.maxWidth * 0.55 + cw * 0.5);
+                    final o = Offset.lerp(slot(p.seat), to, t)!;
+                    return Positioned(
+                      left: o.dx,
+                      top: o.dy,
+                      child: Opacity(
+                        opacity: (1 - t * t).clamp(0, 1),
+                        child: Transform.scale(
+                          scale: 1 - 0.35 * t,
+                          child: child,
+                        ),
+                      ),
+                    );
+                  },
+                  child: PlayingCardView(card: p.card, width: cw),
+                ),
             for (final p in trick.plays)
               _FlyingCard(
                 key: ValueKey('${trick.leader}-${p.card.code}'),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/theme/app_theme.dart';
+import 'features/feedback/sound.dart';
 import 'features/game/game_screen.dart';
 import 'features/home/home_screen.dart';
 import 'features/online/online_entry_screen.dart';
@@ -39,6 +40,13 @@ class BelotApp extends ConsumerWidget {
       locale: const Locale('bg'),
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
+      // Browsers only allow audio after a user gesture: unlock on the
+      // first tap anywhere.
+      builder: (context, child) => Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: (_) => ref.read(soundPlayerProvider).unlock(),
+        child: child,
+      ),
       routes: {
         '/': (_) => const _RootGate(),
         '/game': (_) => const _NameGate(child: GameScreen()),
