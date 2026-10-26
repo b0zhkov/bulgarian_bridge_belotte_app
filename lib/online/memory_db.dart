@@ -6,6 +6,10 @@ import 'db.dart';
 /// tests to simulate multiple players, disconnects and host migration
 /// without any network. Security rules are not modelled.
 class MemoryDbServer {
+  /// [timeSource] makes server timestamps real times (ms); by default they
+  /// are a counter starting at 1000.
+  MemoryDbServer({this.timeSource});
+  final int Function()? timeSource;
   Map<String, Object?> _root = {};
   int now = 1000;
   final List<_Listener> _listeners = [];
@@ -32,7 +36,7 @@ class MemoryDbServer {
   }
 
   Object? _resolve(String path, Object? v) {
-    if (v is ServerTimestamp) return now++;
+    if (v is ServerTimestamp) return timeSource?.call() ?? now++;
     if (v is Increment) return ((read(path) as num?) ?? 0).toInt() + v.delta;
     if (v is Map) {
       return {

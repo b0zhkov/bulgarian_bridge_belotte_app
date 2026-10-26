@@ -44,6 +44,9 @@ class HostDriver {
 
   /// Bots pause between [botDelay] and twice that (0.6–1.2 s) before acting.
   static Duration botDelay = const Duration(milliseconds: 600);
+
+  /// Minimum quick-match length for a rated result (tests may lower it).
+  static Duration minMatch = kMinMatch;
   static Duration trickPause = const Duration(milliseconds: 1400);
   static Duration redealPause = const Duration(milliseconds: 1800);
   static Duration dealEndTimeout = const Duration(seconds: 20);
@@ -188,6 +191,7 @@ class HostDriver {
   Future<bool> _begin(List<Seat> s) async {
     seats = s;
     _ratedMatch = null;
+    _startedAt = clock.now();
     game = BelotEngine.newMatch(
       seed: _rnd.nextInt(1 << 31),
       firstDealer: _rnd.nextInt(4),
@@ -196,7 +200,15 @@ class HostDriver {
     ready.clear();
     _holdUntil = clock.now().add(DealTiming.hold(20) + DealTiming.pageIn);
     _agents.clear();
-    _publish(extra: {'$_room/meta/status': 'playing'});
+    _publish(
+      extra: {
+        '$_room/meta/status': 'playing',
+        if (meta?.quick == true) ...{
+          '$_room/meta/st': const ServerTimestamp(),
+          '$_room/meta/ur': null,
+        },
+      },
+    );
     _schedule();
     await _queue;
     return true;
@@ -241,6 +253,19 @@ class HostDriver {
 
   /// Quick rooms: the host writes every rated player's Elo change once
   /// the match is over (humans seated and online at the end).
+  /// When this host started the current match (null after a migration:
+  /// then `meta/st` is used).
+  DateTime? _startedAt;
+
+  /// How long the current match has lasted, as far as this host knows.
+  Duration? get _matchLength {
+    final st = _startedAt;
+    if (st != null) return clock.now().difference(st);
+    final s = meta?.startedAt;
+    if (s == null) return null;
+    return Duration(milliseconds: clock.now().millisecondsSinceEpoch - s);
+  }
+
   void _writeRatingResults() {
     final m = meta;
     final g = game;
@@ -250,15 +275,31 @@ class HostDriver {
     final id = m.matchId;
     if (_ratedMatch == id) return;
     _ratedMatch = id;
-    final uids = [
-      for (final x in s)
-        !x.bot && members[x.uid]?.online == true ? x.uid : null,
-    ];
+    final uids = RoomLogic.ratedUids(s, members);
     final winner = g.winnerTeam!;
+    final len = _matchLength;
     _queue = _queue.then((_) async {
       if (_disposed) return;
+      final rs = RatingService(db);
+      UnratedReason? why;
+      if (!bothTeamsHuman(uids)) {
+        why = UnratedReason.bots;
+      } else if (len != null && len < minMatch) {
+        why = UnratedReason.short;
+      } else {
+        try {
+          await rs.writeResults(code, id, uids, winner);
+        } catch (_) {
+          // Rejected by the rules: most likely the server saw a shorter
+          // match than this host's clock.
+          why = len != null && len < minMatch + const Duration(minutes: 1)
+              ? UnratedReason.short
+              : UnratedReason.failed;
+        }
+      }
+      if (why == null) return;
       try {
-        await RatingService(db).writeResults(code, id, uids, winner);
+        await rs.markUnrated(code, id, why);
       } catch (_) {}
     });
   }

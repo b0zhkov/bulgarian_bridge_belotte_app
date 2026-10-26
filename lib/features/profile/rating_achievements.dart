@@ -93,7 +93,7 @@ class RatingCard extends ConsumerWidget {
             [
               if (next != null) '${rankName(l, next)} ${next.min}',
               l.ratingGames(r.games),
-              l.ratingNote,
+              l.ratingRules(kMinMatch.inMinutes, kDailyCap),
             ].join(' · '),
             style: TextStyle(color: c.textSecondary, fontSize: AppText.caption),
           ),

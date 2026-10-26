@@ -1054,4 +1054,45 @@ class AppLocalizationsBg extends AppLocalizations {
 
   @override
   String get languageEnglish => 'English';
+
+  @override
+  String get ratingUnratedBots => 'Без рейтинг — игра срещу ботове';
+
+  @override
+  String ratingUnratedShort(int min) {
+    return 'Без рейтинг — мачът продължи под $min минути';
+  }
+
+  @override
+  String get ratingUnratedFailed => 'Без рейтинг — резултатът не беше записан';
+
+  @override
+  String get ratingDailyCap => 'дневен лимит';
+
+  @override
+  String ratingRepeat(int n, int pct) {
+    return 'същите съперници, игра №$n за 24 ч → $pct%';
+  }
+
+  @override
+  String ratingLimitNote(String delta, String why) {
+    return '$delta ($why)';
+  }
+
+  @override
+  String ratingReducedNote(String delta, String raw, String why) {
+    return '$delta вместо $raw ($why)';
+  }
+
+  @override
+  String get quickUnratedChip => 'Без рейтинг · срещу ботове';
+
+  @override
+  String get quickUnratedHint =>
+      'Ако никой не се включи, играеш срещу ботове — без рейтинг.';
+
+  @override
+  String ratingRules(int min, int cap) {
+    return 'Рейтинг дават само бързи игри с хора и в двата отбора, продължили поне $min минути. Най-много +$cap на ден; срещу едни и същи съперници за 24 ч промяната намалява (100%, 50%, 25%, 0%).';
+  }
 }

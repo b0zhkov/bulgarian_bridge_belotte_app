@@ -52,12 +52,14 @@ class OnlineState {
     this.table,
     this.revision = 0,
     this.notice,
-    this.ratingChange,
+    this.rating,
     this.ratings = const {},
   });
 
   /// Quick match: this player's rating change after the match.
-  final RatingChange? ratingChange;
+  final RatingOutcome? rating;
+
+  RatingChange? get ratingChange => rating?.change;
 
   /// Quick match: ratings of the seated humans (uid → rating).
   final Map<String, int> ratings;
@@ -104,7 +106,7 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
   int _countedDeals = -1;
   String? _recordedMatch;
 
-  RatingChange? _ratingChange;
+  RatingOutcome? _rating;
   String? _ratedMatch;
   final Map<String, int> _ratings = {};
   final Set<String> _ratingsLoading = {};
@@ -196,7 +198,7 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
     _noticeTimer?.cancel();
     _emotes.clear();
     _countedDeals = -1;
-    _ratingChange = null;
+    _rating = null;
     _ratings.clear();
     _ratingsLoading.clear();
   }
@@ -341,14 +343,17 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
     final id = c.meta?.matchId;
     if (id == null || _ratedMatch == '${c.code}/$id') return;
     _ratedMatch = '${c.code}/$id';
-    RatingService(c.db).apply(c.code, id).then((r) {
-      if (r == null || _active != c) return;
-      _ratingChange = r;
-      _ratings[c.uid] = r.after;
-      ref.read(myRatingProvider.notifier).recordChange(r);
-      ref
-          .read(achievementsProvider.notifier)
-          .unlock(AchievementRules.forRating(r.after));
+    RatingService(c.db).apply(c.code, id).then((o) {
+      if (o == null || _active != c) return;
+      _rating = o;
+      final r = o.change;
+      if (r != null) {
+        _ratings[c.uid] = r.after;
+        ref.read(myRatingProvider.notifier).recordChange(r);
+        ref
+            .read(achievementsProvider.notifier)
+            .unlock(AchievementRules.forRating(r.after));
+      }
       _changed();
     });
   }
@@ -382,7 +387,7 @@ class OnlineController extends Notifier<OnlineState> implements TableActions {
       table: _buildTable(c),
       revision: state.revision + 1,
       notice: _notice,
-      ratingChange: _ratingChange,
+      rating: _rating,
       ratings: Map.unmodifiable(_ratings),
     );
   }

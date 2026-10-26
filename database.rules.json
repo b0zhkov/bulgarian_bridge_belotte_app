@@ -36,6 +36,14 @@
           "qm": {
             ".validate": "newData.isBoolean() && !data.exists()"
           },
+          "st": {
+            ".write": "auth != null && root.child('rooms').child($code).child('meta/host').val() === auth.uid",
+            ".validate": "newData.val() === now"
+          },
+          "ur": {
+            ".write": "auth != null && root.child('rooms').child($code).child('meta/host').val() === auth.uid",
+            ".validate": "newData.isString() && newData.val().length <= 64"
+          },
           "$other": {
             ".validate": false
           }
@@ -171,11 +179,23 @@
       ".read": "auth != null",
       "$uid": {
         ".write": "auth != null && auth.uid === $uid && (newData.exists() || data.child('r').val() >= 1000)",
-        ".validate": "newData.hasChildren(['r', 'g', 'c', 'x', 't']) && newData.child('c').isString() && newData.child('x').isString() && newData.child('t').val() === now && (!data.exists() || now >= data.child('t').val() + 120000) && root.child('qresults').child(newData.child('c').val()).child(newData.child('x').val()).child($uid).exists() && root.child('qresults').child(newData.child('c').val()).child(newData.child('x').val()).child($uid).child('b').val() === (data.exists() ? data.child('r').val() : 1000) && newData.child('r').val() === root.child('qresults').child(newData.child('c').val()).child(newData.child('x').val()).child($uid).child('b').val() + root.child('qresults').child(newData.child('c').val()).child(newData.child('x').val()).child($uid).child('d').val() && newData.child('g').val() === (data.exists() ? data.child('g').val() : 0) + 1",
+        ".validate": "newData.hasChildren(['r', 'g', 'c', 'x', 't', 'k', 'd', 'dy', 'gd']) && newData.child('t').val() === now && root.child('qresults').child(newData.child('c').val()).child(newData.child('x').val()).child($uid).exists() && root.child('qresults').child(newData.child('c').val()).child(newData.child('x').val()).child($uid).child('b').val() === (data.exists() ? data.child('r').val() : 1000) && root.child('qresults').child(newData.child('c').val()).child(newData.child('x').val()).child($uid).child('d').val() === newData.child('d').val() && root.child('qresults').child(newData.child('c').val()).child(newData.child('x').val()).child($uid).child('k').val() === newData.child('k').val() && (!data.exists() || data.child('c').val() !== newData.child('c').val() || data.child('x').val() !== newData.child('x').val()) && newData.child('g').val() === (data.exists() ? data.child('g').val() : 0) + 1 && newData.child('r').val() % 1 === 0 && newData.child('dy').val() % 1 === 0 && newData.child('dy').val() * 86400000 <= now && now < newData.child('dy').val() * 86400000 + 86400000 && ((newData.child('d').val() * ((root.child('rhist').child($uid).child(newData.child('k').val()).child('a').isNumber() && root.child('rhist').child($uid).child(newData.child('k').val()).child('a').val() > now - 86400000) ? ((root.child('rhist').child($uid).child(newData.child('k').val()).child('b').isNumber() && root.child('rhist').child($uid).child(newData.child('k').val()).child('b').val() > now - 86400000) ? ((root.child('rhist').child($uid).child(newData.child('k').val()).child('c').isNumber() && root.child('rhist').child($uid).child(newData.child('k').val()).child('c').val() > now - 86400000) ? 0 : 0.25) : 0.5) : 1)) > 0 ? ((newData.child('r').val() - (data.exists() ? data.child('r').val() : 1000)) >= ((newData.child('d').val() * ((root.child('rhist').child($uid).child(newData.child('k').val()).child('a').isNumber() && root.child('rhist').child($uid).child(newData.child('k').val()).child('a').val() > now - 86400000) ? ((root.child('rhist').child($uid).child(newData.child('k').val()).child('b').isNumber() && root.child('rhist').child($uid).child(newData.child('k').val()).child('b').val() > now - 86400000) ? ((root.child('rhist').child($uid).child(newData.child('k').val()).child('c').isNumber() && root.child('rhist').child($uid).child(newData.child('k').val()).child('c').val() > now - 86400000) ? 0 : 0.25) : 0.5) : 1)) < (100 - ((data.child('dy').val() === newData.child('dy').val()) ? data.child('gd').val() : 0)) ? (newData.child('d').val() * ((root.child('rhist').child($uid).child(newData.child('k').val()).child('a').isNumber() && root.child('rhist').child($uid).child(newData.child('k').val()).child('a').val() > now - 86400000) ? ((root.child('rhist').child($uid).child(newData.child('k').val()).child('b').isNumber() && root.child('rhist').child($uid).child(newData.child('k').val()).child('b').val() > now - 86400000) ? ((root.child('rhist').child($uid).child(newData.child('k').val()).child('c').isNumber() && root.child('rhist').child($uid).child(newData.child('k').val()).child('c').val() > now - 86400000) ? 0 : 0.25) : 0.5) : 1)) : (100 - ((data.child('dy').val() === newData.child('dy').val()) ? data.child('gd').val() : 0))) - 0.5 && (newData.child('r').val() - (data.exists() ? data.child('r').val() : 1000)) <= ((newData.child('d').val() * ((root.child('rhist').child($uid).child(newData.child('k').val()).child('a').isNumber() && root.child('rhist').child($uid).child(newData.child('k').val()).child('a').val() > now - 86400000) ? ((root.child('rhist').child($uid).child(newData.child('k').val()).child('b').isNumber() && root.child('rhist').child($uid).child(newData.child('k').val()).child('b').val() > now - 86400000) ? ((root.child('rhist').child($uid).child(newData.child('k').val()).child('c').isNumber() && root.child('rhist').child($uid).child(newData.child('k').val()).child('c').val() > now - 86400000) ? 0 : 0.25) : 0.5) : 1)) < (100 - ((data.child('dy').val() === newData.child('dy').val()) ? data.child('gd').val() : 0)) ? (newData.child('d').val() * ((root.child('rhist').child($uid).child(newData.child('k').val()).child('a').isNumber() && root.child('rhist').child($uid).child(newData.child('k').val()).child('a').val() > now - 86400000) ? ((root.child('rhist').child($uid).child(newData.child('k').val()).child('b').isNumber() && root.child('rhist').child($uid).child(newData.child('k').val()).child('b').val() > now - 86400000) ? ((root.child('rhist').child($uid).child(newData.child('k').val()).child('c').isNumber() && root.child('rhist').child($uid).child(newData.child('k').val()).child('c').val() > now - 86400000) ? 0 : 0.25) : 0.5) : 1)) : (100 - ((data.child('dy').val() === newData.child('dy').val()) ? data.child('gd').val() : 0))) + 0.5) : ((newData.child('r').val() - (data.exists() ? data.child('r').val() : 1000)) >= (newData.child('d').val() * ((root.child('rhist').child($uid).child(newData.child('k').val()).child('a').isNumber() && root.child('rhist').child($uid).child(newData.child('k').val()).child('a').val() > now - 86400000) ? ((root.child('rhist').child($uid).child(newData.child('k').val()).child('b').isNumber() && root.child('rhist').child($uid).child(newData.child('k').val()).child('b').val() > now - 86400000) ? ((root.child('rhist').child($uid).child(newData.child('k').val()).child('c').isNumber() && root.child('rhist').child($uid).child(newData.child('k').val()).child('c').val() > now - 86400000) ? 0 : 0.25) : 0.5) : 1)) - 0.5 && (newData.child('r').val() - (data.exists() ? data.child('r').val() : 1000)) <= (newData.child('d').val() * ((root.child('rhist').child($uid).child(newData.child('k').val()).child('a').isNumber() && root.child('rhist').child($uid).child(newData.child('k').val()).child('a').val() > now - 86400000) ? ((root.child('rhist').child($uid).child(newData.child('k').val()).child('b').isNumber() && root.child('rhist').child($uid).child(newData.child('k').val()).child('b').val() > now - 86400000) ? ((root.child('rhist').child($uid).child(newData.child('k').val()).child('c').isNumber() && root.child('rhist').child($uid).child(newData.child('k').val()).child('c').val() > now - 86400000) ? 0 : 0.25) : 0.5) : 1)) + 0.5)) && newData.child('gd').val() === ((data.child('dy').val() === newData.child('dy').val()) ? data.child('gd').val() : 0) + ((newData.child('r').val() - (data.exists() ? data.child('r').val() : 1000)) > 0 ? (newData.child('r').val() - (data.exists() ? data.child('r').val() : 1000)) : 0) && newData.child('gd').val() >= 0 && newData.child('gd').val() <= 100 && newData.parent().parent().child('rhist').child($uid).child(newData.child('k').val()).child('a').val() === now",
         "r": {
           ".validate": "newData.isNumber()"
         },
         "g": {
+          ".validate": "newData.isNumber()"
+        },
+        "t": {
+          ".validate": "newData.isNumber()"
+        },
+        "d": {
+          ".validate": "newData.isNumber()"
+        },
+        "dy": {
+          ".validate": "newData.isNumber()"
+        },
+        "gd": {
           ".validate": "newData.isNumber()"
         },
         "c": {
@@ -184,8 +204,8 @@
         "x": {
           ".validate": "newData.isString() && newData.val().length <= 40"
         },
-        "t": {
-          ".validate": "newData.isNumber()"
+        "k": {
+          ".validate": "newData.isString() && newData.val().length <= 80"
         },
         "$other": {
           ".validate": false
@@ -196,19 +216,50 @@
       "$code": {
         "$rid": {
           ".read": "auth != null",
-          ".write": "auth != null && !data.exists() && newData.exists() && root.child('rooms').child($code).child('meta').child('host').val() === auth.uid && root.child('rooms').child($code).child('meta').child('qm').val() === true && now >= root.child('rooms').child($code).child('meta').child('createdAt').val() + 120000",
+          ".write": "auth != null && !data.exists() && newData.exists() && root.child('rooms').child($code).child('meta').child('host').val() === auth.uid && root.child('rooms').child($code).child('meta').child('qm').val() === true && root.child('rooms').child($code).child('meta').child('st').isNumber() && now >= root.child('rooms').child($code).child('meta').child('st').val() + 480000",
           "$uid": {
             ".write": "auth != null && auth.uid === $uid && !newData.exists()",
-            ".validate": "newData.hasChildren(['b', 'd']) && newData.child('b').isNumber() && newData.child('d').isNumber() && newData.child('d').val() >= -32 && newData.child('d').val() <= 32 && newData.child('b').val() === (root.child('ratings').child($uid).exists() ? root.child('ratings').child($uid).child('r').val() : 1000)",
+            ".validate": "newData.hasChildren(['b', 'd', 'k', 'o1']) && newData.child('b').isNumber() && newData.child('d').isNumber() && newData.child('d').val() >= -32 && newData.child('d').val() <= 32 && newData.child('b').val() === (root.child('ratings').child($uid).exists() ? root.child('ratings').child($uid).child('r').val() : 1000) && root.child('rooms').child($code).child('members').child($uid).exists() && newData.child('o1').val() !== $uid && (newData.parent().child(newData.child('o1').val()).child('o1').val() === $uid || newData.parent().child(newData.child('o1').val()).child('o2').val() === $uid) && root.child('rooms').child($code).child('members').child(newData.child('o1').val()).exists() && (newData.child('o2').exists() ? (newData.child('o2').val() !== $uid && newData.child('o1').val() < newData.child('o2').val() && (newData.parent().child(newData.child('o2').val()).child('o1').val() === $uid || newData.parent().child(newData.child('o2').val()).child('o2').val() === $uid) && root.child('rooms').child($code).child('members').child(newData.child('o2').val()).exists() && newData.child('k').val() === newData.child('o1').val() + '_' + newData.child('o2').val()) : newData.child('k').val() === newData.child('o1').val())",
             "b": {
               ".validate": "newData.isNumber()"
             },
             "d": {
               ".validate": "newData.isNumber()"
             },
+            "o1": {
+              ".validate": "newData.isString() && newData.val().length <= 40"
+            },
+            "o2": {
+              ".validate": "newData.isString() && newData.val().length <= 40"
+            },
+            "k": {
+              ".validate": "newData.isString() && newData.val().length <= 80"
+            },
             "$other": {
               ".validate": false
             }
+          }
+        }
+      }
+    },
+    "rhist": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid && !newData.exists() && !root.child('ratings').child($uid).exists()",
+        "$hk": {
+          ".write": "auth != null && auth.uid === $uid && (newData.exists() || (data.child('a').isNumber() && data.child('a').val() < now - 86400000))",
+          ".validate": "$hk.matches(/^[A-Za-z0-9_]{1,80}$/) && newData.child('a').val() === now && (data.child('a').exists() ? newData.child('b').val() === data.child('a').val() : !newData.child('b').exists()) && (data.child('b').exists() ? newData.child('c').val() === data.child('b').val() : !newData.child('c').exists())",
+          "a": {
+            ".validate": "newData.isNumber()"
+          },
+          "b": {
+            ".validate": "newData.isNumber()"
+          },
+          "c": {
+            ".validate": "newData.isNumber()"
+          },
+          "$other": {
+            ".validate": false
           }
         }
       }

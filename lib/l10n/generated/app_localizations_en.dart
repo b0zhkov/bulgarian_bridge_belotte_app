@@ -1054,4 +1054,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get languageEnglish => 'English';
+
+  @override
+  String get ratingUnratedBots => 'Unrated — game against bots';
+
+  @override
+  String ratingUnratedShort(int min) {
+    return 'Unrated — the match lasted less than $min minutes';
+  }
+
+  @override
+  String get ratingUnratedFailed => 'Unrated — the result could not be saved';
+
+  @override
+  String get ratingDailyCap => 'daily limit';
+
+  @override
+  String ratingRepeat(int n, int pct) {
+    return 'same opponents, game #$n in 24 h → $pct%';
+  }
+
+  @override
+  String ratingLimitNote(String delta, String why) {
+    return '$delta ($why)';
+  }
+
+  @override
+  String ratingReducedNote(String delta, String raw, String why) {
+    return '$delta instead of $raw ($why)';
+  }
+
+  @override
+  String get quickUnratedChip => 'Unrated · vs bots';
+
+  @override
+  String get quickUnratedHint => 'If nobody joins, you play bots — unrated.';
+
+  @override
+  String ratingRules(int min, int cap) {
+    return 'Only quick matches with humans on both teams that last at least $min minutes are rated. At most +$cap per day; against the same opponents within 24 h the change shrinks (100%, 50%, 25%, 0%).';
+  }
 }

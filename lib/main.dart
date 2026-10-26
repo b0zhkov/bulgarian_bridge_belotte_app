@@ -13,6 +13,8 @@ import 'features/online/online_entry_screen.dart';
 import 'features/online/online_controller.dart';
 import 'online/host_driver.dart';
 import 'online/memory_db.dart';
+import 'online/rating.dart';
+import 'online/room_logic.dart';
 import 'features/online/invite/web_bridge.dart';
 import 'features/online/room_code.dart';
 import 'features/online/room_screen.dart';
@@ -28,6 +30,7 @@ import 'l10n/generated/app_localizations.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   _applyDemoTiming();
+  _seedDemoRating();
   final prefs = await SharedPreferences.getInstance();
   runApp(
     ProviderScope(
@@ -47,7 +50,33 @@ Future<void> main() async {
 /// screenshots): online features run against an in-memory backend, so
 /// nothing is written to the real database.
 const _demoMemoryDb = bool.fromEnvironment('DEMO_MEMORY_DB');
-final _demoServer = MemoryDbServer();
+final _demoServer = MemoryDbServer(
+  timeSource: () => DateTime.now().millisecondsSinceEpoch,
+);
+
+/// Development builds only (`--dart-define=DEMO_RATING=cap|repeat`, with
+/// DEMO_MEMORY_DB): a bot opposite the player counts as a human opponent
+/// for rating, and the in-memory database is seeded so that the result
+/// line shows the daily limit or the repeat-opponent reduction.
+const _demoRating = String.fromEnvironment('DEMO_RATING');
+
+void _seedDemoRating() {
+  if (!_demoMemoryDb || _demoRating.isEmpty) return;
+  RoomLogic.debugBotOpponent = 'demo-opp';
+  final now = DateTime.now().millisecondsSinceEpoch;
+  final db = _demoServer.client('demo-player');
+  if (_demoRating == 'cap') {
+    db.set('ratings/demo-player', {
+      'r': 1092,
+      'g': 9,
+      'dy': utcDay(now),
+      'gd': 92,
+    });
+  } else if (_demoRating == 'repeat') {
+    db.set('ratings/demo-player', {'r': 1040, 'g': 4});
+    db.set('rhist/demo-player/demo-opp', {'a': now - 2 * 3600000});
+  }
+}
 
 /// Development builds only (`--dart-define=DEMO_AUTOPLAY_MS=…`, used for
 /// screenshots): faster auto-play and bots. Release builds keep defaults.

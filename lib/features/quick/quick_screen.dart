@@ -153,6 +153,19 @@ class _QuickMatchScreenState extends ConsumerState<QuickMatchScreen> {
                           fontSize: AppText.caption,
                         ),
                       ),
+                      if (s.found <= 1) ...[
+                        const SizedBox(height: Gap.xs),
+                        Text(
+                          l.quickUnratedHint,
+                          key: const Key('quick-unrated-hint'),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: c.accent,
+                            fontSize: AppText.caption,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: Gap.l),
                       Text(
                         '${l.rating} ${rating.value} · ${rankName(l, rating.rank)}',

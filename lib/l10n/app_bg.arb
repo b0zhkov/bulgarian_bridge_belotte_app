@@ -679,5 +679,65 @@
   "tableFelt": "Сукно",
   "tableWine": "Бордо",
   "tableSlate": "Графит",
-  "languageEnglish": "English"
+  "languageEnglish": "English",
+  "ratingUnratedBots": "Без рейтинг — игра срещу ботове",
+  "ratingUnratedShort": "Без рейтинг — мачът продължи под {min} минути",
+  "@ratingUnratedShort": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "ratingUnratedFailed": "Без рейтинг — резултатът не беше записан",
+  "ratingDailyCap": "дневен лимит",
+  "ratingRepeat": "същите съперници, игра №{n} за 24 ч → {pct}%",
+  "@ratingRepeat": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "pct": {
+        "type": "int"
+      }
+    }
+  },
+  "ratingLimitNote": "{delta} ({why})",
+  "@ratingLimitNote": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      },
+      "why": {
+        "type": "String"
+      }
+    }
+  },
+  "ratingReducedNote": "{delta} вместо {raw} ({why})",
+  "@ratingReducedNote": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      },
+      "raw": {
+        "type": "String"
+      },
+      "why": {
+        "type": "String"
+      }
+    }
+  },
+  "quickUnratedChip": "Без рейтинг · срещу ботове",
+  "quickUnratedHint": "Ако никой не се включи, играеш срещу ботове — без рейтинг.",
+  "ratingRules": "Рейтинг дават само бързи игри с хора и в двата отбора, продължили поне {min} минути. Най-много +{cap} на ден; срещу едни и същи съперници за 24 ч промяната намалява (100%, 50%, 25%, 0%).",
+  "@ratingRules": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "cap": {
+        "type": "int"
+      }
+    }
+  }
 }

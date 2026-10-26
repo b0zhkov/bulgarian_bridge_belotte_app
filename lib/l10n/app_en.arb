@@ -486,5 +486,15 @@
   "tableFelt": "Felt",
   "tableWine": "Burgundy",
   "tableSlate": "Slate",
-  "languageEnglish": "English"
+  "languageEnglish": "English",
+  "ratingUnratedBots": "Unrated — game against bots",
+  "ratingUnratedShort": "Unrated — the match lasted less than {min} minutes",
+  "ratingUnratedFailed": "Unrated — the result could not be saved",
+  "ratingDailyCap": "daily limit",
+  "ratingRepeat": "same opponents, game #{n} in 24 h → {pct}%",
+  "ratingLimitNote": "{delta} ({why})",
+  "ratingReducedNote": "{delta} instead of {raw} ({why})",
+  "quickUnratedChip": "Unrated · vs bots",
+  "quickUnratedHint": "If nobody joins, you play bots — unrated.",
+  "ratingRules": "Only quick matches with humans on both teams that last at least {min} minutes are rated. At most +{cap} per day; against the same opponents within 24 h the change shrinks (100%, 50%, 25%, 0%)."
 }

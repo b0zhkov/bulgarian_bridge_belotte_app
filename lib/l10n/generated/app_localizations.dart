@@ -2010,6 +2010,66 @@ abstract class AppLocalizations {
   /// In bg, this message translates to:
   /// **'English'**
   String get languageEnglish;
+
+  /// No description provided for @ratingUnratedBots.
+  ///
+  /// In bg, this message translates to:
+  /// **'Без рейтинг — игра срещу ботове'**
+  String get ratingUnratedBots;
+
+  /// No description provided for @ratingUnratedShort.
+  ///
+  /// In bg, this message translates to:
+  /// **'Без рейтинг — мачът продължи под {min} минути'**
+  String ratingUnratedShort(int min);
+
+  /// No description provided for @ratingUnratedFailed.
+  ///
+  /// In bg, this message translates to:
+  /// **'Без рейтинг — резултатът не беше записан'**
+  String get ratingUnratedFailed;
+
+  /// No description provided for @ratingDailyCap.
+  ///
+  /// In bg, this message translates to:
+  /// **'дневен лимит'**
+  String get ratingDailyCap;
+
+  /// No description provided for @ratingRepeat.
+  ///
+  /// In bg, this message translates to:
+  /// **'същите съперници, игра №{n} за 24 ч → {pct}%'**
+  String ratingRepeat(int n, int pct);
+
+  /// No description provided for @ratingLimitNote.
+  ///
+  /// In bg, this message translates to:
+  /// **'{delta} ({why})'**
+  String ratingLimitNote(String delta, String why);
+
+  /// No description provided for @ratingReducedNote.
+  ///
+  /// In bg, this message translates to:
+  /// **'{delta} вместо {raw} ({why})'**
+  String ratingReducedNote(String delta, String raw, String why);
+
+  /// No description provided for @quickUnratedChip.
+  ///
+  /// In bg, this message translates to:
+  /// **'Без рейтинг · срещу ботове'**
+  String get quickUnratedChip;
+
+  /// No description provided for @quickUnratedHint.
+  ///
+  /// In bg, this message translates to:
+  /// **'Ако никой не се включи, играеш срещу ботове — без рейтинг.'**
+  String get quickUnratedHint;
+
+  /// No description provided for @ratingRules.
+  ///
+  /// In bg, this message translates to:
+  /// **'Рейтинг дават само бързи игри с хора и в двата отбора, продължили поне {min} минути. Най-много +{cap} на ден; срещу едни и същи съперници за 24 ч промяната намалява (100%, 50%, 25%, 0%).'**
+  String ratingRules(int min, int cap);
 }
 
 class _AppLocalizationsDelegate

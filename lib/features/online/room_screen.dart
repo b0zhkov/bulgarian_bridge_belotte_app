@@ -164,14 +164,16 @@ class RoomScreen extends ConsumerWidget {
           actions: ctrl,
           onLeave: () => _leave(context, ref, confirm: false),
           // Quick rooms are for strangers: no code / invite.
-          footer: quick ? null : RoomCodeChip(code: c.code),
+          footer: quick
+              ? (RoomLogic.lineupRated(c.seats!) ? null : const UnratedChip())
+              : RoomCodeChip(code: c.code),
           newMatchLabel: quick ? l.quickAgain : l.backToLobby,
           onNewMatch: quick ? () => _quickAgain(context, ref) : null,
           secondaryLabel: quick ? l.goHome : null,
           onSecondary: quick
               ? () => _leave(context, ref, confirm: false)
               : null,
-          matchExtra: quick ? RatingChangeLine(change: s.ratingChange) : null,
+          matchExtra: quick ? RatingChangeLine(outcome: s.rating) : null,
           leaveTitle: l.leaveOnlineGameTitle,
           leaveBody: l.leaveOnlineGameBody,
           notice: SeatNoticeToast(notice: s.notice),
@@ -777,18 +779,34 @@ class SeatNoticeToast extends StatelessWidget {
   }
 }
 
-/// Quick match: "Rating 1012 (+12) · Silver" under the final score.
+/// Quick match, under the final score: "Rating 1012 (+12) · Silver",
+/// with a second line when the anti-farming limits reduced the change
+/// ("+8 (daily limit)", "+16 instead of +32 (same opponents …)"), or the
+/// reason the match was unrated.
 class RatingChangeLine extends StatelessWidget {
-  const RatingChangeLine({super.key, this.change});
-  final RatingChange? change;
+  const RatingChangeLine({super.key, this.outcome});
+  final RatingOutcome? outcome;
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final c = context.colors;
-    final r = change;
+    final o = outcome;
+    final r = o?.change;
+    if (o != null && r == null) {
+      return Text(
+        unratedText(l, o.unrated!),
+        key: const Key('rating-unrated'),
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: c.textSecondary,
+          fontSize: AppText.body,
+          fontWeight: FontWeight.w600,
+        ),
+      );
+    }
     final up = (r?.delta ?? 0) >= 0;
-    return Text(
+    final main = Text(
       r == null
           ? l.ratingPending
           : l.ratingChange(
@@ -802,6 +820,68 @@ class RatingChangeLine extends StatelessWidget {
         color: r == null ? c.textSecondary : (up ? c.success : c.danger),
         fontSize: AppText.body,
         fontWeight: FontWeight.w600,
+      ),
+    );
+    if (r == null || !r.limited) return main;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        main,
+        const SizedBox(height: 2),
+        Text(
+          limitText(l, r),
+          key: const Key('rating-limit'),
+          textAlign: TextAlign.center,
+          style: TextStyle(color: c.accent, fontSize: AppText.caption),
+        ),
+      ],
+    );
+  }
+
+  static String unratedText(AppLocalizations l, UnratedReason r) => switch (r) {
+    UnratedReason.bots => l.ratingUnratedBots,
+    UnratedReason.short => l.ratingUnratedShort(kMinMatch.inMinutes),
+    UnratedReason.failed => l.ratingUnratedFailed,
+  };
+
+  static String limitText(AppLocalizations l, RatingChange r) {
+    final why = [
+      if (r.repeated) l.ratingRepeat(r.nth, (r.factor * 100).round()),
+      if (r.capped) l.ratingDailyCap,
+    ].join(' · ');
+    return r.repeated
+        ? l.ratingReducedNote(signed(r.delta), signed(r.raw), why)
+        : l.ratingLimitNote(signed(r.delta), why);
+  }
+}
+
+/// Quick match table: the line-up has no human on one team, so the match
+/// will not be rated.
+class UnratedChip extends StatelessWidget {
+  const UnratedChip({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final c = context.colors;
+    return Center(
+      child: DecoratedBox(
+        key: const Key('quick-unrated-chip'),
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: Text(
+            l.quickUnratedChip,
+            style: TextStyle(
+              color: c.textSecondary,
+              fontSize: AppText.caption,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -321,13 +321,13 @@ void main() {
         a.flushMicrotasks();
         final res = server.read('qresults/ABCDE/m0_1') as Map;
         // Team 0: (1100 + 1000) / 2 = 1050 vs bots/B (1000) → won: +14.
-        expect(res['A'], {'b': 1100, 'd': 14});
-        expect(res['B'], {'b': 1000, 'd': -14});
+        expect(res['A'], {'b': 1100, 'd': 14, 'k': 'B', 'o1': 'B'});
+        expect(res['B'], {'b': 1000, 'd': -14, 'k': 'A', 'o1': 'A'});
         RatingChange? ca, cb;
-        ra.apply('ABCDE', 'm0_1').then((x) => ca = x);
+        ra.apply('ABCDE', 'm0_1').then((x) => ca = x?.change);
         RatingService(server.client('B'))
             .apply('ABCDE', 'm0_1')
-            .then((x) => cb = x);
+            .then((x) => cb = x?.change);
         a.flushMicrotasks();
         a.elapse(const Duration(milliseconds: 10));
         expect(ca!.after, 1114);
@@ -337,14 +337,15 @@ void main() {
         expect(server.read('qresults/ABCDE/m0_1/A'), isNull, reason: 'used');
         // Applying again does nothing (the result is gone).
         RatingService.resultWait = const Duration(seconds: 1);
-        RatingChange? again;
+        RatingOutcome? again;
         ra.apply('ABCDE', 'm0_1').then((x) => again = x);
         a.elapse(const Duration(seconds: 2));
-        expect(again, isNull);
+        expect(again?.change, isNull);
+        expect(again?.unrated, UnratedReason.failed);
       });
     });
 
-    test('a finished quick match writes results for players still seated', () {
+    test('a quick match against bots only is unrated', () {
       fakeAsync((a) {
         server = MemoryDbServer();
         QuickMatcher.wait = const Duration(seconds: 1);
@@ -364,19 +365,9 @@ void main() {
         );
         a.elapse(const Duration(milliseconds: 100));
         final id = c.meta!.matchId;
-        final res = server.read('qresults/QQQQQ/$id') as Map;
-        expect(res.keys, ['A']);
-        final d = (res['A'] as Map)['d'] as int;
-        expect(
-          d,
-          c.game!.winnerTeam == RoomLogicSeat.team(c.mySeat!) ? 16 : -16,
-        );
+        expect(server.read('qresults/QQQQQ/$id'), isNull);
+        expect(server.read('rooms/QQQQQ/meta/ur'), '$id:bots');
       });
     });
   });
-}
-
-/// Seat → team helper for readability.
-class RoomLogicSeat {
-  static int team(int seat) => seat % 2;
 }

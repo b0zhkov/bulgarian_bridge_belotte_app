@@ -163,7 +163,15 @@ class RoomMeta {
     this.botLevel = BotLevel.medium,
     this.quick = false,
     this.createdAt = 0,
+    this.startedAt,
+    this.unrated,
   });
+
+  /// Server time the current match started (`meta/st`).
+  final int? startedAt;
+
+  /// `"{matchId}:{reason}"` when the host marked a quick match unrated.
+  final String? unrated;
 
   /// A quick-match room (public matchmaking, no invite UI, rated).
   final bool quick;
@@ -207,6 +215,8 @@ class RoomMeta {
       botLevel: BotLevel.parse(v['lvl'] as String?),
       quick: v['qm'] == true,
       createdAt: (v['createdAt'] as num?)?.toInt() ?? 0,
+      startedAt: (v['st'] as num?)?.toInt(),
+      unrated: v['ur'] as String?,
     );
   }
 }

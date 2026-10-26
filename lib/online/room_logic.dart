@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import '../core/rules/rules.dart';
+import 'rating.dart';
 import 'room_models.dart';
 
 /// Pure room rules: lobby/teams, seats, host election, bot takeover and
@@ -186,14 +187,58 @@ class RoomLogic {
     Random rng,
   ) {
     final order = [0, 1, 2, 3]..shuffle(rng);
+    final n = min(humans.length, 4);
+    // With two or more humans both teams get one, so the match is rated.
+    if (n >= 2 && order.take(n).every((s) => s % 2 == order[0] % 2)) {
+      final j = order.indexWhere((s) => s % 2 != order[0] % 2);
+      final t = order[1];
+      order[1] = order[j];
+      order[j] = t;
+    }
     final seats = List<Seat>.filled(4, const Seat.bot());
-    for (var i = 0; i < humans.length && i < 4; i++) {
+    for (var i = 0; i < n; i++) {
       final h = humans[i];
       seats[order[i]] = h.present
           ? Seat.human(h.uid, h.name)
           : Seat.bot(name: h.name, heldFor: h.uid);
     }
     return seats;
+  }
+
+  /// Development builds only (screenshots of rated lines against an
+  /// in-memory backend): a bot opposite the first human counts as this
+  /// human opponent for rating.
+  static String? debugBotOpponent;
+
+  /// Per seat, the uid that counts for rating: humans seated and online.
+  static List<String?> ratedUids(
+    List<Seat> seats,
+    Map<String, Member> members,
+  ) {
+    final out = [
+      for (final x in seats)
+        !x.bot && members[x.uid]?.online == true ? x.uid : null,
+    ];
+    return _withDebugOpponent(seats, out);
+  }
+
+  /// Whether the current line-up can still be rated: both teams have a
+  /// human seated or a reserved seat (an absent player may come back).
+  static bool lineupRated(List<Seat> seats) {
+    final out = [for (final x in seats) !x.bot ? x.uid : x.heldFor];
+    return bothTeamsHuman(_withDebugOpponent(seats, out));
+  }
+
+  static List<String?> _withDebugOpponent(List<Seat> seats, List<String?> u) {
+    final opp = debugBotOpponent;
+    final me = u.indexWhere((x) => x != null);
+    if (opp == null || me < 0) return u;
+    for (final s in [(me + 1) % 4, (me + 3) % 4]) {
+      if (seats[s].bot && seats[s].heldFor == null) {
+        return [...u]..[s] = opp;
+      }
+    }
+    return u;
   }
 
   /// Validates and applies a bid/play intent from [seat]. Returns null when
